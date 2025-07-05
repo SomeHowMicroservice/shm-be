@@ -1,0 +1,13 @@
+go get -u gorm.io/gorm    (ORM Framework)
+
+go get -u gorm.io/driver/postgres    (Gorm with PostgreSQL)
+
+go get -u github.com/gin-gonic/gin   (Backend Framework) 
+
+go get google.golang.org/grpc    (gRPC Library)
+
+go get github.com/spf13/viper    (Load config Library)
+
+go get github.com/google/uuid    (UUID Library)
+
+go get github.com/redis/go-redis/v9    (Redis Library)

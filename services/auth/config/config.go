@@ -6,15 +6,12 @@ type Config struct {
 	App struct {
 		GRPCPort string `mapstructure:"grpc_port"`
 	} `mapstructure:"app"`
-	
-	Database struct {
-		DBHost           string `mapstructure:"pg_host"`
-		DBName           string `mapstructure:"pg_database"`
-		DBUser           string `mapstructure:"pg_user"`
-		DBPassword       string `mapstructure:"pg_password"`
-		DBSSLMode        string `mapstructure:"pg_ssl_mode"`
-		DBChannelBinding string `mapstructure:"pg_channel_binding"`
-	} `mapstructure:"database"`
+
+	Cache struct {
+		CHost     string `mapstructure:"rd_host"`
+		CPort     string `mapstructure:"rd_port"`
+		CPassword string `mapstructure:"rd_password"`
+	} `mapstructure:"cache"`
 }
 
 func LoadConfig() (*Config, error) {

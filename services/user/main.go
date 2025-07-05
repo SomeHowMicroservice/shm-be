@@ -10,7 +10,7 @@ import (
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Tải cấu hình thất bại: %v", err)
+		log.Fatalf("Tải cấu hình User Service thất bại: %v", err)
 	}
 
 	fmt.Println("Listening on:", cfg.App.GRPCPort)
