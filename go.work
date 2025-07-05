@@ -1,0 +1,11 @@
+go 1.23.4
+
+use (
+	./gateway
+	./services/auth
+	./services/order
+	./services/payment
+	./services/product
+	./services/user
+	./common
+)

@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package user;
+option go_package = "github.com/SomeHowMicroservice/shm-be/services/user/protobuf";
+
+service UserService {
+  rpc GetUserById(GetUserByIdRequest) returns (UserResponse);
+
+  rpc GetUserByEmail(GetUserByEmailRequest) returns (UserResponse);
+
+  rpc GetUserByUsername(GetUserByUsernameRequest) returns (UserResponse);
+
+  rpc CreateUser(CreateUserRequest) returns (UserResponse);
+
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+message GetUserByIdRequest {
+  string id = 1;
+}
+
+message GetUserByEmailRequest {
+  string email = 1;
+}
+
+message GetUserByUsernameRequest {
+  string username = 1;
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message UserResponse {
+  User user = 1;
+}
+
+message DeleteUserResponse {
+  string message = 1;
+}

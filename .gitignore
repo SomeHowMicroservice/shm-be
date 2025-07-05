@@ -1,6 +1,6 @@
-.env 
-go.work
+.env
 tmp/
 *.exe
 *.exe~
 *.http
+*.yaml
