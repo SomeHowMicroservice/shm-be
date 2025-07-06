@@ -4,7 +4,7 @@ import "github.com/spf13/viper"
 
 type Config struct {
 	App struct {
-		GRPCPort string `mapstructure:"grpc_port"`
+		GRPCPort int64 `mapstructure:"grpc_port"`
 	} `mapstructure:"app"`
 	
 	Database struct {

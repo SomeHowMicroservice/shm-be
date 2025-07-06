@@ -11,3 +11,5 @@ go get github.com/spf13/viper    (Load config Library)
 go get github.com/google/uuid    (UUID Library)
 
 go get github.com/redis/go-redis/v9    (Redis Library)
+
+go get github.com/go-playground/validator/v10 (Validator Library)

@@ -2,19 +2,19 @@ package config
 
 import "github.com/spf13/viper"
 
-type Config struct {
+type AppConfig struct {
 	App struct {
-		GRPCPort int64 `mapstructure:"grpc_port"`
+		ServerHost  string `mapstructure:"server_host"`
+		GRPCPort int64  `mapstructure:"grpc_port"`
 	} `mapstructure:"app"`
 
-	Cache struct {
-		CHost     string `mapstructure:"rd_host"`
-		CPort     string `mapstructure:"rd_port"`
-		CPassword string `mapstructure:"rd_password"`
-	} `mapstructure:"cache"`
+	Services struct {
+		AuthPort int64 `mapstructure:"auth_port"`
+		UserPort int64 `mapstructure:"user_port"`
+	} `mapstructure:"services"`
 }
 
-func LoadConfig() (*Config, error) {
+func LoadConfig() (*AppConfig, error) {
 	viper.SetConfigFile("config/config.yaml")
 	viper.SetConfigType("yaml")
 
@@ -22,7 +22,7 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	var config Config
+	var config AppConfig
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, err
 	}
