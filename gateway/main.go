@@ -22,7 +22,7 @@ func main() {
 		log.Fatalf("Tải cấu hình Gateway thất bại: %v", err)
 	}
 
-	authAddr = cfg.App.ServerHost + ":" + fmt.Sprintf("%d", cfg.Services.AuthPort)
+	authAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.AuthPort)
 	clients := initialization.InitClients(authAddr)
 
 	appContainer := container.NewContainer(clients.AuthClient)
@@ -31,5 +31,5 @@ func main() {
 	api := r.Group("/api/v1")
 	router.AuthRouter(api, clients.AuthClient, appContainer.Auth.Handler)
 
-	r.Run(":" + fmt.Sprintf("%d", cfg.App.GRPCPort))
+	r.Run(fmt.Sprintf(":%d", cfg.App.GRPCPort))
 }

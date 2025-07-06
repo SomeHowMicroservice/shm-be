@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 
 	"github.com/SomeHowMicroservice/shm-be/services/auth/config"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/initialization"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -14,12 +16,21 @@ func main() {
 		log.Fatalf("Tải cấu hình Auth Service thất bại: %v", err)
 	}
 
-	rdb, err := initialization.InitCache(cfg)
+	_, err = initialization.InitCache(cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Println("Listening on:", cfg.App.GRPCPort)
-	fmt.Println("Cache host:", cfg.Cache.CHost)
-	fmt.Println("Cache", rdb)
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
+	if err != nil {
+		log.Fatalf("Không thể lắng nghe: %v", err)
+	}
+	defer lis.Close()
+
+	grpcServer := grpc.NewServer()
+
+	log.Println("Khởi chạy service thành công")
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("Kết nối tới phục vụ thất bại: %v", err)
+	}
 }
