@@ -6,17 +6,17 @@ option go_package = "github.com/SomeHowMicroservice/shm-be/services/auth/protobu
 service AuthService {
   rpc SignUp(SignUpRequest) returns (SignUpResponse);
 
-  rpc VerifySignUp(VerifySignUpRequest) returns (VerifySignUpResponse);
+  // rpc VerifySignUp(VerifySignUpRequest) returns (VerifySignUpResponse);
 
-  rpc SignIn(SignInRequest) returns (SignInResponse);
+  // rpc SignIn(SignInRequest) returns (SignInResponse);
 }
 
-message UserResponse {
-  string id = 1;
-  string username = 2;
-  string email = 3;
-  string created_at = 5;
-}
+// message UserResponse {
+//   string id = 1;
+//   string username = 2;
+//   string email = 3;
+//   string created_at = 5;
+// }
 
 message SignUpRequest {
   string username = 1;
@@ -29,30 +29,30 @@ message SignUpResponse {
   string message = 2;
 }
 
-message VerifySignUpRequest {
-  string registration_token = 1;
-  string otp = 2;
-}
+// message VerifySignUpRequest {
+//   string registration_token = 1;
+//   string otp = 2;
+// }
 
-message VerifySignUpResponse {
-  string access_token = 1;
-  int64 access_expires_in = 2;
-  string refresh_token = 3;
-  int64 refresh_expires_in = 4;
-  UserResponse user = 5;
-  string message = 6;
-}
+// message VerifySignUpResponse {
+//   string access_token = 1;
+//   int64 access_expires_in = 2;
+//   string refresh_token = 3;
+//   int64 refresh_expires_in = 4;
+//   UserResponse user = 5;
+//   string message = 6;
+// }
 
-message SignInRequest {
-  string username = 1;
-  string password = 2;
-}
+// message SignInRequest {
+//   string username = 1;
+//   string password = 2;
+// }
 
-message SignInResponse {
-  string access_token = 1;
-  int64 access_expires_in = 2;
-  string refresh_token = 3;
-  int64 refresh_expires_in = 4;
-  UserResponse user = 5;
-  string message = 6;
-}
+// message SignInResponse {
+//   string access_token = 1;
+//   int64 access_expires_in = 2;
+//   string refresh_token = 3;
+//   int64 refresh_expires_in = 4;
+//   UserResponse user = 5;
+//   string message = 6;
+// }

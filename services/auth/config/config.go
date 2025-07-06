@@ -4,8 +4,13 @@ import "github.com/spf13/viper"
 
 type Config struct {
 	App struct {
+		ServerHost string `mapstructure:"server_host"`
 		GRPCPort int64 `mapstructure:"grpc_port"`
 	} `mapstructure:"app"`
+
+	Services struct {
+		UserPort int64 `mapstructure:"user_port"`
+	} `mapstructure:"services"`
 
 	Cache struct {
 		CHost     string `mapstructure:"rd_host"`

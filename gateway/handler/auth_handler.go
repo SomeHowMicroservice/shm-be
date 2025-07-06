@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -40,6 +41,7 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
+		fmt.Println(err)
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.AlreadyExists:

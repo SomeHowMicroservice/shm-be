@@ -18,7 +18,7 @@ func InitClients(authAddr string) *GRPCClients {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	authConn, err := grpc.DialContext(ctx, authAddr, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	authConn, err := grpc.DialContext(ctx, authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("Kết nối tới Auth Service thất bại: %v", err)
 	}
