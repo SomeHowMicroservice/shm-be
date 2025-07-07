@@ -24,16 +24,36 @@ func NewGRPCHandler(grpcServer *grpc.Server, svc service.UserService) *grpcHandl
 	}
 }
 
+func (h *grpcHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckEmailExistsRequest) (*protobuf.CheckEmailExistsResponse, error) {
+	exists, err := h.svc.CheckEmailExists(ctx, req.Email)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &protobuf.CheckEmailExistsResponse{
+		Exists: exists,
+	}, nil
+}
+
+func (h *grpcHandler) CheckUsernameExists(ctx context.Context, req *protobuf.CheckUsernameExistsRequest) (*protobuf.CheckUsernameExistsResponse, error) {
+	exists, err := h.svc.CheckUsernameExists(ctx, req.Username)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &protobuf.CheckUsernameExistsResponse{
+		Exists: exists,
+	}, nil
+}
+
 func (h *grpcHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*protobuf.UserResponse, error) {
 	user, err := h.svc.CreateUser(ctx, req)
 	if err != nil {
 		switch {
-		case errors.Is(err, customErr.ErrUsernameAlreadyExists):
-			return nil, status.Error(codes.AlreadyExists, customErr.ErrUsernameAlreadyExists.Error())
-		case errors.Is(err, customErr.ErrEmailAlreadyExists):
-			return nil, status.Error(codes.AlreadyExists, customErr.ErrEmailAlreadyExists.Error())
+		case errors.Is(err, customErr.ErrUsernameAlreadyExists) || errors.Is(err, customErr.ErrEmailAlreadyExists):
+			return nil, status.Error(codes.AlreadyExists, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "Lỗi user service")
+			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
 

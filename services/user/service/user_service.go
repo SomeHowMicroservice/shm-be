@@ -8,5 +8,9 @@ import (
 )
 
 type UserService interface {
+	CheckEmailExists(ctx context.Context, email string) (bool, error)
+
+	CheckUsernameExists(ctx context.Context, username string) (bool, error)
+
 	CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*model.User, error)
 }

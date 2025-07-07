@@ -11,6 +11,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/auth/handler"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/initialization"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
+	"github.com/SomeHowMicroservice/shm-be/services/auth/repository"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/service"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"google.golang.org/grpc"
@@ -27,7 +28,7 @@ func main() {
 		log.Fatalf("Tải cấu hình Auth Service thất bại: %v", err)
 	}
 
-	_, err = initialization.InitCache(cfg)
+	rdb, err := initialization.InitCache(cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -43,7 +44,8 @@ func main() {
 	userClient := userpb.NewUserServiceClient(userConn)
 
 	grpcServer := grpc.NewServer()
-	svc := service.NewAuthService(userClient)
+	cacheRepo := repository.NewCacheRepository(rdb)
+	svc := service.NewAuthService(cacheRepo, userClient)
 	authHandler := handler.NewGRPCHandler(grpcServer, svc)
 
 	protobuf.RegisterAuthServiceServer(grpcServer, authHandler)
