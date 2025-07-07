@@ -2,48 +2,45 @@ package service
 
 import (
 	"context"
-	"time"
+	"fmt"
 
+	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	"github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/SomeHowMicroservice/shm-be/services/user/repository"
 	"github.com/SomeHowMicroservice/shm-be/services/user/utils"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type userServiceImpl struct {
 	repo repository.UserRepository
-	protobuf.UnimplementedUserServiceServer
 }
 
 func NewUserService(repo repository.UserRepository) UserService {
 	return &userServiceImpl{
 		repo: repo,
-		UnimplementedUserServiceServer: protobuf.UnimplementedUserServiceServer{},
 	}
 }
 
-func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*protobuf.UserResponse, error) {
+func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*model.User, error) {
 	exists, err := s.repo.ExistsByUsername(ctx, req.Username)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Không thể kiểm tra username: %v", err)
+		return nil, err
 	}
 	if exists {
-		return nil, status.Error(codes.AlreadyExists, "Username đã tồn tại")
+		return nil, customErr.ErrUsernameAlreadyExists
 	}
 
 	exists, err = s.repo.ExistsByEmail(ctx, req.Email)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Không thể kiểm tra email: %v", err)
+		return nil, err
 	}
 	if exists {
-		return nil, status.Error(codes.AlreadyExists, "Email đã tồn tại")
+		return nil, customErr.ErrEmailAlreadyExists
 	}
 
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, err
 	}
 
 	user := &model.User{
@@ -53,15 +50,8 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 	}
 
 	if err = s.repo.Create(ctx, user); err != nil {
-		return nil, status.Errorf(codes.Internal, "Không thể tạo người dùng: %v", err)
+		return nil, fmt.Errorf("không thể tạo người dùng: %w", err)
 	}
 
-	return &protobuf.UserResponse{
-		Id: user.ID.String(),
-		Username: user.Username,
-		Email: user.Email,
-		Password: hashedPassword,
-		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-	}, nil
+	return user, nil
 }

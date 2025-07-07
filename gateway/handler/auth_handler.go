@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -37,26 +36,24 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 
 	res, err := h.Client.SignUp(ctx, &authpb.SignUpRequest{
 		Username: req.Username,
-		Email: req.Email,
+		Email:    req.Email,
 		Password: req.Password,
 	})
 	if err != nil {
-		fmt.Println(err)
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.AlreadyExists:
 				common.JSON(c, http.StatusConflict, st.Message(), nil)
-				return
+			case codes.InvalidArgument:
+				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
 			default:
 				common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
-				return
 			}
+			return
 		}
-		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
 		return
 	}
 
-	common.JSON(c, http.StatusOK, res.Message,res.RegistrationToken)
+	common.JSON(c, http.StatusOK, res.Message, res.RegistrationToken)
 }
-
-
