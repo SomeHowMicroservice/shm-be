@@ -27,7 +27,7 @@ func (s *userServiceImpl) CheckEmailExists(ctx context.Context, email string) (b
 		return false, fmt.Errorf("lỗi kiểm tra email: %w", err)
 	}
 
-	return exists, err
+	return exists, nil
 }
 
 func (s *userServiceImpl) CheckUsernameExists(ctx context.Context, username string) (bool, error) {
@@ -36,7 +36,7 @@ func (s *userServiceImpl) CheckUsernameExists(ctx context.Context, username stri
 		return false, fmt.Errorf("lỗi kiểm tra username: %w", err)
 	}
 
-	return exists, err
+	return exists, nil
 }
 
 func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*model.User, error) {
