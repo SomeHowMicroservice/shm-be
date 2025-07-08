@@ -10,7 +10,7 @@ import (
 )
 
 func InitCache(cfg *config.Config) (*redis.Client, error) {
-	rAddr := cfg.Cache.CHost + ":" + cfg.Cache.CPort
+	rAddr := cfg.Cache.CHost + fmt.Sprintf(":%d", cfg.Cache.CPort)
 	rdb := redis.NewClient(&redis.Options{
 		Addr: rAddr,
 		Password: cfg.Cache.CPassword,

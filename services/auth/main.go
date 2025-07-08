@@ -7,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/SomeHowMicroservice/shm-be/common/smtp"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/config"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/handler"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/initialization"
@@ -45,7 +46,16 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	cacheRepo := repository.NewCacheRepository(rdb)
-	svc := service.NewAuthService(cacheRepo, userClient)
+
+	mailerCfg := &smtp.MailerConfig{
+		Host: cfg.SMTP.Host,
+		Port: cfg.SMTP.Port,
+		Username: cfg.SMTP.Username,
+		Password: cfg.SMTP.Password,
+	}
+
+	mailer := smtp.NewMailer(mailerCfg)
+	svc := service.NewAuthService(cacheRepo, userClient, mailer)
 	authHandler := handler.NewGRPCHandler(grpcServer, svc)
 
 	protobuf.RegisterAuthServiceServer(grpcServer, authHandler)

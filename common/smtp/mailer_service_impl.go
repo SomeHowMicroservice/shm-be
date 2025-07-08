@@ -9,13 +9,14 @@ import (
 )
 
 type mailerImpl struct {
-	cfg  MailerConfig
+	cfg  *MailerConfig
 	auth smtp.Auth
 }
 
+//go:embed template/auth.html
 var emailTemplates embed.FS
 
-func NewMailer(cfg MailerConfig) Mailer {
+func NewMailer(cfg *MailerConfig) Mailer {
 	auth := smtp.PlainAuth("", cfg.Username, cfg.Password, cfg.Host)
 	return &mailerImpl{
 		cfg:  cfg,
@@ -26,11 +27,11 @@ func NewMailer(cfg MailerConfig) Mailer {
 func (s *mailerImpl) Send(to, subject, body string) error {
 	msg := []byte(fmt.Sprintf("Subject: %s\r\nMIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n%s", subject, body))
 	addr := fmt.Sprintf("%s:%d", s.cfg.Host, s.cfg.Port)
-	return smtp.SendMail(addr, s.auth, s.cfg.From, []string{to}, msg)
+	return smtp.SendMail(addr, s.auth, s.cfg.Username, []string{to}, msg)
 }
 
 func (s *mailerImpl) SendAuthEmail(to, subject, otp string) error {
-	tmpl, err := template.ParseFS(emailTemplates, "template/aut.html")
+	tmpl, err := template.ParseFS(emailTemplates, "template/auth.html")
 	if err != nil {
 		return fmt.Errorf("không thể load template: %w", err)
 	}

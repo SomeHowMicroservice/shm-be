@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
+	"github.com/SomeHowMicroservice/shm-be/common/smtp"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/common"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/repository"
@@ -16,12 +18,14 @@ import (
 type authServiceImpl struct {
 	cacheRepo  repository.CacheRepository
 	userClient userpb.UserServiceClient
+	mailer     smtp.Mailer
 }
 
-func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient) AuthService {
+func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.Mailer) AuthService {
 	return &authServiceImpl{
 		userClient: userClient,
 		cacheRepo:  cacheRepo,
+		mailer:     mailer,
 	}
 }
 
@@ -60,6 +64,10 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 
 	if err = s.cacheRepo.SaveRegistrationData(ctx, registrationToken, registrationData, 3*time.Minute); err != nil {
 		return "", fmt.Errorf("lưu dữ liệu đăng ký vào bộ nhớ đệm thất bại: %w", err)
+	}
+
+	if err := s.mailer.SendAuthEmail(req.Email, "Xác thực đăng ký tài khoản tại SomeHow", otp); err != nil {
+		log.Printf("Gửi mail thất bại: %v", err)
 	}
 
 	return registrationToken, nil

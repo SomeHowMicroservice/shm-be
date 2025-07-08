@@ -5,5 +5,4 @@ type MailerConfig struct {
 	Port     int
 	Username string
 	Password string
-	From     string
 }

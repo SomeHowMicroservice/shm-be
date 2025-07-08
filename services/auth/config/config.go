@@ -5,7 +5,7 @@ import "github.com/spf13/viper"
 type Config struct {
 	App struct {
 		ServerHost string `mapstructure:"server_host"`
-		GRPCPort int64 `mapstructure:"grpc_port"`
+		GRPCPort   int64  `mapstructure:"grpc_port"`
 	} `mapstructure:"app"`
 
 	Services struct {
@@ -14,9 +14,16 @@ type Config struct {
 
 	Cache struct {
 		CHost     string `mapstructure:"rd_host"`
-		CPort     string `mapstructure:"rd_port"`
+		CPort     int `mapstructure:"rd_port"`
 		CPassword string `mapstructure:"rd_password"`
 	} `mapstructure:"cache"`
+
+	SMTP struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+	} `mapstructure:"smtp"`
 }
 
 func LoadConfig() (*Config, error) {
