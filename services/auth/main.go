@@ -55,7 +55,7 @@ func main() {
 	}
 
 	mailer := smtp.NewMailer(mailerCfg)
-	svc := service.NewAuthService(cacheRepo, userClient, mailer)
+	svc := service.NewAuthService(cacheRepo, userClient, mailer, cfg)
 	authHandler := handler.NewGRPCHandler(grpcServer, svc)
 
 	protobuf.RegisterAuthServiceServer(grpcServer, authHandler)

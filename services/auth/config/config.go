@@ -8,6 +8,12 @@ type Config struct {
 		GRPCPort   int64  `mapstructure:"grpc_port"`
 	} `mapstructure:"app"`
 
+	Jwt struct {
+		SecretKey string `mapstructure:"secret_key"`
+		AccessExpiresIn int64 `mapstructure:"access_expires_in"`
+		RefreshExpiresIn int64 `mapstructure:"refresh_expires_in"`
+	}
+
 	Services struct {
 		UserPort int64 `mapstructure:"user_port"`
 	} `mapstructure:"services"`

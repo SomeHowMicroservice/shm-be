@@ -3,57 +3,68 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/common/smtp"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/common"
+	"github.com/SomeHowMicroservice/shm-be/services/auth/config"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/repository"
+	"github.com/SomeHowMicroservice/shm-be/services/auth/security"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/status"
 )
 
 type authServiceImpl struct {
 	cacheRepo  repository.CacheRepository
 	userClient userpb.UserServiceClient
 	mailer     smtp.Mailer
+	cfg        *config.Config
 }
 
-func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.Mailer) AuthService {
+func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.Mailer, cfg *config.Config) AuthService {
 	return &authServiceImpl{
-		userClient: userClient,
-		cacheRepo:  cacheRepo,
-		mailer:     mailer,
+		cacheRepo,
+		userClient,
+		mailer,
+		cfg,
 	}
 }
 
 func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpRequest) (string, error) {
+	// Kiểm tra Username và Email đã tồn tại chưa
 	uRes, err := s.userClient.CheckUsernameExists(ctx, &userpb.CheckUsernameExistsRequest{Username: req.Username})
 	if err != nil {
-		return "", err
+		st, ok := status.FromError(err)
+		if ok {
+			return "", fmt.Errorf("lỗi từ user service: %s", st.Message())
+		}
+		return "", fmt.Errorf("lỗi không xác định: %w", err)
 	}
 	if uRes.Exists {
 		return "", customErr.ErrUsernameAlreadyExists
 	}
-
 	eRes, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{Email: req.Email})
 	if err != nil {
-		return "", err
+		st, ok := status.FromError(err)
+		if ok {
+			return "", fmt.Errorf("lỗi từ user service: %s", st.Message())
+		}
+		return "", fmt.Errorf("lỗi không xác định: %w", err)
 	}
 	if eRes.Exists {
 		return "", customErr.ErrEmailAlreadyExists
 	}
-
+	// Tạo OTP và Registration Token trả ra cho FE
 	otp := common.GenerateOTP(6)
 	registrationToken := uuid.NewString()
-
 	hashedPassword, err := common.HashPassword(req.Password)
 	if err != nil {
 		return "", fmt.Errorf("băm mật khẩu thất bại: %w", err)
 	}
-
+	// Tạo object dữ liệu người dùng đăng ký lưu vào Redis
 	registrationData := common.RegistrationData{
 		Email:    req.Email,
 		Username: req.Username,
@@ -61,14 +72,97 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 		Otp:      otp,
 		Attempts: 0,
 	}
-
+	// Lưu vô Redis
 	if err = s.cacheRepo.SaveRegistrationData(ctx, registrationToken, registrationData, 3*time.Minute); err != nil {
-		return "", fmt.Errorf("lưu dữ liệu đăng ký vào bộ nhớ đệm thất bại: %w", err)
+		return "", err
 	}
-
+	// Gửi email đăng ký
 	if err := s.mailer.SendAuthEmail(req.Email, "Xác thực đăng ký tài khoản tại SomeHow", otp); err != nil {
-		log.Printf("Gửi mail thất bại: %v", err)
+		return "", err
 	}
-
 	return registrationToken, nil
+}
+
+func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.VerifySignUpRequest) (*protobuf.AuthResponse, string, int64, string, int64, error) {
+	// Lấy dữ liệu người dùng đăng ký từ redis ra
+	regData, err := s.cacheRepo.GetRegistrationData(ctx, req.RegistrationToken)
+	if err != nil {
+		return nil, "", 0, "", 0, err
+	}
+	if regData == nil {
+		return nil, "", 0, "", 0, customErr.ErrAuthDataNotFound
+	}
+	// Thử quá 3 lần thì xóa dữ liệu khỏi redis và báo lỗi
+	if regData.Attempts >= 3 {
+		if err = s.cacheRepo.DeleteAuthData(ctx, "sign-up", req.RegistrationToken); err != nil {
+			return nil, "", 0, "", 0, err
+		}
+		return nil, "", 0, "", 0, customErr.ErrTooManyAttempts
+	}
+	// Thêm số lần thử và lưu lại vào redis
+	regData.Attempts++
+	if err = s.cacheRepo.SaveRegistrationData(ctx, req.RegistrationToken, *regData, 3*time.Minute); err != nil {
+		return nil, "", 0, "", 0, err
+	}
+	// Kiểm tra OTP có khơp không
+	if regData.Otp != req.Otp {
+		return nil, "", 0, "", 0, customErr.ErrInvalidOTP
+	}
+	// Kiểm tra lại tồn tại Username và Email cho nó chắc lỡ trong quá xác thực OTP thì có tạo tài khoản ở chỗ khác rồi
+	uRes, err := s.userClient.CheckUsernameExists(ctx, &userpb.CheckUsernameExistsRequest{Username: regData.Username})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+		}
+		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+	if uRes.Exists {
+		return nil, "", 0, "", 0, customErr.ErrUsernameAlreadyExists
+	}
+	eRes, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{Email: regData.Email})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+		}
+		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+	if eRes.Exists {
+		return nil, "", 0, "", 0, customErr.ErrEmailAlreadyExists
+	}
+	// Tạo object và gửi tới User Service bằng gRPC
+	newUser := &userpb.CreateUserRequest{
+		Username: regData.Username,
+		Email:    regData.Email,
+		Password: regData.Password,
+	}
+	userRes, err := s.userClient.CreateUser(ctx, newUser)
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+		}
+		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+	// Tạo Access Token và Refresh Token
+	accessToken, err := security.GenerateToken(userRes.Id, "user", s.cfg.Jwt.SecretKey, time.Duration(s.cfg.Jwt.AccessExpiresIn)*time.Minute)
+	if err != nil {
+		return nil, "", 0, "", 0, fmt.Errorf("lỗi tạo token xác thực")
+	}
+	refreshToken, err := security.GenerateToken(userRes.Id, "user", s.cfg.Jwt.SecretKey, time.Duration(s.cfg.Jwt.RefreshExpiresIn)*time.Minute)
+	if err != nil {
+		return nil, "", 0, "", 0, fmt.Errorf("lỗi tạo token xác thực")
+	}
+	// Xóa dữ liệu trong redis
+	if err = s.cacheRepo.DeleteAuthData(ctx, "sign-up", req.RegistrationToken); err != nil {
+		return nil, "", 0, "", 0, err
+	}
+	authRes := &protobuf.AuthResponse{
+		Id: userRes.Id,
+		Username: userRes.Username,
+		Email: userRes.Email,
+		CreatedAt: userRes.CreatedAt,
+	}
+	return  authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }

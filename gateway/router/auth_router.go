@@ -10,5 +10,6 @@ func AuthRouter(rg *gin.RouterGroup, authClient authpb.AuthServiceClient,  authH
 	auth := rg.Group("/auth")
 	{
 		auth.POST("/sign-up", authHandler.SignUp)
+		auth.POST("/sign-up/verify", authHandler.VerifySignUp)
 	}
 }

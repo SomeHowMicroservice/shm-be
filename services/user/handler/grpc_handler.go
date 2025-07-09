@@ -19,9 +19,7 @@ type grpcHandler struct {
 }
 
 func NewGRPCHandler(grpcServer *grpc.Server, svc service.UserService) *grpcHandler {
-	return &grpcHandler{
-		svc: svc,
-	}
+	return &grpcHandler{svc: svc}
 }
 
 func (h *grpcHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckEmailExistsRequest) (*protobuf.CheckEmailExistsResponse, error) {
@@ -29,7 +27,6 @@ func (h *grpcHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckE
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
 	return &protobuf.CheckEmailExistsResponse{
 		Exists: exists,
 	}, nil
@@ -40,7 +37,6 @@ func (h *grpcHandler) CheckUsernameExists(ctx context.Context, req *protobuf.Che
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
 	return &protobuf.CheckUsernameExistsResponse{
 		Exists: exists,
 	}, nil
@@ -56,9 +52,8 @@ func (h *grpcHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRe
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
-
 	return &protobuf.UserResponse{
-		Id:        user.ID.String(),
+		Id:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
 		Password:  user.Password,
