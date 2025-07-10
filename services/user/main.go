@@ -27,8 +27,9 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	repo := repository.NewUserRepository(db)
-	svc := service.NewUserService(repo)
+	userRepo := repository.NewUserRepository(db)
+	roleRepo := repository.NewRoleRepository(db)
+	svc := service.NewUserService(userRepo, roleRepo)
 	hdl := handler.NewGRPCHandler(grpcServer, svc)
 	protobuf.RegisterUserServiceServer(grpcServer, hdl)
 

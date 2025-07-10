@@ -12,15 +12,19 @@ import (
 )
 
 type userServiceImpl struct {
-	repo repository.UserRepository
+	userRepo repository.UserRepository
+	roleRepo repository.RoleRepository
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
-	return &userServiceImpl{repo}
+func NewUserService(userRepo repository.UserRepository, roleRepo repository.RoleRepository) UserService {
+	return &userServiceImpl{
+		userRepo,
+		roleRepo,
+	}
 }
 
 func (s *userServiceImpl) CheckEmailExists(ctx context.Context, email string) (bool, error) {
-	exists, err := s.repo.ExistsByEmail(ctx, email)
+	exists, err := s.userRepo.ExistsByEmail(ctx, email)
 	if err != nil {
 		return false, fmt.Errorf("kiểm tra email thất bại: %w", err)
 	}
@@ -28,7 +32,7 @@ func (s *userServiceImpl) CheckEmailExists(ctx context.Context, email string) (b
 }
 
 func (s *userServiceImpl) CheckUsernameExists(ctx context.Context, username string) (bool, error) {
-	exists, err := s.repo.ExistsByUsername(ctx, username)
+	exists, err := s.userRepo.ExistsByUsername(ctx, username)
 	if err != nil {
 		return false, fmt.Errorf("kiểm tra username thất bại: %w", err)
 	}
@@ -42,19 +46,31 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 		Email:    req.Email,
 		Password: req.Password,
 	}
-	if err := s.repo.Create(ctx, user); err != nil {
+	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, fmt.Errorf("tạo người dùng thất bại: %w", err)
+	}
+	// Lấy quyền user để xét
+	role, err := s.roleRepo.FindByName(ctx, model.RoleUser)
+	if err != nil {
+		return nil, fmt.Errorf("lấy thông tin quyền thất bại: %w", err)
+	}
+	if role == nil {
+		return nil, customErr.ErrRoleNotFound
+	}
+	// Thêm quyền cho người dùng
+	if err = s.roleRepo.CreateUserRoles(ctx, user.ID, role.ID); err != nil {
+		return nil, fmt.Errorf("thêm quyền cho người dùng thất bại: %w", err)
 	}
 	return user, nil
 }
 
 func (s *userServiceImpl) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
-	user, err := s.repo.FindByUsername(ctx, username)
-	if user == nil {
-		return nil, customErr.ErrUserNotFound
-	}
+	user, err := s.userRepo.FindByUsername(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
+	}
+	if user == nil {
+		return nil, customErr.ErrUserNotFound
 	}
 	return user, nil
 }

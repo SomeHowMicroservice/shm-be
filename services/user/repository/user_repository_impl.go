@@ -17,7 +17,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (r *userRepositoryImpl) Create(ctx context.Context, user *model.User) error {
-	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Roles").Create(user).Error; err != nil {
 		return err
 	}
 	return nil
@@ -41,7 +41,7 @@ func (r *userRepositoryImpl) ExistsByUsername(ctx context.Context, username stri
 
 func (r *userRepositoryImpl) FindByUsername(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
-	if err := r.db.WithContext(ctx).Where("username = ?", username).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Roles").Where("username = ?", username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
