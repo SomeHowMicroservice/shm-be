@@ -8,4 +8,10 @@ var (
 	ErrTooManyAttempts = errors.New("vượt quá số lần thử OTP")
 
 	ErrInvalidOTP = errors.New("mã OTP không chính xác")
+
+	ErrInvalidToken = errors.New("token không hợp lệ hoặc đã hết hạn")
+
+	ErrUserIdNotFound = errors.New("không tìm thấy user_id")
+
+	ErrRolesNotFound = errors.New("không tìm thấy roles")
 )

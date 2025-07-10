@@ -147,11 +147,11 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
 	}
 	// Tạo Access Token và Refresh Token
-	accessToken, err := security.GenerateToken(userRes.Id, "user", s.cfg.Jwt.SecretKey, time.Duration(s.cfg.Jwt.AccessExpiresIn)*time.Minute)
+	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, time.Duration(s.cfg.Jwt.AccessExpiresIn)*time.Minute)
 	if err != nil {
 		return nil, "", 0, "", 0, fmt.Errorf("lỗi tạo token xác thực")
 	}
-	refreshToken, err := security.GenerateToken(userRes.Id, "user", s.cfg.Jwt.SecretKey, time.Duration(s.cfg.Jwt.RefreshExpiresIn)*time.Minute)
+	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, time.Duration(s.cfg.Jwt.RefreshExpiresIn)*time.Minute)
 	if err != nil {
 		return nil, "", 0, "", 0, fmt.Errorf("lỗi tạo token xác thực")
 	}
@@ -189,11 +189,11 @@ func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInReques
 		return nil, "", 0, "", 0, customErr.ErrInvalidPassword
 	}
 	// Tạo Access Token và Refresh Token
-	accessToken, err := security.GenerateToken(userRes.Id, "user", s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
+	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
 	if err != nil {
 		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
 	}
-	refreshToken, err := security.GenerateToken(userRes.Id, "user", s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
+	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
 	if err != nil {
 		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
 	}

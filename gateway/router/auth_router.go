@@ -2,11 +2,10 @@ package router
 
 import (
 	"github.com/SomeHowMicroservice/shm-be/gateway/handler"
-	authpb "github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
 	"github.com/gin-gonic/gin"
 )
 
-func AuthRouter(rg *gin.RouterGroup, authClient authpb.AuthServiceClient,  authHandler handler.AuthHandler) {
+func AuthRouter(rg *gin.RouterGroup, authHandler handler.AuthHandler) {
 	auth := rg.Group("/auth")
 	{
 		auth.POST("/sign-up", authHandler.SignUp)

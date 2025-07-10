@@ -25,11 +25,11 @@ func main() {
 	authAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.AuthPort)
 	clients := initialization.InitClients(authAddr)
 
-	appContainer := container.NewContainer(clients.AuthClient)
+	appContainer := container.NewContainer(clients.AuthClient, cfg)
 
 	r := gin.Default()
 	api := r.Group("/api/v1")
-	router.AuthRouter(api, clients.AuthClient, appContainer.Auth.Handler)
+	router.AuthRouter(api, appContainer.Auth.Handler)
 
 	r.Run(fmt.Sprintf(":%d", cfg.App.GRPCPort))
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
+	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	"github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/SomeHowMicroservice/shm-be/services/user/service"
 	"google.golang.org/grpc"
@@ -51,14 +52,7 @@ func (h *grpcHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRe
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
-	return &protobuf.UserResponse{
-		Id:        user.ID,
-		Username:  user.Username,
-		Email:     user.Email,
-		Password:  user.Password,
-		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-	}, nil
+	return toUserResponse(user), nil
 }
 
 func (h *grpcHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUserByUsernameRequest) (*protobuf.UserResponse, error) {
@@ -71,12 +65,21 @@ func (h *grpcHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUs
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+	return toUserResponse(user), nil
+}
+
+func toUserResponse(user *model.User) *protobuf.UserResponse {
+	roles := []string{}
+	for _, r := range user.Roles {
+		roles = append(roles, r.Name)
+	}
 	return &protobuf.UserResponse{
 		Id:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
+		Roles:     roles,
 		Password:  user.Password,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-	}, nil
+	}
 }

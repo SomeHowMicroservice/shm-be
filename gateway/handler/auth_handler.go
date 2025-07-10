@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
+	"github.com/SomeHowMicroservice/shm-be/gateway/config"
 	"github.com/SomeHowMicroservice/shm-be/gateway/request"
 	authpb "github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
 	"github.com/gin-gonic/gin"
@@ -15,10 +16,14 @@ import (
 
 type AuthHandler struct {
 	client authpb.AuthServiceClient
+	cfg *config.AppConfig
 }
 
-func NewAuthHandler(client authpb.AuthServiceClient) *AuthHandler {
-	return &AuthHandler{client}
+func NewAuthHandler(client authpb.AuthServiceClient, cfg *config.AppConfig) *AuthHandler {
+	return &AuthHandler{
+		client, 
+		cfg,
+	}
 }
 
 func (h *AuthHandler) SignUp(c *gin.Context) {
@@ -86,8 +91,8 @@ func (h *AuthHandler) VerifySignUp(c *gin.Context) {
 		common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
 		return
 	}
-	c.SetCookie("access-token", res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
-	c.SetCookie("refresh-token", res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
+	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
 	common.JSON(c, http.StatusOK, "Đăng ký thành công", gin.H{
 		"user": res.User,
 	})
@@ -123,8 +128,8 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 		common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
 		return
 	}
-	c.SetCookie("access-token", res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
-	c.SetCookie("refresh-token", res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
+	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
 	common.JSON(c, http.StatusOK, "Đăng nhập thành công", gin.H{
 		"user": res.User,
 	})

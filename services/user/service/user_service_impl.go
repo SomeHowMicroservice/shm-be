@@ -61,6 +61,8 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 	if err = s.roleRepo.CreateUserRoles(ctx, user.ID, role.ID); err != nil {
 		return nil, fmt.Errorf("thêm quyền cho người dùng thất bại: %w", err)
 	}
+	// Gán quyền vào phản hổi
+	user.Roles = []model.Role{*role}
 	return user, nil
 }
 
