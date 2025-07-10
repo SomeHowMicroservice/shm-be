@@ -11,5 +11,6 @@ func AuthRouter(rg *gin.RouterGroup, authClient authpb.AuthServiceClient,  authH
 	{
 		auth.POST("/sign-up", authHandler.SignUp)
 		auth.POST("/sign-up/verify", authHandler.VerifySignUp)
+		auth.POST("/sign-in", authHandler.SignIn)
 	}
 }

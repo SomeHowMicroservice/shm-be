@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	"gorm.io/gorm"
@@ -36,4 +37,15 @@ func (r *userRepositoryImpl) ExistsByUsername(ctx context.Context, username stri
 		return false, nil
 	}
 	return count > 0, nil
+}
+
+func (r *userRepositoryImpl) FindByUsername(ctx context.Context, username string) (*model.User, error) {
+	var user model.User
+	if err := r.db.WithContext(ctx).Where("username = ?", username).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
 }

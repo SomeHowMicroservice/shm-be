@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
 )
@@ -9,5 +10,7 @@ import (
 type AuthService interface {
 	SignUp(ctx context.Context, req *protobuf.SignUpRequest) (string, error)
 
-	VerifySignUp(ctx context.Context, req *protobuf.VerifySignUpRequest) (*protobuf.AuthResponse, string, int64, string, int64, error)
+	VerifySignUp(ctx context.Context, req *protobuf.VerifySignUpRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error)
+
+	SignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error)
 }

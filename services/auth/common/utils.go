@@ -9,11 +9,9 @@ import (
 func GenerateOTP(length int) string {
 	const chars = "0123456789"
 	otp := make([]byte, length)
-
 	for i := range otp {
 		otp[i] = chars[rand.Intn(len(chars))]
 	}
-
 	return string(otp)
 }
 
@@ -22,6 +20,10 @@ func HashPassword(password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return string(hash), nil
+}
+
+func VerifyPassword(password, hashedPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return err == nil
 }

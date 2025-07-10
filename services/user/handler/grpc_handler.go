@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
@@ -45,9 +44,29 @@ func (h *grpcHandler) CheckUsernameExists(ctx context.Context, req *protobuf.Che
 func (h *grpcHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*protobuf.UserResponse, error) {
 	user, err := h.svc.CreateUser(ctx, req)
 	if err != nil {
-		switch {
-		case errors.Is(err, customErr.ErrUsernameAlreadyExists) || errors.Is(err, customErr.ErrEmailAlreadyExists):
+		switch err {
+		case customErr.ErrUsernameAlreadyExists, customErr.ErrEmailAlreadyExists:
 			return nil, status.Error(codes.AlreadyExists, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+	return &protobuf.UserResponse{
+		Id:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		Password:  user.Password,
+		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
+	}, nil
+}
+
+func (h *grpcHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUserByUsernameRequest) (*protobuf.UserResponse, error) {
+	user, err := h.svc.GetUserByUsername(ctx, req.Username)
+	if err != nil {
+		switch err {
+		case customErr.ErrUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
 		}

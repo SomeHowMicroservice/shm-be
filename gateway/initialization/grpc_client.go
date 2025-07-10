@@ -23,7 +23,7 @@ func InitClients(authAddr string) *GRPCClients {
 		log.Fatalf("Kết nối tới Auth Service thất bại: %v", err)
 	}
 	authClient := authpb.NewAuthServiceClient(authConn)
-	
+
 	return &GRPCClients{
 		AuthClient: authClient,
 	}

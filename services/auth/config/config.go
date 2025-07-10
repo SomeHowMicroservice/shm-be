@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"time"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	App struct {
@@ -10,8 +14,8 @@ type Config struct {
 
 	Jwt struct {
 		SecretKey string `mapstructure:"secret_key"`
-		AccessExpiresIn int64 `mapstructure:"access_expires_in"`
-		RefreshExpiresIn int64 `mapstructure:"refresh_expires_in"`
+		AccessExpiresIn time.Duration `mapstructure:"access_expires_in"`
+		RefreshExpiresIn time.Duration `mapstructure:"refresh_expires_in"`
 	}
 
 	Services struct {

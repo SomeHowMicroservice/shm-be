@@ -8,4 +8,6 @@ var (
 	ErrUsernameAlreadyExists = errors.New("username đã tồn tại")
 
 	ErrUserNotFound = errors.New("không tìm thấy người dùng")
+
+	ErrInvalidPassword = errors.New("mật khẩu không chính xác")
 )

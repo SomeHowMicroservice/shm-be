@@ -12,7 +12,7 @@ service UserService {
 
   // rpc GetUserByEmail(GetUserByEmailRequest) returns (UserResponse);
 
-  // rpc GetUserByUsername(GetUserByUsernameRequest) returns (UserResponse);
+  rpc GetUserByUsername(GetUserByUsernameRequest) returns (UserResponse);
 
   rpc CreateUser(CreateUserRequest) returns (UserResponse);
 
@@ -52,9 +52,9 @@ message UserResponse {
 //   string email = 1;
 // }
 
-// message GetUserByUsernameRequest {
-//   string username = 1;
-// }
+message GetUserByUsernameRequest {
+  string username = 1;
+}
 
 message CreateUserRequest {
   string username = 1;

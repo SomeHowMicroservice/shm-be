@@ -13,4 +13,6 @@ type UserService interface {
 	CheckUsernameExists(ctx context.Context, username string) (bool, error)
 
 	CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*model.User, error)
+
+	GetUserByUsername(ctx context.Context, username string) (*model.User, error)
 }

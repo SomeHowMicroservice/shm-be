@@ -14,6 +14,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/auth/security"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
@@ -83,7 +84,7 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 	return registrationToken, nil
 }
 
-func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.VerifySignUpRequest) (*protobuf.AuthResponse, string, int64, string, int64, error) {
+func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.VerifySignUpRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error) {
 	// Lấy dữ liệu người dùng đăng ký từ redis ra
 	regData, err := s.cacheRepo.GetRegistrationData(ctx, req.RegistrationToken)
 	if err != nil {
@@ -159,10 +160,48 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 		return nil, "", 0, "", 0, err
 	}
 	authRes := &protobuf.AuthResponse{
-		Id: userRes.Id,
-		Username: userRes.Username,
-		Email: userRes.Email,
+		Id:        userRes.Id,
+		Username:  userRes.Username,
+		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
 	}
-	return  authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+}
+
+func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error) {
+	// Tìm người dùng theo username
+	userRes, err := s.userClient.GetUserByUsername(ctx, &userpb.GetUserByUsernameRequest{Username: req.Username})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, "", 0, "", 0, customErr.ErrUserNotFound
+			default:
+				return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+	// Kiểm tra mật khẩu
+	isCorrectPassword := common.VerifyPassword(req.Password, userRes.Password)
+	if !isCorrectPassword {
+		return nil, "", 0, "", 0, customErr.ErrInvalidPassword
+	}
+	// Tạo Access Token và Refresh Token
+	accessToken, err := security.GenerateToken(userRes.Id, "user", s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
+	if err != nil {
+		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+	}
+	refreshToken, err := security.GenerateToken(userRes.Id, "user", s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
+	if err != nil {
+		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+	}
+	authRes := &protobuf.AuthResponse{
+		Id:        userRes.Id,
+		Username:  userRes.Username,
+		Email:     userRes.Email,
+		CreatedAt: userRes.CreatedAt,
+	}
+	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil  
 }
