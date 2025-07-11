@@ -76,3 +76,14 @@ func (s *userServiceImpl) GetUserByUsername(ctx context.Context, username string
 	}
 	return user, nil
 }
+
+func (s *userServiceImpl) GetUserById(ctx context.Context, id string) (*model.User, error) {
+	user, err := s.userRepo.FindById(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
+	}
+	if user == nil {
+		return nil, customErr.ErrUserNotFound
+	}
+	return user, nil
+}

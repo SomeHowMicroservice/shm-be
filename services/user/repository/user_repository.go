@@ -14,4 +14,6 @@ type UserRepository interface {
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 
 	FindByUsername(ctx context.Context, username string) (*model.User, error)
+
+	FindById(ctx context.Context, id string) (*model.User, error)
 }

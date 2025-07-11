@@ -13,7 +13,7 @@ import (
 
 var (
 	authAddr = "localhost:8081"
-	//userAddr = "localhost:8082"
+	userAddr = "localhost:8082"
 )
 
 func main() {
@@ -23,13 +23,14 @@ func main() {
 	}
 
 	authAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.AuthPort)
-	clients := initialization.InitClients(authAddr)
+	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
+	clients := initialization.InitClients(authAddr, userAddr)
 
 	appContainer := container.NewContainer(clients.AuthClient, cfg)
 
 	r := gin.Default()
 	api := r.Group("/api/v1")
-	router.AuthRouter(api, appContainer.Auth.Handler)
+	router.AuthRouter(api, cfg, clients.UserClient, appContainer.Auth.Handler)
 
 	r.Run(fmt.Sprintf(":%d", cfg.App.GRPCPort))
 }

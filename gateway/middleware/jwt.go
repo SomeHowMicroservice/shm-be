@@ -15,7 +15,7 @@ func ParseToken(tokenStr string, secretKey string) (jwt.MapClaims, error) {
 		return []byte(secretKey), nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("lỗi parse token: %w", err)
+		return nil, customErr.ErrInvalidToken
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return claims, nil

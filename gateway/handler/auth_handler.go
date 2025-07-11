@@ -9,6 +9,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/gateway/config"
 	"github.com/SomeHowMicroservice/shm-be/gateway/request"
 	authpb "github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,12 +17,12 @@ import (
 
 type AuthHandler struct {
 	client authpb.AuthServiceClient
-	cfg *config.AppConfig
+	cfg    *config.AppConfig
 }
 
 func NewAuthHandler(client authpb.AuthServiceClient, cfg *config.AppConfig) *AuthHandler {
 	return &AuthHandler{
-		client, 
+		client,
 		cfg,
 	}
 }
@@ -48,14 +49,13 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 			case codes.InvalidArgument:
 				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
 			default:
-				common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
 			}
 			return
 		}
-		common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-
 	common.JSON(c, http.StatusOK, "Đăng ký thành công, vui lòng kiểm tra email để lấy mã xác thực", gin.H{
 		"registration_token": res.RegistrationToken,
 	})
@@ -84,11 +84,11 @@ func (h *AuthHandler) VerifySignUp(c *gin.Context) {
 			case codes.InvalidArgument:
 				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
 			default:
-				common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
 			}
 			return
 		}
-		common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
@@ -121,11 +121,11 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 			case codes.InvalidArgument:
 				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
 			default:
-				common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
 			}
 			return
 		}
-		common.JSON(c, http.StatusInternalServerError, "Lỗi hệ thống", nil)
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
@@ -133,4 +133,35 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 	common.JSON(c, http.StatusOK, "Đăng nhập thành công", gin.H{
 		"user": res.User,
 	})
+}
+
+func (h *AuthHandler) SignOut(c *gin.Context) {
+	c.SetCookie(h.cfg.Jwt.AccessName, "", 0, "/", "", false, true)
+	c.SetCookie(h.cfg.Jwt.RefreshName, "", 0, "/api/v1/auth/refresh", "", false, true)
+	common.JSON(c, http.StatusOK, "Đăng xuất thành công", nil)
+}
+
+func (h *AuthHandler) GetMe(c *gin.Context) {
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+	common.JSON(c, http.StatusOK, "Lấy thông tin người dùng thành công", gin.H{
+		"user": toAuthResponse(user),
+	})
+}
+
+func toAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
+	return &authpb.AuthResponse{
+		Id: userRes.Id,
+		Username: userRes.Username,
+		Email: userRes.Email,
+		CreatedAt: userRes.CreatedAt,
+	}
 }

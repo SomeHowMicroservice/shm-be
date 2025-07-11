@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	UserService_CheckEmailExists_FullMethodName    = "/user.UserService/CheckEmailExists"
 	UserService_CheckUsernameExists_FullMethodName = "/user.UserService/CheckUsernameExists"
+	UserService_GetUserPublicById_FullMethodName   = "/user.UserService/GetUserPublicById"
 	UserService_GetUserByUsername_FullMethodName   = "/user.UserService/GetUserByUsername"
 	UserService_CreateUser_FullMethodName          = "/user.UserService/CreateUser"
 )
@@ -31,6 +32,7 @@ const (
 type UserServiceClient interface {
 	CheckEmailExists(ctx context.Context, in *CheckEmailExistsRequest, opts ...grpc.CallOption) (*CheckEmailExistsResponse, error)
 	CheckUsernameExists(ctx context.Context, in *CheckUsernameExistsRequest, opts ...grpc.CallOption) (*CheckUsernameExistsResponse, error)
+	GetUserPublicById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserPublicResponse, error)
 	GetUserByUsername(ctx context.Context, in *GetUserByUsernameRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 }
@@ -63,6 +65,16 @@ func (c *userServiceClient) CheckUsernameExists(ctx context.Context, in *CheckUs
 	return out, nil
 }
 
+func (c *userServiceClient) GetUserPublicById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserPublicResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserPublicResponse)
+	err := c.cc.Invoke(ctx, UserService_GetUserPublicById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) GetUserByUsername(ctx context.Context, in *GetUserByUsernameRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UserResponse)
@@ -89,6 +101,7 @@ func (c *userServiceClient) CreateUser(ctx context.Context, in *CreateUserReques
 type UserServiceServer interface {
 	CheckEmailExists(context.Context, *CheckEmailExistsRequest) (*CheckEmailExistsResponse, error)
 	CheckUsernameExists(context.Context, *CheckUsernameExistsRequest) (*CheckUsernameExistsResponse, error)
+	GetUserPublicById(context.Context, *GetUserByIdRequest) (*UserPublicResponse, error)
 	GetUserByUsername(context.Context, *GetUserByUsernameRequest) (*UserResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*UserResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
@@ -106,6 +119,9 @@ func (UnimplementedUserServiceServer) CheckEmailExists(context.Context, *CheckEm
 }
 func (UnimplementedUserServiceServer) CheckUsernameExists(context.Context, *CheckUsernameExistsRequest) (*CheckUsernameExistsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckUsernameExists not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserPublicById(context.Context, *GetUserByIdRequest) (*UserPublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserPublicById not implemented")
 }
 func (UnimplementedUserServiceServer) GetUserByUsername(context.Context, *GetUserByUsernameRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByUsername not implemented")
@@ -170,6 +186,24 @@ func _UserService_CheckUsernameExists_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUserPublicById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUserPublicById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUserPublicById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUserPublicById(ctx, req.(*GetUserByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_GetUserByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserByUsernameRequest)
 	if err := dec(in); err != nil {
@@ -220,6 +254,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckUsernameExists",
 			Handler:    _UserService_CheckUsernameExists_Handler,
+		},
+		{
+			MethodName: "GetUserPublicById",
+			Handler:    _UserService_GetUserPublicById_Handler,
 		},
 		{
 			MethodName: "GetUserByUsername",

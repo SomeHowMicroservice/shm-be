@@ -68,6 +68,19 @@ func (h *grpcHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUs
 	return toUserResponse(user), nil
 }
 
+func (h *grpcHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserPublicResponse, error) {
+	user, err := h.svc.GetUserById(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case customErr.ErrUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+	return toUserPublicResponse(user), nil
+}
+
 func toUserResponse(user *model.User) *protobuf.UserResponse {
 	roles := []string{}
 	for _, r := range user.Roles {
@@ -81,5 +94,19 @@ func toUserResponse(user *model.User) *protobuf.UserResponse {
 		Password:  user.Password,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func toUserPublicResponse(user *model.User) *protobuf.UserPublicResponse {
+	roles := []string{}
+	for _, r := range user.Roles {
+		roles = append(roles, r.Name)
+	}
+	return &protobuf.UserPublicResponse{
+		Id:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		Roles:     roles,
+		CreatedAt: user.CreatedAt.Format(time.RFC3339),
 	}
 }

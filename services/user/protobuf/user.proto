@@ -8,7 +8,7 @@ service UserService {
 
   rpc CheckUsernameExists(CheckUsernameExistsRequest) returns (CheckUsernameExistsResponse);
 
-  // rpc GetUserById(GetUserByIdRequest) returns (UserResponse);
+  rpc GetUserPublicById(GetUserByIdRequest) returns (UserPublicResponse);
 
   // rpc GetUserByEmail(GetUserByEmailRequest) returns (UserResponse);
 
@@ -45,9 +45,17 @@ message UserResponse {
   string updated_at = 7;
 }
 
-// message GetUserByIdRequest {
-//   string id = 1;
-// }
+message UserPublicResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  repeated string roles = 4;
+  string created_at = 5;
+}
+
+message GetUserByIdRequest {
+  string id = 1;
+}
 
 // message GetUserByEmailRequest {
 //   string email = 1;
