@@ -159,9 +159,9 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 
 func toAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
 	return &authpb.AuthResponse{
-		Id: userRes.Id,
-		Username: userRes.Username,
-		Email: userRes.Email,
+		Id:        userRes.Id,
+		Username:  userRes.Username,
+		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
 	}
 }

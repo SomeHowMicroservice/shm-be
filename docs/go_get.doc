@@ -17,3 +17,5 @@ go get github.com/go-playground/validator/v10    (Validator Library)
 go get golang.org/x/crypto/bcrypt    (Bcrypt Hash Library)
 
 go get -u github.com/golang-jwt/jwt/v5    (JWT Library)
+
+go get github.com/gin-contrib/cors    (Gin CORS Config Library)

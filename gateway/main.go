@@ -29,6 +29,7 @@ func main() {
 	appContainer := container.NewContainer(clients.AuthClient, cfg)
 
 	r := gin.Default()
+	config.CORSConfig(r)
 	api := r.Group("/api/v1")
 	router.AuthRouter(api, cfg, clients.UserClient, appContainer.Auth.Handler)
 
