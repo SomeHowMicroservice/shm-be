@@ -9,6 +9,20 @@ service AuthService {
   rpc VerifySignUp(VerifySignUpRequest) returns (VerifySignUpResponse);
 
   rpc SignIn(SignInRequest) returns (SignInResponse);
+
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+}
+
+message RefreshTokenRequest {
+  string id = 1;
+  repeated string roles = 2;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  int64 access_expires_in = 2;
+  string refresh_token = 3;
+  int64 refresh_expires_in = 4;
 }
 
 message AuthResponse {

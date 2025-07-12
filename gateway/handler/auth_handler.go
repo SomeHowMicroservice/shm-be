@@ -93,7 +93,7 @@ func (h *AuthHandler) VerifySignUp(c *gin.Context) {
 	}
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
 	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
-	common.JSON(c, http.StatusOK, "Đăng ký thành công", gin.H{
+	common.JSON(c, http.StatusCreated, "Đăng ký thành công", gin.H{
 		"user": res.User,
 	})
 }
@@ -155,6 +155,48 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 	common.JSON(c, http.StatusOK, "Lấy thông tin người dùng thành công", gin.H{
 		"user": toAuthResponse(user),
 	})
+}
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+	// Lấy UserID từ Context ra
+	userIDAny, exists := c.Get("user_id")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có id người dùng", nil)
+		return
+	}
+	userID, ok := userIDAny.(string)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi id người dùng", nil)
+		return
+	}
+	// Lấy User Roles từ Context ra
+	userRolesAny, exists := c.Get("user_roles")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có các quyền người dùng", nil)
+		return
+	}
+	userRoles, ok := userRolesAny.([]string)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển các quyền người dùng", nil)
+		return
+	}
+	res, err := h.client.RefreshToken(ctx, &authpb.RefreshTokenRequest{
+		Id:    userID,
+		Roles: userRoles,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
+	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+	common.JSON(c, http.StatusOK, "Làm mới token thành công", nil)
 }
 
 func toAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {

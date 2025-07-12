@@ -78,3 +78,16 @@ func (h *grpcHandler) SignIn(ctx context.Context, req *protobuf.SignInRequest) (
 		RefreshExpiresIn: int64(refreshExpiresIn.Seconds()),
 	}, nil
 }
+
+func (h *grpcHandler) RefreshToken(ctx context.Context, req *protobuf.RefreshTokenRequest) (*protobuf.RefreshTokenResponse, error) {
+	accessToken, accessExpiresIn, refreshToken, refreshExpiresIn, err := h.svc.RefreshToken(ctx, req)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &protobuf.RefreshTokenResponse{
+		AccessToken: accessToken,
+		AccessExpiresIn: int64(accessExpiresIn.Seconds()),
+		RefreshToken: refreshToken,
+		RefreshExpiresIn: int64(refreshExpiresIn.Seconds()),
+	}, nil
+}

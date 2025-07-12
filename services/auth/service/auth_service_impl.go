@@ -203,5 +203,17 @@ func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInReques
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
 	}
-	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil  
+	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+}
+
+func (s *authServiceImpl) RefreshToken(ctx context.Context, req *protobuf.RefreshTokenRequest) (string, time.Duration, string, time.Duration, error) {
+	accessToken, err := security.GenerateToken(req.Id, req.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
+	if err != nil {
+		return "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+	}
+	refreshToken, err := security.GenerateToken(req.Id, req.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
+	if err != nil {
+		return "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+	}
+	return accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }
