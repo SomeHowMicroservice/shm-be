@@ -34,6 +34,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	_ , _, err = initialization.InitMessageQueue(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

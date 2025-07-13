@@ -13,8 +13,8 @@ type Config struct {
 	} `mapstructure:"app"`
 
 	Jwt struct {
-		SecretKey string `mapstructure:"secret_key"`
-		AccessExpiresIn time.Duration `mapstructure:"access_expires_in"`
+		SecretKey        string        `mapstructure:"secret_key"`
+		AccessExpiresIn  time.Duration `mapstructure:"access_expires_in"`
 		RefreshExpiresIn time.Duration `mapstructure:"refresh_expires_in"`
 	}
 
@@ -24,9 +24,15 @@ type Config struct {
 
 	Cache struct {
 		CHost     string `mapstructure:"rd_host"`
-		CPort     int `mapstructure:"rd_port"`
+		CPort     int    `mapstructure:"rd_port"`
 		CPassword string `mapstructure:"rd_password"`
 	} `mapstructure:"cache"`
+
+	MessageQueue struct {
+		RHost     string `mapstructure:"rb_host"`
+		RUser     string `mapstructure:"rb_user"`
+		RPassword string `mapstructure:"rb_password"`
+	} `mapstructure:"message_queue"`
 
 	SMTP struct {
 		Host     string `mapstructure:"host"`
