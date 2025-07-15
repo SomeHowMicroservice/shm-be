@@ -4,11 +4,13 @@ package user;
 option go_package = "github.com/SomeHowMicroservice/shm-be/services/user/protobuf";
 
 service UserService {
-  rpc CheckEmailExists(CheckEmailExistsRequest) returns (CheckEmailExistsResponse);
+  rpc CheckEmailExists(CheckEmailExistsRequest) returns (UserCheckedResponse);
 
-  rpc CheckUsernameExists(CheckUsernameExistsRequest) returns (CheckUsernameExistsResponse);
+  rpc CheckUsernameExists(CheckUsernameExistsRequest) returns (UserCheckedResponse);
 
   rpc GetUserPublicById(GetUserByIdRequest) returns (UserPublicResponse);
+
+  rpc GetUserById(GetUserByIdRequest) returns (UserResponse);
 
   // rpc GetUserByEmail(GetUserByEmailRequest) returns (UserResponse);
 
@@ -16,22 +18,29 @@ service UserService {
 
   rpc CreateUser(CreateUserRequest) returns (UserResponse);
 
+  rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UserUpdatedResponse);
+
   // rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message UserUpdatedResponse {
+  bool success = 1;
+}
+
+message UpdateUserPasswordRequest {
+  string id = 1;
+  string new_password = 2;
 }
 
 message CheckEmailExistsRequest {
   string email = 1;
 }
 
-message CheckEmailExistsResponse {
-  bool exists = 1;
-}
-
 message CheckUsernameExistsRequest {
   string username = 1;
 }
 
-message CheckUsernameExistsResponse {
+message UserCheckedResponse {
   bool exists = 1;
 }
 

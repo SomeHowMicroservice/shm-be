@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	"gorm.io/gorm"
 )
@@ -59,4 +60,15 @@ func (r *userRepositoryImpl) FindById(ctx context.Context, id string) (*model.Us
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *userRepositoryImpl) UpdatePassword(ctx context.Context, id, password string) error {
+	result := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", id).Update("password", password)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrUserNotFound
+	}
+	return nil
 }

@@ -6,11 +6,19 @@ option go_package = "github.com/SomeHowMicroservice/shm-be/services/auth/protobu
 service AuthService {
   rpc SignUp(SignUpRequest) returns (SignUpResponse);
 
-  rpc VerifySignUp(VerifySignUpRequest) returns (VerifySignUpResponse);
+  rpc VerifySignUp(VerifySignUpRequest) returns (LoggedInResponse);
 
-  rpc SignIn(SignInRequest) returns (SignInResponse);
+  rpc SignIn(SignInRequest) returns (LoggedInResponse);
 
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  rpc ChangePassword(ChangePasswordRequest) returns (RefreshTokenResponse);
+}
+
+message ChangePasswordRequest {
+  string id = 1;
+  string old_password = 2;
+  string new_password = 3;
 }
 
 message RefreshTokenRequest {
@@ -48,20 +56,12 @@ message VerifySignUpRequest {
   string otp = 2;
 }
 
-message VerifySignUpResponse {
-  string access_token = 1;
-  int64 access_expires_in = 2;
-  string refresh_token = 3;
-  int64 refresh_expires_in = 4;
-  AuthResponse user = 5;
-}
-
 message SignInRequest {
   string username = 1;
   string password = 2;
 }
 
-message SignInResponse {
+message LoggedInResponse {
   string access_token = 1;
   int64 access_expires_in = 2;
   string refresh_token = 3;

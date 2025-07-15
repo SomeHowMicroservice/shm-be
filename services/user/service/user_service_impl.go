@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
@@ -86,4 +87,14 @@ func (s *userServiceImpl) GetUserById(ctx context.Context, id string) (*model.Us
 		return nil, customErr.ErrUserNotFound
 	}
 	return user, nil
+}
+
+func (s *userServiceImpl) UpdateUserPassword(ctx context.Context, req *protobuf.UpdateUserPasswordRequest) error {
+	if err := s.userRepo.UpdatePassword(ctx, req.Id, req.NewPassword); err != nil {
+		if errors.Is(err, customErr.ErrUserNotFound) {
+			return err
+		}
+		return fmt.Errorf("cập nhật mật khẩu thất bại: %w", err)
+	}
+	return nil
 }

@@ -22,22 +22,22 @@ func NewGRPCHandler(grpcServer *grpc.Server, svc service.UserService) *grpcHandl
 	return &grpcHandler{svc: svc}
 }
 
-func (h *grpcHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckEmailExistsRequest) (*protobuf.CheckEmailExistsResponse, error) {
+func (h *grpcHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckEmailExistsRequest) (*protobuf.UserCheckedResponse, error) {
 	exists, err := h.svc.CheckEmailExists(ctx, req.Email)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &protobuf.CheckEmailExistsResponse{
+	return &protobuf.UserCheckedResponse{
 		Exists: exists,
 	}, nil
 }
 
-func (h *grpcHandler) CheckUsernameExists(ctx context.Context, req *protobuf.CheckUsernameExistsRequest) (*protobuf.CheckUsernameExistsResponse, error) {
+func (h *grpcHandler) CheckUsernameExists(ctx context.Context, req *protobuf.CheckUsernameExistsRequest) (*protobuf.UserCheckedResponse, error) {
 	exists, err := h.svc.CheckUsernameExists(ctx, req.Username)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &protobuf.CheckUsernameExistsResponse{
+	return &protobuf.UserCheckedResponse{
 		Exists: exists,
 	}, nil
 }
@@ -79,6 +79,33 @@ func (h *grpcHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUs
 		}
 	}
 	return toUserPublicResponse(user), nil
+}
+
+func (h *grpcHandler) GetUserById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserResponse, error) {
+	user, err := h.svc.GetUserById(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case customErr.ErrUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+	return toUserResponse(user), nil
+}
+
+func (h *grpcHandler) UpdateUserPassword(ctx context.Context, req *protobuf.UpdateUserPasswordRequest) (*protobuf.UserUpdatedResponse, error) {
+	if err := h.svc.UpdateUserPassword(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+	return &protobuf.UserUpdatedResponse{
+		Success: true,
+	}, nil
 }
 
 func toUserResponse(user *model.User) *protobuf.UserResponse {

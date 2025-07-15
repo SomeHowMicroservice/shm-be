@@ -14,6 +14,8 @@ type UserService interface {
 
 	CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*model.User, error)
 
+	UpdateUserPassword(ctx context.Context, req *protobuf.UpdateUserPasswordRequest) error
+
 	GetUserByUsername(ctx context.Context, username string) (*model.User, error)
 
 	GetUserById(ctx context.Context, id string) (*model.User, error)

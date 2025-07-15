@@ -20,5 +20,6 @@ func AuthRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 		auth.POST("/sign-out", middleware.RequireAuth(accessName, secretKey, userClient), authHandler.SignOut)
 		auth.GET("/me", middleware.RequireAuth(accessName, secretKey, userClient), authHandler.GetMe)
 		auth.GET("/refresh", middleware.RequireRefreshToken(refreshName, secretKey, userClient), authHandler.RefreshToken)
+		auth.POST("/change-password", middleware.RequireAuth(accessName, secretKey, userClient), authHandler.ChangePassword)
 	}
 }

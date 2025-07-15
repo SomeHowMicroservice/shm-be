@@ -217,3 +217,54 @@ func (s *authServiceImpl) RefreshToken(ctx context.Context, req *protobuf.Refres
 	}
 	return accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }
+
+func (s *authServiceImpl) ChangePassword(ctx context.Context, req *protobuf.ChangePasswordRequest) (string, time.Duration, string, time.Duration, error) {
+	// Lấy user theo id có mật khẩu
+	userRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: req.Id})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return "", 0, "", 0, customErr.ErrUserNotFound
+			default:
+				return "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+	// Kiểm tra mật khẩu
+	isCorrectPassword := common.VerifyPassword(req.OldPassword, userRes.Password)
+	if !isCorrectPassword {
+		return "", 0, "", 0, customErr.ErrInvalidPassword
+	}
+	hashedNewPassword, err := common.HashPassword(req.NewPassword)
+	if err != nil {
+		return "", 0, "", 0, fmt.Errorf("băm mật khẩu thất bại: %w", err)
+	}
+	_, err = s.userClient.UpdateUserPassword(ctx, &userpb.UpdateUserPasswordRequest{
+		Id:          userRes.Id,
+		NewPassword: hashedNewPassword,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return "", 0, "", 0, customErr.ErrUserNotFound
+			default:
+				return "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
+	if err != nil {
+		return "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+	}
+	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
+	if err != nil {
+		return "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+	}
+	return accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+}

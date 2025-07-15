@@ -16,4 +16,6 @@ type UserRepository interface {
 	FindByUsername(ctx context.Context, username string) (*model.User, error)
 
 	FindById(ctx context.Context, id string) (*model.User, error)
+
+	UpdatePassword(ctx context.Context, id, password string) error
 }

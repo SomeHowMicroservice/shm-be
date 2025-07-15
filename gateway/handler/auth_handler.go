@@ -114,8 +114,6 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
-			case codes.AlreadyExists:
-				common.JSON(c, http.StatusConflict, st.Message(), nil)
 			case codes.NotFound:
 				common.JSON(c, http.StatusNotFound, st.Message(), nil)
 			case codes.InvalidArgument:
@@ -197,6 +195,52 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
 	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
 	common.JSON(c, http.StatusOK, "Làm mới token thành công", nil)
+}
+
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+	var req request.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+	res, err := h.client.ChangePassword(ctx, &authpb.ChangePasswordRequest{
+		Id:          user.Id,
+		OldPassword: req.OldPassword,
+		NewPassword: req.NewPassword,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			case codes.InvalidArgument:
+				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
+	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+	common.JSON(c, http.StatusOK, "Đổi mật khẩu thành thành công", gin.H{
+		"user": user,
+	})
 }
 
 func toAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
