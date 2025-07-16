@@ -8,19 +8,23 @@ import (
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	"github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
-	"github.com/SomeHowMicroservice/shm-be/services/user/repository"
+	profileRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/profile"
+	roleRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/role"
+	userRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/user"
 	"github.com/google/uuid"
 )
 
 type userServiceImpl struct {
-	userRepo repository.UserRepository
-	roleRepo repository.RoleRepository
+	userRepo    userRepo.UserRepository
+	roleRepo    roleRepo.RoleRepository
+	profileRepo profileRepo.ProfileRepository
 }
 
-func NewUserService(userRepo repository.UserRepository, roleRepo repository.RoleRepository) UserService {
+func NewUserService(userRepo userRepo.UserRepository, roleRepo roleRepo.RoleRepository, profileRepo profileRepo.ProfileRepository) UserService {
 	return &userServiceImpl{
 		userRepo,
 		roleRepo,
+		profileRepo,
 	}
 }
 
@@ -63,7 +67,17 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 		return nil, fmt.Errorf("thêm quyền cho người dùng thất bại: %w", err)
 	}
 	// Gán quyền vào phản hổi
-	user.Roles = []model.Role{*role}
+	user.Roles = []*model.Role{role}
+	// Tạo profile trống cho người dùng
+	profile := &model.Profile{
+		ID: uuid.NewString(),
+		UserID: user.ID,
+	}
+	if err = s.profileRepo.Create(ctx, profile); err != nil {
+		return nil, fmt.Errorf("tạo hồ sơ người dùng thất bại: %w", err)
+	}
+	// Gán profile rỗng vào phản hồi
+	user.Profile = profile
 	return user, nil
 }
 

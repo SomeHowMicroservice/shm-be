@@ -29,7 +29,7 @@ type authServiceImpl struct {
 	mqChannel  *amqp091.Channel
 }
 
-func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.Mailer, cfg *config.Config, mqChannel  *amqp091.Channel) AuthService {
+func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.Mailer, cfg *config.Config, mqChannel *amqp091.Channel) AuthService {
 	return &authServiceImpl{
 		cacheRepo,
 		userClient,
@@ -161,13 +161,13 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
 	}
 	// Tạo Access Token và Refresh Token
-	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, time.Duration(s.cfg.Jwt.AccessExpiresIn)*time.Minute)
+	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
 	if err != nil {
-		return nil, "", 0, "", 0, fmt.Errorf("lỗi tạo token xác thực")
+		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
 	}
-	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, time.Duration(s.cfg.Jwt.RefreshExpiresIn)*time.Minute)
+	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
 	if err != nil {
-		return nil, "", 0, "", 0, fmt.Errorf("lỗi tạo token xác thực")
+		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
 	}
 	// Xóa dữ liệu trong redis
 	if err = s.cacheRepo.DeleteAuthData(ctx, "sign-up", req.RegistrationToken); err != nil {
@@ -178,6 +178,12 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 		Username:  userRes.Username,
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
+		Profile: &protobuf.ProfileResponse{
+			FirstName: userRes.Profile.FirstName,
+			LastName:  userRes.Profile.LastName,
+			Gender:    userRes.Profile.Gender,
+			Dob:       userRes.Profile.Dob,
+		},
 	}
 	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }
@@ -216,6 +222,12 @@ func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInReques
 		Username:  userRes.Username,
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
+		Profile: &protobuf.ProfileResponse{
+			FirstName: userRes.Profile.FirstName,
+			LastName:  userRes.Profile.LastName,
+			Gender:    userRes.Profile.Gender,
+			Dob:       userRes.Profile.Dob,
+		},
 	}
 	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }

@@ -6,11 +6,9 @@ import (
 	"net"
 
 	"github.com/SomeHowMicroservice/shm-be/services/user/config"
-	"github.com/SomeHowMicroservice/shm-be/services/user/handler"
+	"github.com/SomeHowMicroservice/shm-be/services/user/container"
 	"github.com/SomeHowMicroservice/shm-be/services/user/initialization"
 	"github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
-	"github.com/SomeHowMicroservice/shm-be/services/user/repository"
-	"github.com/SomeHowMicroservice/shm-be/services/user/service"
 	"google.golang.org/grpc"
 )
 
@@ -26,12 +24,8 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-
-	userRepo := repository.NewUserRepository(db)
-	roleRepo := repository.NewRoleRepository(db)
-	svc := service.NewUserService(userRepo, roleRepo)
-	hdl := handler.NewGRPCHandler(grpcServer, svc)
-	protobuf.RegisterUserServiceServer(grpcServer, hdl)
+	userContainer := container.NewContainer(db, grpcServer)
+	protobuf.RegisterUserServiceServer(grpcServer, userContainer.GRPCHandler)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {

@@ -15,5 +15,5 @@ type Role struct {
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	Users []User `gorm:"many2many:user_roles;" json:"users"`
+	Users []*User `gorm:"many2many:user_roles;" json:"users"`
 }

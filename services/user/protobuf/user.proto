@@ -51,7 +51,15 @@ message UserResponse {
   repeated string roles = 4;
   string password = 5;
   string created_at = 6;
-  string updated_at = 7;
+  ProfileResponse profile = 7;
+}
+
+message ProfileResponse {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string gender = 4;
+  string dob = 5;
 }
 
 message UserPublicResponse {
@@ -60,6 +68,7 @@ message UserPublicResponse {
   string email = 3;
   repeated string roles = 4;
   string created_at = 5;
+  ProfileResponse profile = 6;
 }
 
 message GetUserByIdRequest {

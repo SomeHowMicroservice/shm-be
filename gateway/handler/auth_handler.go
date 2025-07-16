@@ -249,5 +249,11 @@ func toAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
 		Username:  userRes.Username,
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
+		Profile: &authpb.ProfileResponse{
+			FirstName: userRes.Profile.FirstName,
+			LastName:  userRes.Profile.LastName,
+			Gender:    userRes.Profile.Gender,
+			Dob:       userRes.Profile.Dob,
+		},
 	}
 }

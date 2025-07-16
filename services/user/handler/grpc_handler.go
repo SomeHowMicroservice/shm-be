@@ -13,16 +13,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type grpcHandler struct {
+type GRPCHandler struct {
 	protobuf.UnimplementedUserServiceServer
 	svc service.UserService
 }
 
-func NewGRPCHandler(grpcServer *grpc.Server, svc service.UserService) *grpcHandler {
-	return &grpcHandler{svc: svc}
+func NewGRPCHandler(grpcServer *grpc.Server, svc service.UserService) *GRPCHandler {
+	return &GRPCHandler{svc: svc}
 }
 
-func (h *grpcHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckEmailExistsRequest) (*protobuf.UserCheckedResponse, error) {
+func (h *GRPCHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckEmailExistsRequest) (*protobuf.UserCheckedResponse, error) {
 	exists, err := h.svc.CheckEmailExists(ctx, req.Email)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -32,7 +32,7 @@ func (h *grpcHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckE
 	}, nil
 }
 
-func (h *grpcHandler) CheckUsernameExists(ctx context.Context, req *protobuf.CheckUsernameExistsRequest) (*protobuf.UserCheckedResponse, error) {
+func (h *GRPCHandler) CheckUsernameExists(ctx context.Context, req *protobuf.CheckUsernameExistsRequest) (*protobuf.UserCheckedResponse, error) {
 	exists, err := h.svc.CheckUsernameExists(ctx, req.Username)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -42,7 +42,7 @@ func (h *grpcHandler) CheckUsernameExists(ctx context.Context, req *protobuf.Che
 	}, nil
 }
 
-func (h *grpcHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*protobuf.UserResponse, error) {
+func (h *GRPCHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*protobuf.UserResponse, error) {
 	user, err := h.svc.CreateUser(ctx, req)
 	if err != nil {
 		switch err {
@@ -55,7 +55,7 @@ func (h *grpcHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRe
 	return toUserResponse(user), nil
 }
 
-func (h *grpcHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUserByUsernameRequest) (*protobuf.UserResponse, error) {
+func (h *GRPCHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUserByUsernameRequest) (*protobuf.UserResponse, error) {
 	user, err := h.svc.GetUserByUsername(ctx, req.Username)
 	if err != nil {
 		switch err {
@@ -68,7 +68,7 @@ func (h *grpcHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUs
 	return toUserResponse(user), nil
 }
 
-func (h *grpcHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserPublicResponse, error) {
+func (h *GRPCHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserPublicResponse, error) {
 	user, err := h.svc.GetUserById(ctx, req.Id)
 	if err != nil {
 		switch err {
@@ -81,7 +81,7 @@ func (h *grpcHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUs
 	return toUserPublicResponse(user), nil
 }
 
-func (h *grpcHandler) GetUserById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserResponse, error) {
+func (h *GRPCHandler) GetUserById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserResponse, error) {
 	user, err := h.svc.GetUserById(ctx, req.Id)
 	if err != nil {
 		switch err {
@@ -94,7 +94,7 @@ func (h *grpcHandler) GetUserById(ctx context.Context, req *protobuf.GetUserById
 	return toUserResponse(user), nil
 }
 
-func (h *grpcHandler) UpdateUserPassword(ctx context.Context, req *protobuf.UpdateUserPasswordRequest) (*protobuf.UserUpdatedResponse, error) {
+func (h *GRPCHandler) UpdateUserPassword(ctx context.Context, req *protobuf.UpdateUserPasswordRequest) (*protobuf.UserUpdatedResponse, error) {
 	if err := h.svc.UpdateUserPassword(ctx, req); err != nil {
 		switch err {
 		case customErr.ErrUserNotFound:
@@ -113,6 +113,14 @@ func toUserResponse(user *model.User) *protobuf.UserResponse {
 	for _, r := range user.Roles {
 		roles = append(roles, r.Name)
 	}
+	var dob string
+	if user.Profile.DOB != nil {
+		dob = user.Profile.DOB.Format("2006-01-02")
+	}
+	var gender string
+	if user.Profile.Gender != nil {
+		gender = *user.Profile.Gender
+	}
 	return &protobuf.UserResponse{
 		Id:        user.ID,
 		Username:  user.Username,
@@ -120,7 +128,13 @@ func toUserResponse(user *model.User) *protobuf.UserResponse {
 		Roles:     roles,
 		Password:  user.Password,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
+		Profile: &protobuf.ProfileResponse{
+			Id:        user.Profile.ID,
+			FirstName: user.Profile.FirstName,
+			LastName:  user.Profile.LastName,
+			Gender:    gender,
+			Dob:       dob,
+		},
 	}
 }
 
@@ -129,11 +143,26 @@ func toUserPublicResponse(user *model.User) *protobuf.UserPublicResponse {
 	for _, r := range user.Roles {
 		roles = append(roles, r.Name)
 	}
+	var dob string
+	if user.Profile.DOB != nil {
+		dob = user.Profile.DOB.Format("2006-01-02")
+	}
+	var gender string
+	if user.Profile.Gender != nil {
+		gender = *user.Profile.Gender
+	}
 	return &protobuf.UserPublicResponse{
 		Id:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
 		Roles:     roles,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+		Profile: &protobuf.ProfileResponse{
+			Id:        user.Profile.ID,
+			FirstName: user.Profile.FirstName,
+			LastName:  user.Profile.LastName,
+			Gender:    gender,
+			Dob:       dob,
+		},
 	}
 }

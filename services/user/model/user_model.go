@@ -9,6 +9,7 @@ type User struct {
 	Password  string    `gorm:"type: varchar(255); not null" json:"-"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
-
-	Roles []Role `gorm:"many2many:user_roles;" json:"roles"`
+	
+	Profile   *Profile  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"profile,omitempty"`
+	Roles 		[]*Role 	`gorm:"many2many:user_roles;" json:"roles"`
 }
