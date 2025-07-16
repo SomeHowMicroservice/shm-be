@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -9,11 +10,13 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/common/smtp"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/common"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/config"
+	"github.com/SomeHowMicroservice/shm-be/services/auth/mq"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/repository"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/security"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/google/uuid"
+	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -23,14 +26,16 @@ type authServiceImpl struct {
 	userClient userpb.UserServiceClient
 	mailer     smtp.Mailer
 	cfg        *config.Config
+	mqChannel  *amqp091.Channel
 }
 
-func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.Mailer, cfg *config.Config) AuthService {
+func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.Mailer, cfg *config.Config, mqChannel  *amqp091.Channel) AuthService {
 	return &authServiceImpl{
 		cacheRepo,
 		userClient,
 		mailer,
 		cfg,
+		mqChannel,
 	}
 }
 
@@ -77,9 +82,18 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 	if err = s.cacheRepo.SaveRegistrationData(ctx, registrationToken, registrationData, 3*time.Minute); err != nil {
 		return "", err
 	}
-	// Gửi email đăng ký
-	if err := s.mailer.SendAuthEmail(req.Email, "Xác thực đăng ký tài khoản tại SomeHow", otp); err != nil {
-		return "", err
+	// Gửi email đăng ký qua RabbitMQ
+	emailMsg := common.AuthEmailMessage{
+		To:      req.Email,
+		Subject: "Xác thực đăng ký tài khoản tại SomeHow",
+		Otp:     otp,
+	}
+	body, err := json.Marshal(emailMsg)
+	if err != nil {
+		return "", fmt.Errorf("marshal email msg thất bại: %w", err)
+	}
+	if err := mq.PublishMessage(s.mqChannel, "", "email.send", body); err != nil {
+		return "", fmt.Errorf("publish email msg thất bại: %w", err)
 	}
 	return registrationToken, nil
 }

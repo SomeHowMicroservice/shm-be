@@ -34,10 +34,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	_ , _, err = initialization.InitMessageQueue(cfg)
+	mqc, err := initialization.InitMessageQueue(cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	defer mqc.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -60,7 +61,9 @@ func main() {
 	}
 
 	mailer := smtp.NewMailer(mailerCfg)
-	svc := service.NewAuthService(cacheRepo, userClient, mailer, cfg)
+	go startEmailConsumer(mqc, mailer)
+	
+	svc := service.NewAuthService(cacheRepo, userClient, mailer, cfg, mqc.Chann)
 	authHandler := handler.NewGRPCHandler(grpcServer, svc)
 
 	protobuf.RegisterAuthServiceServer(grpcServer, authHandler)

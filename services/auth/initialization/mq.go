@@ -8,7 +8,12 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 )
 
-func InitMessageQueue(cfg *config.Config) (*amqp091.Connection, *amqp091.Channel, error) {
+type MQConnection struct {
+	Conn *amqp091.Connection
+	Chann *amqp091.Channel
+}
+
+func InitMessageQueue(cfg *config.Config) (*MQConnection, error) {
 	dsn := fmt.Sprintf("amqps://%s:%s@%s/%s",
 		cfg.MessageQueue.RUser,
 		cfg.MessageQueue.RPassword,
@@ -23,5 +28,13 @@ func InitMessageQueue(cfg *config.Config) (*amqp091.Connection, *amqp091.Channel
 	if err != nil {
 		log.Fatalf("Mở 1 kênh MQ thất bại: %v", err)
 	}
-	return conn, chann, nil
+	return &MQConnection{
+		Conn: conn,
+		Chann: chann,
+	}, nil
+}
+
+func (mq *MQConnection) Close() {
+	_ = mq.Chann.Close()
+	_ = mq.Conn.Close()
 }
