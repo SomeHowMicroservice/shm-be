@@ -16,13 +16,15 @@ import (
 )
 
 type AuthHandler struct {
-	client authpb.AuthServiceClient
-	cfg    *config.AppConfig
+	authClient authpb.AuthServiceClient
+	userClient userpb.UserServiceClient
+	cfg        *config.AppConfig
 }
 
-func NewAuthHandler(client authpb.AuthServiceClient, cfg *config.AppConfig) *AuthHandler {
+func NewAuthHandler(authClient authpb.AuthServiceClient, userClient userpb.UserServiceClient, cfg *config.AppConfig) *AuthHandler {
 	return &AuthHandler{
-		client,
+		authClient,
+		userClient,
 		cfg,
 	}
 }
@@ -36,7 +38,7 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 		common.JSON(c, http.StatusBadRequest, message, nil)
 		return
 	}
-	res, err := h.client.SignUp(ctx, &authpb.SignUpRequest{
+	res, err := h.authClient.SignUp(ctx, &authpb.SignUpRequest{
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
@@ -70,7 +72,7 @@ func (h *AuthHandler) VerifySignUp(c *gin.Context) {
 		common.JSON(c, http.StatusBadRequest, message, nil)
 		return
 	}
-	res, err := h.client.VerifySignUp(ctx, &authpb.VerifySignUpRequest{
+	res, err := h.authClient.VerifySignUp(ctx, &authpb.VerifySignUpRequest{
 		RegistrationToken: req.RegistrationToken,
 		Otp:               req.Otp,
 	})
@@ -107,7 +109,7 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 		common.JSON(c, http.StatusBadRequest, message, nil)
 		return
 	}
-	res, err := h.client.SignIn(ctx, &authpb.SignInRequest{
+	res, err := h.authClient.SignIn(ctx, &authpb.SignInRequest{
 		Username: req.Username,
 		Password: req.Password,
 	})
@@ -180,7 +182,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		common.JSON(c, http.StatusUnauthorized, "không thể chuyển các quyền người dùng", nil)
 		return
 	}
-	res, err := h.client.RefreshToken(ctx, &authpb.RefreshTokenRequest{
+	res, err := h.authClient.RefreshToken(ctx, &authpb.RefreshTokenRequest{
 		Id:    userID,
 		Roles: userRoles,
 	})
@@ -216,7 +218,7 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 		common.JSON(c, http.StatusBadRequest, message, nil)
 		return
 	}
-	res, err := h.client.ChangePassword(ctx, &authpb.ChangePasswordRequest{
+	res, err := h.authClient.ChangePassword(ctx, &authpb.ChangePasswordRequest{
 		Id:          user.Id,
 		OldPassword: req.OldPassword,
 		NewPassword: req.NewPassword,
@@ -240,6 +242,69 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
 	common.JSON(c, http.StatusOK, "Đổi mật khẩu thành thành công", gin.H{
 		"user": user,
+	})
+}
+
+func (h *AuthHandler) UpdateProfile(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	var firstName, lastName, gender, dob string
+	if req.FirstName != nil {
+		firstName = *req.FirstName
+	}
+	if req.LastName != nil {
+		lastName = *req.LastName
+	}
+	if req.Gender != nil {
+		gender = *req.Gender
+	}
+	if req.DOB != nil {
+		dob = req.DOB.Format("2006-01-02")
+	}
+
+	res, err := h.userClient.UpdateUserProfile(ctx, &userpb.UpdateUserProfileRequest{
+		UserId:    user.Id,
+		FirstName: firstName,
+		LastName:  lastName,
+		Gender:    gender,
+		Dob:       dob,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Cập nhật hồ sơ thành công", gin.H{
+		"user": toAuthResponse(res),
 	})
 }
 

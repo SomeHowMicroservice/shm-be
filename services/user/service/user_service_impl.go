@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
@@ -111,4 +112,43 @@ func (s *userServiceImpl) UpdateUserPassword(ctx context.Context, req *protobuf.
 		return fmt.Errorf("cập nhật mật khẩu thất bại: %w", err)
 	}
 	return nil
+}
+
+func (s *userServiceImpl) UpdateUserProfile(ctx context.Context, req *protobuf.UpdateUserProfileRequest) (*model.User, error) {
+	updateData := map[string]interface{}{}
+	if req.FirstName != "" {
+		updateData["first_name"] = req.FirstName
+	}
+	if req.LastName != "" {
+		updateData["last_name"] = req.LastName
+	}
+	if req.Gender != "" {
+		updateData["gender"] = req.Gender
+	}
+	if req.Dob != "" {
+		parsedDob, err := time.Parse("2006-01-02", req.Dob)
+		if err != nil {
+			return nil, fmt.Errorf("không thể chuyển đổi định dạng: %w", err)
+		}
+		updateData["dob"] = parsedDob
+	}
+
+	if len(updateData) > 0 {
+		if err := s.profileRepo.UpdateByUserID(ctx, req.UserId, updateData); err != nil {
+			if errors.Is(err, customErr.ErrProfileNotFound) {
+				return nil, err
+			}
+			return nil, fmt.Errorf("cập nhật hồ sơ người dùng thất bại: %w", err)
+		}
+	}
+	// Lấy lại user đã cập nhật
+	updatedUser, err := s.userRepo.FindById(ctx, req.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
+	}
+	if updatedUser == nil {
+		return nil, customErr.ErrUserNotFound
+	}
+	
+	return updatedUser, nil
 }

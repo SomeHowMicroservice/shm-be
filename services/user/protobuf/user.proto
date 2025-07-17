@@ -16,11 +16,21 @@ service UserService {
 
   rpc GetUserByUsername(GetUserByUsernameRequest) returns (UserResponse);
 
-  rpc CreateUser(CreateUserRequest) returns (UserResponse);
+  rpc CreateUser(CreateUserRequest) returns (UserPublicResponse);
 
   rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UserUpdatedResponse);
 
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UserPublicResponse);
+
   // rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message UpdateUserProfileRequest {
+  string user_id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string gender = 4;
+  string dob = 5;
 }
 
 message UserUpdatedResponse {

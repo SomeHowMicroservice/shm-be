@@ -42,7 +42,7 @@ func (h *GRPCHandler) CheckUsernameExists(ctx context.Context, req *protobuf.Che
 	}, nil
 }
 
-func (h *GRPCHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*protobuf.UserResponse, error) {
+func (h *GRPCHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*protobuf.UserPublicResponse, error) {
 	user, err := h.svc.CreateUser(ctx, req)
 	if err != nil {
 		switch err {
@@ -52,7 +52,7 @@ func (h *GRPCHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRe
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
-	return toUserResponse(user), nil
+	return toUserPublicResponse(user), nil
 }
 
 func (h *GRPCHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUserByUsernameRequest) (*protobuf.UserResponse, error) {
@@ -106,6 +106,19 @@ func (h *GRPCHandler) UpdateUserPassword(ctx context.Context, req *protobuf.Upda
 	return &protobuf.UserUpdatedResponse{
 		Success: true,
 	}, nil
+}
+
+func (h *GRPCHandler) UpdateUserProfile(ctx context.Context, req *protobuf.UpdateUserProfileRequest) (*protobuf.UserPublicResponse, error) {
+	user, err := h.svc.UpdateUserProfile(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrProfileNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+	return toUserPublicResponse(user), nil
 }
 
 func toUserResponse(user *model.User) *protobuf.UserResponse {

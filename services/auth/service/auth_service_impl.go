@@ -52,6 +52,7 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 	if uRes.Exists {
 		return "", customErr.ErrUsernameAlreadyExists
 	}
+
 	eRes, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{Email: req.Email})
 	if err != nil {
 		st, ok := status.FromError(err)
@@ -63,13 +64,17 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 	if eRes.Exists {
 		return "", customErr.ErrEmailAlreadyExists
 	}
+
 	// Tạo OTP và Registration Token trả ra cho FE
 	otp := common.GenerateOTP(6)
 	registrationToken := uuid.NewString()
+
+	// Băm mật khẩu
 	hashedPassword, err := common.HashPassword(req.Password)
 	if err != nil {
 		return "", fmt.Errorf("băm mật khẩu thất bại: %w", err)
 	}
+
 	// Tạo object dữ liệu người dùng đăng ký lưu vào Redis
 	registrationData := common.RegistrationData{
 		Email:    req.Email,
@@ -78,23 +83,30 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 		Otp:      otp,
 		Attempts: 0,
 	}
+
 	// Lưu vô Redis
 	if err = s.cacheRepo.SaveRegistrationData(ctx, registrationToken, registrationData, 3*time.Minute); err != nil {
 		return "", err
 	}
-	// Gửi email đăng ký qua RabbitMQ
+
+	// Tạo struct dữ liệu cần đẩy vào RabbitMQ
 	emailMsg := common.AuthEmailMessage{
 		To:      req.Email,
 		Subject: "Xác thực đăng ký tài khoản tại SomeHow",
 		Otp:     otp,
 	}
+
+	// Chuyển dổi
 	body, err := json.Marshal(emailMsg)
 	if err != nil {
-		return "", fmt.Errorf("marshal email msg thất bại: %w", err)
+		return "", fmt.Errorf("chuyển đổi EmailMessage thất bại: %w", err)
 	}
+
+	// Publish lên RabbitMQ
 	if err := mq.PublishMessage(s.mqChannel, "", "email.send", body); err != nil {
 		return "", fmt.Errorf("publish email msg thất bại: %w", err)
 	}
+
 	return registrationToken, nil
 }
 
@@ -107,6 +119,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 	if regData == nil {
 		return nil, "", 0, "", 0, customErr.ErrAuthDataNotFound
 	}
+
 	// Thử quá 3 lần thì xóa dữ liệu khỏi redis và báo lỗi
 	if regData.Attempts >= 3 {
 		if err = s.cacheRepo.DeleteAuthData(ctx, "sign-up", req.RegistrationToken); err != nil {
@@ -114,15 +127,18 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 		}
 		return nil, "", 0, "", 0, customErr.ErrTooManyAttempts
 	}
+
 	// Thêm số lần thử và lưu lại vào redis
 	regData.Attempts++
 	if err = s.cacheRepo.SaveRegistrationData(ctx, req.RegistrationToken, *regData, 3*time.Minute); err != nil {
 		return nil, "", 0, "", 0, err
 	}
+
 	// Kiểm tra OTP có khơp không
 	if regData.Otp != req.Otp {
 		return nil, "", 0, "", 0, customErr.ErrInvalidOTP
 	}
+
 	// Kiểm tra lại tồn tại Username và Email cho nó chắc lỡ trong quá xác thực OTP thì có tạo tài khoản ở chỗ khác rồi
 	uRes, err := s.userClient.CheckUsernameExists(ctx, &userpb.CheckUsernameExistsRequest{Username: regData.Username})
 	if err != nil {
@@ -135,6 +151,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 	if uRes.Exists {
 		return nil, "", 0, "", 0, customErr.ErrUsernameAlreadyExists
 	}
+
 	eRes, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{Email: regData.Email})
 	if err != nil {
 		st, ok := status.FromError(err)
@@ -146,7 +163,8 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 	if eRes.Exists {
 		return nil, "", 0, "", 0, customErr.ErrEmailAlreadyExists
 	}
-	// Tạo object và gửi tới User Service bằng gRPC
+
+	// Tạo struct và gửi tới User Service bằng gRPC
 	newUser := &userpb.CreateUserRequest{
 		Username: regData.Username,
 		Email:    regData.Email,
@@ -160,6 +178,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 		}
 		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
 	}
+
 	// Tạo Access Token và Refresh Token
 	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
 	if err != nil {
@@ -169,10 +188,12 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 	if err != nil {
 		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
 	}
+
 	// Xóa dữ liệu trong redis
 	if err = s.cacheRepo.DeleteAuthData(ctx, "sign-up", req.RegistrationToken); err != nil {
 		return nil, "", 0, "", 0, err
 	}
+	// Tạo struct phản hồi
 	authRes := &protobuf.AuthResponse{
 		Id:        userRes.Id,
 		Username:  userRes.Username,
@@ -185,6 +206,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 			Dob:       userRes.Profile.Dob,
 		},
 	}
+
 	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }
 

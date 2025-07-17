@@ -26,7 +26,7 @@ func main() {
 	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
 	clients := initialization.InitClients(authAddr, userAddr)
 
-	appContainer := container.NewContainer(clients.AuthClient, cfg)
+	appContainer := container.NewContainer(clients.AuthClient, clients.UserClient, cfg)
 
 	r := gin.Default()
 	config.CORSConfig(r)
