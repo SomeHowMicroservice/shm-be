@@ -8,10 +8,14 @@ import (
 
 type Container struct {
 	Auth *AuthContainer
+	User *UserContainer
 }
 
 func NewContainer(authClient authpb.AuthServiceClient, userClient userpb.UserServiceClient, cfg *config.AppConfig) *Container {
+	auth := NewAuthContainer(authClient, cfg)
+	user := NewUserContainer(userClient, cfg)
 	return &Container{
-		Auth: NewAuthContainer(authClient, userClient, cfg),
+		auth,
+		user,
 	}
 }

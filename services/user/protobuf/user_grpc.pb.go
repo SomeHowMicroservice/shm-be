@@ -19,14 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_CheckEmailExists_FullMethodName    = "/user.UserService/CheckEmailExists"
-	UserService_CheckUsernameExists_FullMethodName = "/user.UserService/CheckUsernameExists"
-	UserService_GetUserPublicById_FullMethodName   = "/user.UserService/GetUserPublicById"
-	UserService_GetUserById_FullMethodName         = "/user.UserService/GetUserById"
-	UserService_GetUserByUsername_FullMethodName   = "/user.UserService/GetUserByUsername"
-	UserService_CreateUser_FullMethodName          = "/user.UserService/CreateUser"
-	UserService_UpdateUserPassword_FullMethodName  = "/user.UserService/UpdateUserPassword"
-	UserService_UpdateUserProfile_FullMethodName   = "/user.UserService/UpdateUserProfile"
+	UserService_CheckEmailExists_FullMethodName     = "/user.UserService/CheckEmailExists"
+	UserService_CheckUsernameExists_FullMethodName  = "/user.UserService/CheckUsernameExists"
+	UserService_GetUserPublicById_FullMethodName    = "/user.UserService/GetUserPublicById"
+	UserService_GetUserById_FullMethodName          = "/user.UserService/GetUserById"
+	UserService_GetUserPublicByEmail_FullMethodName = "/user.UserService/GetUserPublicByEmail"
+	UserService_GetUserByUsername_FullMethodName    = "/user.UserService/GetUserByUsername"
+	UserService_CreateUser_FullMethodName           = "/user.UserService/CreateUser"
+	UserService_UpdateUserPassword_FullMethodName   = "/user.UserService/UpdateUserPassword"
+	UserService_UpdateUserProfile_FullMethodName    = "/user.UserService/UpdateUserProfile"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -37,6 +38,7 @@ type UserServiceClient interface {
 	CheckUsernameExists(ctx context.Context, in *CheckUsernameExistsRequest, opts ...grpc.CallOption) (*UserCheckedResponse, error)
 	GetUserPublicById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserPublicResponse, error)
 	GetUserById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	GetUserPublicByEmail(ctx context.Context, in *GetUserByEmailRequest, opts ...grpc.CallOption) (*UserPublicResponse, error)
 	GetUserByUsername(ctx context.Context, in *GetUserByUsernameRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*UserPublicResponse, error)
 	UpdateUserPassword(ctx context.Context, in *UpdateUserPasswordRequest, opts ...grpc.CallOption) (*UserUpdatedResponse, error)
@@ -91,6 +93,16 @@ func (c *userServiceClient) GetUserById(ctx context.Context, in *GetUserByIdRequ
 	return out, nil
 }
 
+func (c *userServiceClient) GetUserPublicByEmail(ctx context.Context, in *GetUserByEmailRequest, opts ...grpc.CallOption) (*UserPublicResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserPublicResponse)
+	err := c.cc.Invoke(ctx, UserService_GetUserPublicByEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) GetUserByUsername(ctx context.Context, in *GetUserByUsernameRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UserResponse)
@@ -139,6 +151,7 @@ type UserServiceServer interface {
 	CheckUsernameExists(context.Context, *CheckUsernameExistsRequest) (*UserCheckedResponse, error)
 	GetUserPublicById(context.Context, *GetUserByIdRequest) (*UserPublicResponse, error)
 	GetUserById(context.Context, *GetUserByIdRequest) (*UserResponse, error)
+	GetUserPublicByEmail(context.Context, *GetUserByEmailRequest) (*UserPublicResponse, error)
 	GetUserByUsername(context.Context, *GetUserByUsernameRequest) (*UserResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*UserPublicResponse, error)
 	UpdateUserPassword(context.Context, *UpdateUserPasswordRequest) (*UserUpdatedResponse, error)
@@ -164,6 +177,9 @@ func (UnimplementedUserServiceServer) GetUserPublicById(context.Context, *GetUse
 }
 func (UnimplementedUserServiceServer) GetUserById(context.Context, *GetUserByIdRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserById not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserPublicByEmail(context.Context, *GetUserByEmailRequest) (*UserPublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserPublicByEmail not implemented")
 }
 func (UnimplementedUserServiceServer) GetUserByUsername(context.Context, *GetUserByUsernameRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByUsername not implemented")
@@ -270,6 +286,24 @@ func _UserService_GetUserById_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUserPublicByEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUserPublicByEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUserPublicByEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUserPublicByEmail(ctx, req.(*GetUserByEmailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_GetUserByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserByUsernameRequest)
 	if err := dec(in); err != nil {
@@ -364,6 +398,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserById",
 			Handler:    _UserService_GetUserById_Handler,
+		},
+		{
+			MethodName: "GetUserPublicByEmail",
+			Handler:    _UserService_GetUserPublicByEmail_Handler,
 		},
 		{
 			MethodName: "GetUserByUsername",

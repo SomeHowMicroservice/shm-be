@@ -17,14 +17,12 @@ import (
 
 type AuthHandler struct {
 	authClient authpb.AuthServiceClient
-	userClient userpb.UserServiceClient
 	cfg        *config.AppConfig
 }
 
-func NewAuthHandler(authClient authpb.AuthServiceClient, userClient userpb.UserServiceClient, cfg *config.AppConfig) *AuthHandler {
+func NewAuthHandler(authClient authpb.AuthServiceClient, cfg *config.AppConfig) *AuthHandler {
 	return &AuthHandler{
 		authClient,
-		userClient,
 		cfg,
 	}
 }
@@ -32,12 +30,14 @@ func NewAuthHandler(authClient authpb.AuthServiceClient, userClient userpb.UserS
 func (h *AuthHandler) SignUp(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
+
 	var req request.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		message := common.HandleValidationError(err)
 		common.JSON(c, http.StatusBadRequest, message, nil)
 		return
 	}
+
 	res, err := h.authClient.SignUp(ctx, &authpb.SignUpRequest{
 		Username: req.Username,
 		Email:    req.Email,
@@ -58,6 +58,7 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
+
 	common.JSON(c, http.StatusOK, "Đăng ký thành công, vui lòng kiểm tra email để lấy mã xác thực", gin.H{
 		"registration_token": res.RegistrationToken,
 	})
@@ -66,12 +67,14 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 func (h *AuthHandler) VerifySignUp(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
+
 	var req request.VerifySignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		message := common.HandleValidationError(err)
 		common.JSON(c, http.StatusBadRequest, message, nil)
 		return
 	}
+
 	res, err := h.authClient.VerifySignUp(ctx, &authpb.VerifySignUpRequest{
 		RegistrationToken: req.RegistrationToken,
 		Otp:               req.Otp,
@@ -103,12 +106,14 @@ func (h *AuthHandler) VerifySignUp(c *gin.Context) {
 func (h *AuthHandler) SignIn(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
+
 	var req request.SignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		message := common.HandleValidationError(err)
 		common.JSON(c, http.StatusBadRequest, message, nil)
 		return
 	}
+
 	res, err := h.authClient.SignIn(ctx, &authpb.SignInRequest{
 		Username: req.Username,
 		Password: req.Password,
@@ -153,7 +158,7 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 		return
 	}
 	common.JSON(c, http.StatusOK, "Lấy thông tin người dùng thành công", gin.H{
-		"user": toAuthResponse(user),
+		"user": ToAuthResponse(user),
 	})
 }
 
@@ -240,54 +245,22 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	}
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
 	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
-	common.JSON(c, http.StatusOK, "Đổi mật khẩu thành thành công", gin.H{
-		"user": user,
-	})
+	common.JSON(c, http.StatusOK, "Đổi mật khẩu thành thành công", nil)
 }
 
-func (h *AuthHandler) UpdateProfile(c *gin.Context) {
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	userAny, exists := c.Get("user")
-	if !exists {
-		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
-		return
-	}
-
-	user, ok := userAny.(*userpb.UserPublicResponse)
-	if !ok {
-		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
-		return
-	}
-
-	var req request.UpdateProfileRequest
+	var req request.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		message := common.HandleValidationError(err)
 		common.JSON(c, http.StatusBadRequest, message, nil)
 		return
 	}
 
-	var firstName, lastName, gender, dob string
-	if req.FirstName != nil {
-		firstName = *req.FirstName
-	}
-	if req.LastName != nil {
-		lastName = *req.LastName
-	}
-	if req.Gender != nil {
-		gender = *req.Gender
-	}
-	if req.DOB != nil {
-		dob = req.DOB.Format("2006-01-02")
-	}
-
-	res, err := h.userClient.UpdateUserProfile(ctx, &userpb.UpdateUserProfileRequest{
-		UserId:    user.Id,
-		FirstName: firstName,
-		LastName:  lastName,
-		Gender:    gender,
-		Dob:       dob,
+	res, err := h.authClient.ForgotPassword(ctx, &authpb.ForgotPasswordRequest{
+		Email: req.Email,
 	})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
@@ -303,12 +276,80 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	common.JSON(c, http.StatusOK, "Cập nhật hồ sơ thành công", gin.H{
-		"user": toAuthResponse(res),
+	common.JSON(c, http.StatusOK, "Xác thực quên mật khẩu thành công, vui lòng kiểm tra email để lấy mã xác thực", gin.H{
+		"forgot_password_token": res.ForgotPasswordToken,
 	})
 }
 
-func toAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
+func (h *AuthHandler) VerifyForgotPassword(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	var req request.VerifyForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	res, err := h.authClient.VerifyForgotPassword(ctx, &authpb.VerifyForgotPasswordRequest{
+		ForgotPasswordToken: req.ForgotPasswordToken,
+		Otp:                 req.Otp,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			case codes.InvalidArgument:
+				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Xác thực quên mật khẩu thành công", gin.H{
+		"reset_password_token": res.ResetPasswordToken,
+	})
+}
+
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	var req request.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	_, err := h.authClient.ResetPassword(ctx, &authpb.ResetPasswordRequest{
+		ResetPasswordToken: req.ResetPasswordToken,
+		NewPassword:        req.NewPassword,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Làm mới mật khẩu thành công, vui lòng đăng nhập lại", nil)
+}
+
+func ToAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
 	return &authpb.AuthResponse{
 		Id:        userRes.Id,
 		Username:  userRes.Username,

@@ -12,7 +12,7 @@ service UserService {
 
   rpc GetUserById(GetUserByIdRequest) returns (UserResponse);
 
-  // rpc GetUserByEmail(GetUserByEmailRequest) returns (UserResponse);
+  rpc GetUserPublicByEmail(GetUserByEmailRequest) returns (UserPublicResponse);
 
   rpc GetUserByUsername(GetUserByUsernameRequest) returns (UserResponse);
 
@@ -23,6 +23,10 @@ service UserService {
   rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UserPublicResponse);
 
   // rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message GetUserByEmailRequest {
+  string email = 1;
 }
 
 message UpdateUserProfileRequest {

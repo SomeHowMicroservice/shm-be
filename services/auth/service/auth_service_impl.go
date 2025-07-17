@@ -76,7 +76,7 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 	}
 
 	// Tạo object dữ liệu người dùng đăng ký lưu vào Redis
-	registrationData := common.RegistrationData{
+	registrationData := &common.RegistrationData{
 		Email:    req.Email,
 		Username: req.Username,
 		Password: hashedPassword,
@@ -130,7 +130,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 
 	// Thêm số lần thử và lưu lại vào redis
 	regData.Attempts++
-	if err = s.cacheRepo.SaveRegistrationData(ctx, req.RegistrationToken, *regData, 3*time.Minute); err != nil {
+	if err = s.cacheRepo.SaveRegistrationData(ctx, req.RegistrationToken, regData, 3*time.Minute); err != nil {
 		return nil, "", 0, "", 0, err
 	}
 
@@ -259,10 +259,12 @@ func (s *authServiceImpl) RefreshToken(ctx context.Context, req *protobuf.Refres
 	if err != nil {
 		return "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
 	}
+
 	refreshToken, err := security.GenerateToken(req.Id, req.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
 	if err != nil {
 		return "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
 	}
+
 	return accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }
 
@@ -286,10 +288,12 @@ func (s *authServiceImpl) ChangePassword(ctx context.Context, req *protobuf.Chan
 	if !isCorrectPassword {
 		return "", 0, "", 0, customErr.ErrInvalidPassword
 	}
+
 	hashedNewPassword, err := common.HashPassword(req.NewPassword)
 	if err != nil {
 		return "", 0, "", 0, fmt.Errorf("băm mật khẩu thất bại: %w", err)
 	}
+
 	_, err = s.userClient.UpdateUserPassword(ctx, &userpb.UpdateUserPasswordRequest{
 		Id:          userRes.Id,
 		NewPassword: hashedNewPassword,
@@ -315,4 +319,143 @@ func (s *authServiceImpl) ChangePassword(ctx context.Context, req *protobuf.Chan
 		return "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
 	}
 	return accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+}
+
+func (s *authServiceImpl) ForgotPassword(ctx context.Context, req *protobuf.ForgotPasswordRequest) (string, error) {
+	// Kiểm tra email có tồn tại không
+	res, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{
+		Email: req.Email,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			return "", fmt.Errorf("lỗi từ user service: %s", st.Message())
+		}
+		return "", fmt.Errorf("lỗi không xác định: %w", err)
+	}
+	if !res.Exists {
+		return "", customErr.ErrUserNotFound
+	}
+
+	// Tạo OTP và Forgot Password Token trả ra cho FE
+	otp := common.GenerateOTP(6)
+	forgotPasswordToken := uuid.NewString()
+
+	// Tạo struct dữ liệu quên mật khẩu
+	forgotPasswordData := &common.ForgotPasswordData{
+		Email:    req.Email,
+		Otp:      otp,
+		Attempts: 0,
+	}
+
+	// Lưu vào redis
+	if err = s.cacheRepo.SaveForgotPasswordData(ctx, forgotPasswordToken, forgotPasswordData, 3*time.Minute); err != nil {
+		return "", err
+	}
+
+	// Tạo struct dữ liệu cần đẩy vào RabbitMQ
+	emailMsg := common.AuthEmailMessage{
+		To:      req.Email,
+		Subject: "Xác thực quên mật khẩu tại SomeHow",
+		Otp:     otp,
+	}
+
+	// Chuyển dổi sang json
+	body, err := json.Marshal(emailMsg)
+	if err != nil {
+		return "", fmt.Errorf("chuyển đổi EmailMessage thất bại: %w", err)
+	}
+
+	// Publish lên RabbitMQ
+	if err := mq.PublishMessage(s.mqChannel, "", "email.send", body); err != nil {
+		return "", fmt.Errorf("publish email msg thất bại: %w", err)
+	}
+
+	return forgotPasswordToken, nil
+}
+
+func (s *authServiceImpl) VerifyForgotPassword(ctx context.Context, req *protobuf.VerifyForgotPasswordRequest) (string, error) {
+	// Lấy dữ liệu quên mạt khẩu từ Redis
+	forgData, err := s.cacheRepo.GetForgotPasswordData(ctx, req.ForgotPasswordToken)
+	if err != nil {
+		return "", err
+	}
+	if forgData == nil {
+		return "", customErr.ErrAuthDataNotFound
+	}
+
+	// Thử quá 3 lần thì xóa dữ liệu khỏi redis và báo lỗi
+	if forgData.Attempts >= 3 {
+		if err = s.cacheRepo.DeleteAuthData(ctx, "forgot-password", req.ForgotPasswordToken); err != nil {
+			return "", err
+		}
+		return "", customErr.ErrTooManyAttempts
+	}
+
+	if forgData.Otp != req.Otp {
+		return "", customErr.ErrInvalidOTP
+	}
+
+	resetPasswordToken := uuid.NewString()
+
+	if err = s.cacheRepo.SaveResetPasswordData(ctx, resetPasswordToken, forgData.Email, 3*time.Minute); err != nil {
+		return "", err
+	}
+
+	if err = s.cacheRepo.DeleteAuthData(ctx, "forgot-password", req.ForgotPasswordToken); err != nil {
+		return "", err
+	}
+
+	return resetPasswordToken, nil
+}
+
+func (s *authServiceImpl) ResetPassword(ctx context.Context, req *protobuf.ResetPasswordRequest) error {
+	// Lấy dữ liệu làm mới mật khẩu từ Redis
+	email, err := s.cacheRepo.GetResetPasswordData(ctx, req.ResetPasswordToken)
+	if err != nil {
+		return err
+	}
+	if email == "" {
+		return customErr.ErrAuthDataNotFound
+	}
+
+	userRes, err := s.userClient.GetUserPublicByEmail(ctx, &userpb.GetUserByEmailRequest{
+		Email: email,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return customErr.ErrUserNotFound
+			default:
+				return fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	hashedNewPassword, err := common.HashPassword(req.NewPassword)
+	if err != nil {
+		return fmt.Errorf("băm mật khẩu thất bại: %w", err)
+	}
+
+	_, err = s.userClient.UpdateUserPassword(ctx, &userpb.UpdateUserPasswordRequest{
+		Id:          userRes.Id,
+		NewPassword: hashedNewPassword,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return customErr.ErrUserNotFound
+			default:
+				return fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	return nil
 }

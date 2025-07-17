@@ -32,6 +32,7 @@ func main() {
 	config.CORSConfig(r)
 	api := r.Group("/api/v1")
 	router.AuthRouter(api, cfg, clients.UserClient, appContainer.Auth.Handler)
+	router.UserRouter(api, cfg, clients.UserClient, appContainer.User.Handler)
 
 	r.Run(fmt.Sprintf(":%d", cfg.App.GRPCPort))
 }

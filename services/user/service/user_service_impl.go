@@ -71,7 +71,7 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 	user.Roles = []*model.Role{role}
 	// Tạo profile trống cho người dùng
 	profile := &model.Profile{
-		ID: uuid.NewString(),
+		ID:     uuid.NewString(),
 		UserID: user.ID,
 	}
 	if err = s.profileRepo.Create(ctx, profile); err != nil {
@@ -101,6 +101,19 @@ func (s *userServiceImpl) GetUserById(ctx context.Context, id string) (*model.Us
 	if user == nil {
 		return nil, customErr.ErrUserNotFound
 	}
+
+	return user, nil
+}
+
+func (s *userServiceImpl) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+	user, err := s.userRepo.FindByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
+	}
+	if user == nil {
+		return nil, customErr.ErrUserNotFound
+	}
+
 	return user, nil
 }
 
@@ -149,6 +162,6 @@ func (s *userServiceImpl) UpdateUserProfile(ctx context.Context, req *protobuf.U
 	if updatedUser == nil {
 		return nil, customErr.ErrUserNotFound
 	}
-	
+
 	return updatedUser, nil
 }

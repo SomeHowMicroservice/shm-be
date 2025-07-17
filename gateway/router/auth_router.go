@@ -29,6 +29,10 @@ func AuthRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 
 		auth.POST("/change-password", middleware.RequireAuth(accessName, secretKey, userClient), authHandler.ChangePassword)
 
-		auth.PATCH("/profile", middleware.RequireAuth(accessName, secretKey, userClient), authHandler.UpdateProfile)
+		auth.POST("/forgot-password", authHandler.ForgotPassword)
+
+		auth.POST("/forgot-password/verify", authHandler.VerifyForgotPassword)
+
+		auth.POST("/reset-password", authHandler.ResetPassword)
 	}
 }

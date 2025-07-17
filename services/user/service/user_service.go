@@ -20,5 +20,7 @@ type UserService interface {
 
 	GetUserById(ctx context.Context, id string) (*model.User, error)
 
+	GetUserByEmail(ctx context.Context, email string) (*model.User, error)
+
 	UpdateUserProfile(ctx context.Context, req *protobuf.UpdateUserProfileRequest) (*model.User, error)
 }

@@ -78,6 +78,21 @@ func (h *GRPCHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUs
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
+	return toUserPublicResponse(user), nil
+}
+
+func (h *GRPCHandler) GetUserPublicByEmail(ctx context.Context, req *protobuf.GetUserByEmailRequest) (*protobuf.UserPublicResponse, error) {
+	user, err := h.svc.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		switch err {
+		case customErr.ErrUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+	
 	return toUserPublicResponse(user), nil
 }
 

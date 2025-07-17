@@ -17,4 +17,10 @@ type AuthService interface {
 	RefreshToken(ctx context.Context, req *protobuf.RefreshTokenRequest) (string, time.Duration, string, time.Duration, error)
 
 	ChangePassword(ctx context.Context, req *protobuf.ChangePasswordRequest) (string, time.Duration, string, time.Duration, error)
+
+	ForgotPassword(ctx context.Context, req *protobuf.ForgotPasswordRequest) (string, error)
+
+	VerifyForgotPassword(ctx context.Context, req *protobuf.VerifyForgotPasswordRequest) (string, error)
+
+	ResetPassword(ctx context.Context, req *protobuf.ResetPasswordRequest) error
 }

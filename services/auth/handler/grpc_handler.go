@@ -30,6 +30,7 @@ func (h *grpcHandler) SignUp(ctx context.Context, req *protobuf.SignUpRequest) (
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
 	return &protobuf.SignUpResponse{
 		RegistrationToken: token,
 	}, nil
@@ -109,5 +110,54 @@ func (h *grpcHandler) ChangePassword(ctx context.Context, req *protobuf.ChangePa
 		AccessExpiresIn:  int64(accessExpiresIn.Seconds()),
 		RefreshToken:     refreshToken,
 		RefreshExpiresIn: int64(refreshExpiresIn.Seconds()),
+	}, nil
+}
+
+func (h *grpcHandler) ForgotPassword(ctx context.Context, req *protobuf.ForgotPasswordRequest) (*protobuf.ForgotPasswordResponse, error) {
+	token, err := h.svc.ForgotPassword(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.ForgotPasswordResponse{
+		ForgotPasswordToken: token,
+	}, nil
+}
+
+func (h *grpcHandler) VerifyForgotPassword(ctx context.Context, req *protobuf.VerifyForgotPasswordRequest) (*protobuf.VerifyForgotPasswordResponse, error) {
+	token, err := h.svc.VerifyForgotPassword(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrAuthDataNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case customErr.ErrTooManyAttempts, customErr.ErrInvalidOTP:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.VerifyForgotPasswordResponse{
+		ResetPasswordToken: token,
+	}, nil
+}
+
+func (h *grpcHandler) ResetPassword(ctx context.Context, req *protobuf.ResetPasswordRequest) (*protobuf.AuthUpdatedResponse, error) {
+	if err := h.svc.ResetPassword(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrUserNotFound, customErr.ErrAuthDataNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.AuthUpdatedResponse{
+		Success: true,
 	}, nil
 }

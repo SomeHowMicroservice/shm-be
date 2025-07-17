@@ -48,6 +48,19 @@ func (r *userRepositoryImpl) FindByUsername(ctx context.Context, username string
 		}
 		return nil, err
 	}
+
+	return &user, nil
+}
+
+func (r *userRepositoryImpl) FindByEmail(ctx context.Context, email string) (*model.User, error) {
+	var user model.User
+	if err := r.db.WithContext(ctx).Preload("Profile").Preload("Roles").Where("email = ?", email).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
 	return &user, nil
 }
 

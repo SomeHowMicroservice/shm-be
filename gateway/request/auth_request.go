@@ -1,7 +1,5 @@
 package request
 
-import "time"
-
 type SignUpRequest struct {
 	Username string `json:"username" binding:"required,min=3"`
 	Email    string `json:"email" binding:"required,email"`
@@ -23,9 +21,16 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=6"`
 }
 
-type UpdateProfileRequest struct {
-	FirstName *string    `json:"first_name" binding:"omitempty"`
-	LastName  *string    `json:"last_name" binding:"omitempty"`
-	Gender    *string    `json:"gender" binding:"omitempty,oneof=male female"`
-	DOB       *time.Time `json:"dob" binding:"omitempty"`
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type VerifyForgotPasswordRequest struct {
+	ForgotPasswordToken string `json:"forgot_password_token" binding:"required,uuid4"`
+	Otp                 string `json:"otp" binding:"required,len=6,numeric"`
+}
+
+type ResetPasswordRequest struct {
+	ResetPasswordToken string `json:"reset_password_token" binding:"required,uuid4"`
+	NewPassword        string `json:"new_password" binding:"required,min=6"`
 }

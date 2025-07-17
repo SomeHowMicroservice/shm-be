@@ -13,6 +13,38 @@ service AuthService {
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
 
   rpc ChangePassword(ChangePasswordRequest) returns (RefreshTokenResponse);
+
+  rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse);
+
+  rpc VerifyForgotPassword(VerifyForgotPasswordRequest) returns (VerifyForgotPasswordResponse);
+
+  rpc ResetPassword(ResetPasswordRequest) returns (AuthUpdatedResponse);
+}
+
+message AuthUpdatedResponse {
+  bool success = 1;
+}
+
+message ResetPasswordRequest {
+  string reset_password_token = 1;
+  string new_password = 2;
+}
+
+message VerifyForgotPasswordResponse {
+  string reset_password_token = 1;
+}
+
+message VerifyForgotPasswordRequest {
+  string forgot_password_token = 1;
+  string otp = 2;
+}
+
+message ForgotPasswordResponse {
+  string forgot_password_token = 1;
+}
+
+message ForgotPasswordRequest {
+  string email = 1;
 }
 
 message ChangePasswordRequest {
