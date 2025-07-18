@@ -12,8 +12,12 @@ func UserRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 	accessName := cfg.Jwt.AccessName
 	secretKey := cfg.Jwt.SecretKey
 
-	user := rg.Group("/user")
+	user := rg.Group("/users")
 	{
-		user.PATCH("/profile", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.UpdateProfile)
+		user.PATCH("/profiles/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.UpdateProfile)
+
+		user.GET("/me/measurements", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.MyMeasurements)
+
+		user.PATCH("/measurements/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.UpdateMeasurement)
 	}
 }

@@ -245,6 +245,7 @@ func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInReques
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
 		Profile: &protobuf.ProfileResponse{
+			Id: userRes.Profile.Id,
 			FirstName: userRes.Profile.FirstName,
 			LastName:  userRes.Profile.LastName,
 			Gender:    userRes.Profile.Gender,

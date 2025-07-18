@@ -13,6 +13,7 @@ var allModels = []interface{}{
 	&model.User{},
 	&model.Role{},
 	&model.Profile{},
+	&model.Measurement{},
 }
 
 func InitDB(cfg *config.Config) (*gorm.DB, error) {

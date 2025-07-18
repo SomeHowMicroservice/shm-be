@@ -356,6 +356,7 @@ func ToAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
 		Profile: &authpb.ProfileResponse{
+			Id: userRes.Profile.Id,
 			FirstName: userRes.Profile.FirstName,
 			LastName:  userRes.Profile.LastName,
 			Gender:    userRes.Profile.Gender,

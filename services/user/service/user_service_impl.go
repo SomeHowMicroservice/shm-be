@@ -9,6 +9,7 @@ import (
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	"github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	measurementRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/measurement"
 	profileRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/profile"
 	roleRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/role"
 	userRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/user"
@@ -16,16 +17,18 @@ import (
 )
 
 type userServiceImpl struct {
-	userRepo    userRepo.UserRepository
-	roleRepo    roleRepo.RoleRepository
-	profileRepo profileRepo.ProfileRepository
+	userRepo        userRepo.UserRepository
+	roleRepo        roleRepo.RoleRepository
+	profileRepo     profileRepo.ProfileRepository
+	measurementRepo measurementRepo.MeasurementRepository
 }
 
-func NewUserService(userRepo userRepo.UserRepository, roleRepo roleRepo.RoleRepository, profileRepo profileRepo.ProfileRepository) UserService {
+func NewUserService(userRepo userRepo.UserRepository, roleRepo roleRepo.RoleRepository, profileRepo profileRepo.ProfileRepository, measurementRepo measurementRepo.MeasurementRepository) UserService {
 	return &userServiceImpl{
 		userRepo,
 		roleRepo,
 		profileRepo,
+		measurementRepo,
 	}
 }
 
@@ -79,6 +82,16 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 	}
 	// Gán profile rỗng vào phản hồi
 	user.Profile = profile
+
+	// Tạo Measurement trống cho người dùng
+	measurement := &model.Measurement{
+		ID:     uuid.NewString(),
+		UserID: user.ID,
+	}
+	if err := s.measurementRepo.Create(ctx, measurement); err != nil {
+		return nil, fmt.Errorf("tạo bảng size người dùng thất bại: %w", err)
+	}
+
 	return user, nil
 }
 
@@ -93,8 +106,8 @@ func (s *userServiceImpl) GetUserByUsername(ctx context.Context, username string
 	return user, nil
 }
 
-func (s *userServiceImpl) GetUserById(ctx context.Context, id string) (*model.User, error) {
-	user, err := s.userRepo.FindById(ctx, id)
+func (s *userServiceImpl) GetUserByID(ctx context.Context, id string) (*model.User, error) {
+	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
 	}
@@ -147,7 +160,7 @@ func (s *userServiceImpl) UpdateUserProfile(ctx context.Context, req *protobuf.U
 	}
 
 	if len(updateData) > 0 {
-		if err := s.profileRepo.UpdateByUserID(ctx, req.UserId, updateData); err != nil {
+		if err := s.profileRepo.Update(ctx, req.Id, updateData); err != nil {
 			if errors.Is(err, customErr.ErrProfileNotFound) {
 				return nil, err
 			}
@@ -155,13 +168,74 @@ func (s *userServiceImpl) UpdateUserProfile(ctx context.Context, req *protobuf.U
 		}
 	}
 	// Lấy lại user đã cập nhật
-	updatedUser, err := s.userRepo.FindById(ctx, req.UserId)
+	updatedUser, err := s.userRepo.FindByID(ctx, req.UserId)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
 	}
 	if updatedUser == nil {
-		return nil, customErr.ErrUserNotFound
+		return nil, customErr.ErrProfileNotFound
 	}
 
 	return updatedUser, nil
+}
+
+func (s *userServiceImpl) GetMeasurementByUserID(ctx context.Context, userID string) (*model.Measurement, error) {
+	measurement, err := s.measurementRepo.FindByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("lấy độ đo người dùng thất bại: %w", err)
+	}
+	if measurement == nil {
+		return nil, customErr.ErrMeasurementNotFound
+	}
+
+	return measurement, nil
+}
+
+func (s *userServiceImpl) UpdateUserMeasurement(ctx context.Context, req *protobuf.UpdateUserMeasurementRequest) (*model.Measurement, error) {
+	measurement, err := s.measurementRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return nil, fmt.Errorf("lấy độ đo người dùng thất bại: %w", err)
+	}
+	if measurement == nil {
+		return nil, customErr.ErrMeasurementNotFound
+	}
+
+	if measurement.UserID != req.UserId {
+		return nil, customErr.ErrForbidden
+	}
+
+	updateData := map[string]interface{}{}
+	if req.Height != 0 {
+		updateData["height"] = req.Height
+	}
+	if req.Weight != 0 {
+		updateData["weight"] = req.Weight
+	}
+	if req.Chest != 0 {
+		updateData["chest"] = req.Chest
+	}
+	if req.Waist != 0 {
+		updateData["waist"] = req.Waist
+	}
+	if req.Butt != 0 {
+		updateData["butt"] = req.Butt
+	}
+	if len(updateData) >= 0 {
+		if err := s.measurementRepo.Update(ctx, measurement.ID, updateData); err != nil {
+			if errors.Is(err, customErr.ErrMeasurementNotFound) {
+				return nil, err
+			}
+			return nil, fmt.Errorf("cập nhật độ đo người dùng thất bại: %w", err)
+		}
+
+		measurement, err = s.measurementRepo.FindByID(ctx, measurement.ID)
+		if err != nil {
+			return nil, fmt.Errorf("lấy độ đo người dùng thất bại: %w", err)
+		}
+		if measurement == nil {
+			return nil, customErr.ErrMeasurementNotFound
+		}
+	}
+
+	return measurement, nil
 }

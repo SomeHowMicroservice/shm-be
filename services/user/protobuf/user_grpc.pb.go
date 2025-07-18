@@ -19,15 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_CheckEmailExists_FullMethodName     = "/user.UserService/CheckEmailExists"
-	UserService_CheckUsernameExists_FullMethodName  = "/user.UserService/CheckUsernameExists"
-	UserService_GetUserPublicById_FullMethodName    = "/user.UserService/GetUserPublicById"
-	UserService_GetUserById_FullMethodName          = "/user.UserService/GetUserById"
-	UserService_GetUserPublicByEmail_FullMethodName = "/user.UserService/GetUserPublicByEmail"
-	UserService_GetUserByUsername_FullMethodName    = "/user.UserService/GetUserByUsername"
-	UserService_CreateUser_FullMethodName           = "/user.UserService/CreateUser"
-	UserService_UpdateUserPassword_FullMethodName   = "/user.UserService/UpdateUserPassword"
-	UserService_UpdateUserProfile_FullMethodName    = "/user.UserService/UpdateUserProfile"
+	UserService_CheckEmailExists_FullMethodName       = "/user.UserService/CheckEmailExists"
+	UserService_CheckUsernameExists_FullMethodName    = "/user.UserService/CheckUsernameExists"
+	UserService_GetUserPublicById_FullMethodName      = "/user.UserService/GetUserPublicById"
+	UserService_GetUserById_FullMethodName            = "/user.UserService/GetUserById"
+	UserService_GetUserPublicByEmail_FullMethodName   = "/user.UserService/GetUserPublicByEmail"
+	UserService_GetUserByUsername_FullMethodName      = "/user.UserService/GetUserByUsername"
+	UserService_CreateUser_FullMethodName             = "/user.UserService/CreateUser"
+	UserService_UpdateUserPassword_FullMethodName     = "/user.UserService/UpdateUserPassword"
+	UserService_UpdateUserProfile_FullMethodName      = "/user.UserService/UpdateUserProfile"
+	UserService_UpdateUserMeasurement_FullMethodName  = "/user.UserService/UpdateUserMeasurement"
+	UserService_GetMeasurementByUserId_FullMethodName = "/user.UserService/GetMeasurementByUserId"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -43,6 +45,8 @@ type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*UserPublicResponse, error)
 	UpdateUserPassword(ctx context.Context, in *UpdateUserPasswordRequest, opts ...grpc.CallOption) (*UserUpdatedResponse, error)
 	UpdateUserProfile(ctx context.Context, in *UpdateUserProfileRequest, opts ...grpc.CallOption) (*UserPublicResponse, error)
+	UpdateUserMeasurement(ctx context.Context, in *UpdateUserMeasurementRequest, opts ...grpc.CallOption) (*MeasurementResponse, error)
+	GetMeasurementByUserId(ctx context.Context, in *GetMeasurementByUserIdRequest, opts ...grpc.CallOption) (*MeasurementResponse, error)
 }
 
 type userServiceClient struct {
@@ -143,6 +147,26 @@ func (c *userServiceClient) UpdateUserProfile(ctx context.Context, in *UpdateUse
 	return out, nil
 }
 
+func (c *userServiceClient) UpdateUserMeasurement(ctx context.Context, in *UpdateUserMeasurementRequest, opts ...grpc.CallOption) (*MeasurementResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MeasurementResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateUserMeasurement_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetMeasurementByUserId(ctx context.Context, in *GetMeasurementByUserIdRequest, opts ...grpc.CallOption) (*MeasurementResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MeasurementResponse)
+	err := c.cc.Invoke(ctx, UserService_GetMeasurementByUserId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -156,6 +180,8 @@ type UserServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*UserPublicResponse, error)
 	UpdateUserPassword(context.Context, *UpdateUserPasswordRequest) (*UserUpdatedResponse, error)
 	UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*UserPublicResponse, error)
+	UpdateUserMeasurement(context.Context, *UpdateUserMeasurementRequest) (*MeasurementResponse, error)
+	GetMeasurementByUserId(context.Context, *GetMeasurementByUserIdRequest) (*MeasurementResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -192,6 +218,12 @@ func (UnimplementedUserServiceServer) UpdateUserPassword(context.Context, *Updat
 }
 func (UnimplementedUserServiceServer) UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*UserPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserProfile not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateUserMeasurement(context.Context, *UpdateUserMeasurementRequest) (*MeasurementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserMeasurement not implemented")
+}
+func (UnimplementedUserServiceServer) GetMeasurementByUserId(context.Context, *GetMeasurementByUserIdRequest) (*MeasurementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeasurementByUserId not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -376,6 +408,42 @@ func _UserService_UpdateUserProfile_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_UpdateUserMeasurement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserMeasurementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateUserMeasurement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateUserMeasurement_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateUserMeasurement(ctx, req.(*UpdateUserMeasurementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetMeasurementByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMeasurementByUserIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetMeasurementByUserId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetMeasurementByUserId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetMeasurementByUserId(ctx, req.(*GetMeasurementByUserIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -418,6 +486,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUserProfile",
 			Handler:    _UserService_UpdateUserProfile_Handler,
+		},
+		{
+			MethodName: "UpdateUserMeasurement",
+			Handler:    _UserService_UpdateUserMeasurement_Handler,
+		},
+		{
+			MethodName: "GetMeasurementByUserId",
+			Handler:    _UserService_GetMeasurementByUserId_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

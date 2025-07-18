@@ -27,6 +27,7 @@ func (h *GRPCHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckE
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+
 	return &protobuf.UserCheckedResponse{
 		Exists: exists,
 	}, nil
@@ -37,6 +38,7 @@ func (h *GRPCHandler) CheckUsernameExists(ctx context.Context, req *protobuf.Che
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+
 	return &protobuf.UserCheckedResponse{
 		Exists: exists,
 	}, nil
@@ -52,6 +54,7 @@ func (h *GRPCHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRe
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
 	return toUserPublicResponse(user), nil
 }
 
@@ -65,11 +68,12 @@ func (h *GRPCHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUs
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
 	return toUserResponse(user), nil
 }
 
 func (h *GRPCHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserPublicResponse, error) {
-	user, err := h.svc.GetUserById(ctx, req.Id)
+	user, err := h.svc.GetUserByID(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case customErr.ErrUserNotFound:
@@ -92,12 +96,12 @@ func (h *GRPCHandler) GetUserPublicByEmail(ctx context.Context, req *protobuf.Ge
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
-	
+
 	return toUserPublicResponse(user), nil
 }
 
 func (h *GRPCHandler) GetUserById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserResponse, error) {
-	user, err := h.svc.GetUserById(ctx, req.Id)
+	user, err := h.svc.GetUserByID(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case customErr.ErrUserNotFound:
@@ -106,6 +110,7 @@ func (h *GRPCHandler) GetUserById(ctx context.Context, req *protobuf.GetUserById
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
 	return toUserResponse(user), nil
 }
 
@@ -118,6 +123,7 @@ func (h *GRPCHandler) UpdateUserPassword(ctx context.Context, req *protobuf.Upda
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
 	return &protobuf.UserUpdatedResponse{
 		Success: true,
 	}, nil
@@ -133,7 +139,49 @@ func (h *GRPCHandler) UpdateUserProfile(ctx context.Context, req *protobuf.Updat
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
 	return toUserPublicResponse(user), nil
+}
+
+func (h *GRPCHandler) GetMeasurementByUserId(ctx context.Context, req *protobuf.GetMeasurementByUserIdRequest) (*protobuf.MeasurementResponse, error) {
+	measurement, err := h.svc.GetMeasurementByUserID(ctx, req.UserId)
+	if err != nil {
+		switch err {
+		case customErr.ErrMeasurementNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return toMeasurementResponse(measurement), nil
+}
+
+func (h *GRPCHandler) UpdateUserMeasurement(ctx context.Context, req *protobuf.UpdateUserMeasurementRequest) (*protobuf.MeasurementResponse, error) {
+	measurement, err := h.svc.UpdateUserMeasurement(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrMeasurementNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case customErr.ErrForbidden:
+			return nil, status.Error(codes.PermissionDenied, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return toMeasurementResponse(measurement), nil
+}
+
+func toMeasurementResponse(measurement *model.Measurement) *protobuf.MeasurementResponse {
+	return &protobuf.MeasurementResponse{
+		Id:     measurement.ID,
+		Height: int32(measurement.Height),
+		Weight: int32(measurement.Weight),
+		Chest:  int32(measurement.Chest),
+		Waist:  int32(measurement.Waist),
+		Butt:   int32(measurement.Butt),
+	}
 }
 
 func toUserResponse(user *model.User) *protobuf.UserResponse {

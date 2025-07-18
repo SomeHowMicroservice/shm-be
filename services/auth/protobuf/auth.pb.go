@@ -559,10 +559,11 @@ func (x *AuthResponse) GetProfile() *ProfileResponse {
 
 type ProfileResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FirstName     string                 `protobuf:"bytes,1,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
-	LastName      string                 `protobuf:"bytes,2,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
-	Gender        string                 `protobuf:"bytes,3,opt,name=gender,proto3" json:"gender,omitempty"`
-	Dob           string                 `protobuf:"bytes,4,opt,name=dob,proto3" json:"dob,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FirstName     string                 `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName      string                 `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	Gender        string                 `protobuf:"bytes,4,opt,name=gender,proto3" json:"gender,omitempty"`
+	Dob           string                 `protobuf:"bytes,5,opt,name=dob,proto3" json:"dob,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -595,6 +596,13 @@ func (x *ProfileResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ProfileResponse.ProtoReflect.Descriptor instead.
 func (*ProfileResponse) Descriptor() ([]byte, []int) {
 	return file_services_auth_protobuf_auth_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ProfileResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
 }
 
 func (x *ProfileResponse) GetFirstName() string {
@@ -946,13 +954,14 @@ const file_services_auth_protobuf_auth_proto_rawDesc = "" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x04 \x01(\tR\tcreatedAt\x12/\n" +
-	"\aprofile\x18\x05 \x01(\v2\x15.auth.ProfileResponseR\aprofile\"w\n" +
-	"\x0fProfileResponse\x12\x1d\n" +
+	"\aprofile\x18\x05 \x01(\v2\x15.auth.ProfileResponseR\aprofile\"\x87\x01\n" +
+	"\x0fProfileResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
-	"first_name\x18\x01 \x01(\tR\tfirstName\x12\x1b\n" +
-	"\tlast_name\x18\x02 \x01(\tR\blastName\x12\x16\n" +
-	"\x06gender\x18\x03 \x01(\tR\x06gender\x12\x10\n" +
-	"\x03dob\x18\x04 \x01(\tR\x03dob\"]\n" +
+	"first_name\x18\x02 \x01(\tR\tfirstName\x12\x1b\n" +
+	"\tlast_name\x18\x03 \x01(\tR\blastName\x12\x16\n" +
+	"\x06gender\x18\x04 \x01(\tR\x06gender\x12\x10\n" +
+	"\x03dob\x18\x05 \x01(\tR\x03dob\"]\n" +
 	"\rSignUpRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +

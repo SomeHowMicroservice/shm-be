@@ -14,4 +14,6 @@ var (
 	ErrRoleNotFound = errors.New("không tìm thấy quyền")
 
 	ErrProfileNotFound = errors.New("không tìm thấy hồ sơ người dùng")
+
+	ErrMeasurementNotFound = errors.New("không tìm thấy độ đo người dùng")
 )

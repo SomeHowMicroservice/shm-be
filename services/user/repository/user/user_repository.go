@@ -15,7 +15,7 @@ type UserRepository interface {
 
 	FindByUsername(ctx context.Context, username string) (*model.User, error)
 
-	FindById(ctx context.Context, id string) (*model.User, error)
+	FindByID(ctx context.Context, id string) (*model.User, error)
 
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 
