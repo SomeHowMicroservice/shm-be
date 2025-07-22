@@ -19,5 +19,13 @@ func UserRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 		user.GET("/me/measurements", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.MyMeasurements)
 
 		user.PATCH("/measurements/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.UpdateMeasurement)
+
+		user.GET("/me/addresses", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.MyAddresses)
+
+		user.POST("/me/addresses", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.CreateMyAddress)
+
+		user.PUT("/addresses/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.UpdateAddress)
+
+		user.DELETE("/addresses/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.DeleteAddress)
 	}
 }

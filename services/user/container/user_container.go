@@ -2,6 +2,7 @@ package container
 
 import (
 	"github.com/SomeHowMicroservice/shm-be/services/user/handler"
+	addressRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/address"
 	measurementRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/measurement"
 	profileRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/profile"
 	roleRepo "github.com/SomeHowMicroservice/shm-be/services/user/repository/role"
@@ -20,7 +21,8 @@ func NewContainer(db *gorm.DB, grpcServer *grpc.Server) *Container {
 	profileRepo := profileRepo.NewProfileRepository(db)
 	measurementRepo := measurementRepo.NewMeasurementRepository(db)
 	roleRepo := roleRepo.NewRoleRepository(db)
-	svc := service.NewUserService(userRepo, roleRepo, profileRepo, measurementRepo)
+	addressRepo := addressRepo.NewAddressRepository(db)
+	svc := service.NewUserService(userRepo, roleRepo, profileRepo, measurementRepo, addressRepo)
 	hdl := handler.NewGRPCHandler(grpcServer, svc)
 	return &Container{
 		GRPCHandler: hdl,

@@ -16,4 +16,6 @@ var (
 	ErrProfileNotFound = errors.New("không tìm thấy hồ sơ người dùng")
 
 	ErrMeasurementNotFound = errors.New("không tìm thấy độ đo người dùng")
+
+	ErrAddressesNotFound = errors.New("không tìm thấy địa chỉ người dùng")
 )

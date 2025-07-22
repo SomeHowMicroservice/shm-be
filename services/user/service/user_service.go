@@ -27,4 +27,12 @@ type UserService interface {
 	UpdateUserMeasurement(ctx context.Context, req *protobuf.UpdateUserMeasurementRequest) (*model.Measurement, error)
 
 	GetMeasurementByUserID(ctx context.Context, userID string) (*model.Measurement, error)
+
+	GetAddressesByUserID(ctx context.Context, userID string) ([]*model.Address, error)
+
+	CreateAddress(ctx context.Context, req *protobuf.CreateAddressRequest) (*model.Address, error)
+
+	UpdateAddress(ctx context.Context, req *protobuf.UpdateAddressRequest) (*model.Address, error)
+
+	DeleteAddress(ctx context.Context, req *protobuf.DeleteAddressRequest) error
 }

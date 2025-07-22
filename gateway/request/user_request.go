@@ -16,3 +16,21 @@ type UpdateMeasurementRequest struct {
 	Waist  *int `json:"waist" binding:"omitempty"`
 	Butt   *int `json:"butt" binding:"omitempty"`
 }
+
+type CreateMyAddressRequest struct {
+	FullName    string `json:"full_name" binding:"required"`
+	PhoneNumber string `json:"phone_number" binding:"required"`
+	Street      string `json:"street" binding:"required"`
+	Ward        string `json:"ward" binding:"required"`
+	Province    string `json:"province" binding:"required"`
+	IsDefault   *bool   `json:"is_default" binding:"required"`
+}
+
+type UpdateAddressRequest struct {
+	FullName    string `json:"full_name" binding:"required"`
+	PhoneNumber string `json:"phone_number" binding:"required"`
+	Street      string `json:"street" binding:"required"`
+	Ward        string `json:"ward" binding:"required"`
+	Province    string `json:"province" binding:"required"`
+	IsDefault   *bool   `json:"is_default" binding:"required"`
+}

@@ -204,3 +204,191 @@ func (h *UserHandler) UpdateMeasurement(c *gin.Context) {
 		"measurement": res,
 	})
 }
+
+func (h *UserHandler) MyAddresses(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	res, err := h.userClient.GetAddressesByUserId(ctx, &userpb.GetAddressesByUserIdRequest{
+		UserId: user.Id,
+	})
+
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy địa chỉ người dùng thành công", gin.H{
+		"addresses": res.Addresses,
+	})
+}
+
+func (h *UserHandler) CreateMyAddress(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+	user, ok := userAny.(*userpb.UserPublicResponse)
+
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.CreateMyAddressRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	var isDefault bool
+	if req.IsDefault != nil {
+		isDefault = *req.IsDefault
+	}
+
+	res, err := h.userClient.CreateAddress(ctx, &userpb.CreateAddressRequest{
+		FullName:    req.FullName,
+		PhoneNumber: req.PhoneNumber,
+		Street:      req.Street,
+		Ward:        req.Ward,
+		Province:    req.Province,
+		IsDefault:   isDefault,
+		UserId:      user.Id,
+	})
+
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Tạo địa chỉ thành công", gin.H{
+		"address": res,
+	})
+}
+
+func (h *UserHandler) UpdateAddress(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	addressID := c.Param("id")
+	var req request.UpdateAddressRequest
+	if err := c.ShouldBind(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	var isDefault bool
+	if req.IsDefault != nil {
+		isDefault = *req.IsDefault
+	}
+
+	res, err := h.userClient.UpdateAddress(ctx, &userpb.UpdateAddressRequest{
+		Id:          addressID,
+		FullName:    req.FullName,
+		PhoneNumber: req.PhoneNumber,
+		Street:      req.Street,
+		Ward:        req.Ward,
+		Province:    req.Province,
+		IsDefault:   isDefault,
+		UserId:      user.Id,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			case codes.PermissionDenied:
+				common.JSON(c, http.StatusForbidden, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Cập nhật địa chỉ thành công", gin.H{
+		"address": res,
+	})
+}
+
+func (h *UserHandler) DeleteAddress(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	addressID := c.Param("id")
+
+	_, err := h.userClient.DeleteAddress(ctx, &userpb.DeleteAddressRequest{
+		Id:     addressID,
+		UserId: user.Id,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			case codes.PermissionDenied:
+				common.JSON(c, http.StatusForbidden, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Xoá địa chỉ thành công", nil)
+}
