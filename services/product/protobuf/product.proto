@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package product;
+option go_package = "github.com/SomeHowMicroservice/shm-be/services/product/protobuf";
+
+service ProductService {
+  rpc CreateCategory(CreateCategoryRequest) returns (CategoryResponse);
+}
+
+message CreateCategoryRequest {
+  string name = 1;
+  optional string slug = 2;
+  repeated string parent_ids = 3;
+  repeated string children_ids = 4;
+  string user_id = 5;
+}
+
+message CategoryResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  repeated string parent_ids = 4;
+  repeated string children_ids = 5;
+}

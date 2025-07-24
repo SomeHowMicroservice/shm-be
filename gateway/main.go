@@ -14,6 +14,7 @@ import (
 var (
 	authAddr = "localhost:8081"
 	userAddr = "localhost:8082"
+	productAddr = "localhost:8083"
 )
 
 func main() {
@@ -24,15 +25,17 @@ func main() {
 
 	authAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.AuthPort)
 	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
-	clients := initialization.InitClients(authAddr, userAddr)
+	productAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.ProductPort)
+	clients := initialization.InitClients(authAddr, userAddr, productAddr)
 
-	appContainer := container.NewContainer(clients.AuthClient, clients.UserClient, cfg)
+	appContainer := container.NewContainer(clients.AuthClient, clients.UserClient, clients.ProductClient, cfg)
 
 	r := gin.Default()
 	config.CORSConfig(r)
 	api := r.Group("/api/v1")
 	router.AuthRouter(api, cfg, clients.UserClient, appContainer.Auth.Handler)
 	router.UserRouter(api, cfg, clients.UserClient, appContainer.User.Handler)
+	router.ProductRouter(api, cfg, clients.UserClient, appContainer.Product.Handler)
 
 	r.Run(fmt.Sprintf(":%d", cfg.App.GRPCPort))
 }

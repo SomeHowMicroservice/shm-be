@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
-	"github.com/SomeHowMicroservice/shm-be/gateway/config"
 	"github.com/SomeHowMicroservice/shm-be/gateway/request"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/gin-gonic/gin"
@@ -16,14 +15,10 @@ import (
 
 type UserHandler struct {
 	userClient userpb.UserServiceClient
-	cfg        *config.AppConfig
 }
 
-func NewUserHandler(userClient userpb.UserServiceClient, cfg *config.AppConfig) *UserHandler {
-	return &UserHandler{
-		userClient,
-		cfg,
-	}
+func NewUserHandler(userClient userpb.UserServiceClient) *UserHandler {
+	return &UserHandler{userClient}
 }
 
 func (h *UserHandler) UpdateProfile(c *gin.Context) {

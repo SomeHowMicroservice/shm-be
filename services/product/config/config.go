@@ -5,7 +5,16 @@ import "github.com/spf13/viper"
 type Config struct {
 	App struct {
 		GRPCPort int `mapstructure:"grpc_port"`
-	}
+	} `mapstructure:"app"`
+	Database struct {
+		DBUser string `mapstructure:"mongo_user"`
+		DBPassword string `mapstructure:"mongo_password"`
+		DBHost string `mapstructure:"mongo_host"`
+		DBName string `mapstructure:"mongo_db_name"`
+		DBAppName string `mapstructure:"mongo_app_name"`
+		DBRetryWrites bool `mapstructure:"mongo_retry_writes"`
+		DBW string `mapstructure:"mongo_w"`
+	} `mapstructure:"database"`
 }
 
 func LoadConfig() (*Config, error) {

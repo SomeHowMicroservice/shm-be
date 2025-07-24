@@ -255,7 +255,7 @@ func (s *userServiceImpl) GetAddressesByUserID(ctx context.Context, userID strin
 func (s *userServiceImpl) CreateAddress(ctx context.Context, req *protobuf.CreateAddressRequest) (*model.Address, error) {
 	countAddreses, err := s.addressRepo.CountByUserID(ctx, req.UserId)
 	if err != nil {
-		return nil, fmt.Errorf("lấy số lượng địa chỉ người dùng thất bại: %w", err)
+		return nil, fmt.Errorf("lấy địa chỉ người dùng thất bại: %w", err)
 	}
 	if countAddreses == 0 {
 		req.IsDefault = true
