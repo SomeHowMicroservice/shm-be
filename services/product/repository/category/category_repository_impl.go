@@ -3,66 +3,77 @@ package repository
 import (
 	"context"
 	"errors"
-	"time"
 
 	// customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gorm.io/gorm"
 )
 
 type categoryRepository struct {
-	collection *mongo.Collection
+	db *gorm.DB
 }
 
-func NewCategoryRepository(db *mongo.Database) CategoryRepository {
-	collection := db.Collection("categories")
-	return &categoryRepository{collection}
+func NewCategoryRepository(db *gorm.DB) CategoryRepository {
+	return &categoryRepository{db}
 }
 
 func (r *categoryRepository) Create(ctx context.Context, category *model.Category) error {
-	category.CreatedAt = time.Now()
-	category.UpdatedAt = time.Now()
-	if category.ParentIDs == nil {
-		category.ParentIDs = []bson.ObjectID{}
-	}
-	if category.ChildrenIDs == nil {
-		category.ChildrenIDs = []bson.ObjectID{}
-	}
-	
-	_, err := r.collection.InsertOne(ctx, category);
-	if err != nil {
+	if err := r.db.WithContext(ctx).Preload("Children").Create(category).Error; err != nil {
 		return err
 	}
+
 	return nil
 }
 
+func (r *categoryRepository) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error) {
+	var categories []*model.Category
+
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&categories).Error; err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
+
 func (r *categoryRepository) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
-	count, err := r.collection.CountDocuments(ctx, bson.M{"slug": slug})
-	if err != nil {
+	var count int64
+
+	if err := r.db.WithContext(ctx).Model(&model.Category{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
 		return false, err
 	}
 
 	return count > 0, nil
 }
 
-func (r *categoryRepository) ExistsByID(ctx context.Context, id bson.ObjectID) (bool, error) {
-	count, err := r.collection.CountDocuments(ctx, bson.M{"_id": id})
-	if err != nil {
+func (r *categoryRepository) ExistsByID(ctx context.Context, id string) (bool, error) {
+	var count int64
+
+	if err := r.db.WithContext(ctx).Model(&model.Category{}).Where("id = ?", id).Count(&count).Error; err != nil {
 		return false, err
 	}
 
 	return count > 0, nil
 }
 
-func (r *categoryRepository) FindByID(ctx context.Context, id bson.ObjectID) (*model.Category, error) {
+func (r *categoryRepository) FindByID(ctx context.Context, id string) (*model.Category, error) {
 	var category model.Category
-	if err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&category); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
+
+	if err := r.db.WithContext(ctx).Preload("Children").Where("id = ?", id).First(&category).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
 
 	return &category, nil
+}
+
+func (r *categoryRepository) FindAll(ctx context.Context) ([]*model.Category, error) {
+	var categories []*model.Category
+
+	if err := r.db.WithContext(ctx).Preload("Children").Preload("Parents").Find(&categories).Error; err != nil {
+		return nil, err
+	}
+
+	return categories, nil
 }

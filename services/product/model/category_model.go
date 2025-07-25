@@ -3,17 +3,20 @@ package model
 import (
 	"time"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 )
 
 type Category struct {
-	ID          bson.ObjectID   `bson:"_id" json:"id"`
-	Name        string          `bson:"name" json:"name"`
-	Slug        string          `bson:"slug" json:"slug"`
-	ParentIDs   []bson.ObjectID `bson:"parent_ids,omitempty" json:"parent_ids"`
-	ChildrenIDs []bson.ObjectID `bson:"children_ids,omitempty" json:"children_ids"`
-	CreatedAt   time.Time       `bson:"created_at" json:"created_at"`
-	UpdatedAt   time.Time       `bson:"updated_at" json:"updated_at"`
-	CreatedByID   string          `bson:"created_by" json:"created_by"`
-	UpdatedByID   string          `bson:"updated_by" json:"updated_by"`
+	ID          string      `gorm:"type:char(36);primaryKey" json:"id"`
+	Name        string      `gorm:"type:varchar(100);not null" json:"name"`
+	Slug        string      `gorm:"type:varchar(100);uniqueIndex:categories_slug_key;not null" json:"slug"`
+	Parents     []*Category `gorm:"many2many:category_parents;joinForeignKey:ChildID;joinReferences:ParentID" json:"parents"`
+	Children    []*Category `gorm:"many2many:category_parents;joinForeignKey:ParentID;joinReferences:ChildID" json:"children"`
+	CreatedAt   time.Time   `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time   `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedByID string      `gorm:"type:char(36);not null" json:"-"`
+	UpdatedByID string      `gorm:"type:char(36);not null" json:"-"`
+
+	CreatedBy *model.User `gorm:"foreignKey:CreatedByID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"created_by"`
+	UpdatedBy *model.User `gorm:"foreignKey:UpdatedByID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"updated_by"`
 }

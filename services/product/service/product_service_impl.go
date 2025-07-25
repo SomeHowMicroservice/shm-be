@@ -9,7 +9,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	categoryRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/category"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"github.com/google/uuid"
 )
 
 type productServiceImpl struct {
@@ -34,38 +34,46 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 		return nil, customErr.ErrSlugAlreadyExists
 	}
 
-	var parentIDs []bson.ObjectID
+	var parents []*model.Category
 	if len(req.ParentIds) > 0 {
-		parentIDs = make([]bson.ObjectID, 0, len(req.ParentIds))
-		for _, parentIDStr := range req.ParentIds {
-			parentID, err := bson.ObjectIDFromHex(parentIDStr)
-			if err != nil {
-				return nil, fmt.Errorf("định dạng parent_id không chính xác: %w", err)
-			}
-
-			exists, err := s.categoryRepo.ExistsByID(ctx, parentID)
-			if err != nil {
-				return nil, fmt.Errorf("kiểm tra danh mục sản phẩm tồn tại thất bại:%w", err)
-			}
-			if !exists {
-				return nil, customErr.ErrCategoryNotFound
-			}
-
-			parentIDs = append(parentIDs, parentID)
+		parents, err = s.categoryRepo.FindAllByIDIn(ctx, req.ParentIds)
+		if err != nil {
+			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
 		}
 	}
 
 	category := &model.Category{
-		ID: bson.NewObjectID(),
-		Name: req.Name,
-		Slug: *req.Slug,
-		ParentIDs: parentIDs,		
+		ID:          uuid.NewString(),
+		Name:        req.Name,
+		Slug:        *req.Slug,
+		Parents:     parents,
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
-	if err := s.categoryRepo.Create(ctx, category); err != nil {
+	if err = s.categoryRepo.Create(ctx, category); err != nil {
 		return nil, fmt.Errorf("tạo danh mục sản phẩm thất bại: %w", err)
 	}
 
 	return category, nil
+}
+
+func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Category, error) {
+	categories, err := s.categoryRepo.FindAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy tất cả danh mục sản phẩm thất bại: %w", err)
+	}
+
+	categoryMap := make(map[string]*model.Category)
+	for _, cat := range categories {
+		categoryMap[cat.ID] = cat
+	}
+
+	var roots []*model.Category
+	for _, cat := range categories {
+		if len(cat.Parents) == 0 {
+			roots = append(roots, cat)
+		}
+	}
+
+	return roots, nil
 }

@@ -4,26 +4,41 @@ import (
 	"fmt"
 
 	"github.com/SomeHowMicroservice/shm-be/services/product/config"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"github.com/SomeHowMicroservice/shm-be/services/product/model"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func InitDB(cfg *config.Config) (*mongo.Client, error) {
-	mongoURI := fmt.Sprintf("mongodb+srv://%s:%s@%s/%s?retryWrites=%t&w=%s&appName=%s", 
-		cfg.Database.DBUser,
-		cfg.Database.DBPassword,
+var allModels = []interface{}{
+	&model.Category{},
+}
+
+func InitDB(cfg *config.Config) (*gorm.DB, error) {
+	dsn := fmt.Sprintf(
+		"host=%s dbname=%s user=%s password=%s sslmode=%s channel_binding=%s",
 		cfg.Database.DBHost,
 		cfg.Database.DBName,
-		cfg.Database.DBRetryWrites,
-		cfg.Database.DBW,
-		cfg.Database.DBAppName,
+		cfg.Database.DBUser,
+		cfg.Database.DBPassword,
+		cfg.Database.DBSSLMode,
+		cfg.Database.DBChannelBinding,
 	)
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	clientOptions := options.Client().ApplyURI(mongoURI).SetServerAPIOptions(serverAPI)
-	client, err := mongo.Connect(clientOptions)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("kết nối MongoDB thất bại: %w", err)
+		return nil, fmt.Errorf("kết nối PostgreSQL thất bại: %w", err)
 	}
 
-	return client, nil
+	if err := runAutoMigrations(db); err != nil {
+		return nil, fmt.Errorf("chuyển dịch DB thất bại: %w", err)
+	}
+
+	return db, nil
+}
+
+func runAutoMigrations(db *gorm.DB) error {
+	if err := db.AutoMigrate(allModels...); err != nil {
+		return err
+	}
+
+	return nil
 }

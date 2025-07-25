@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProductService_CreateCategory_FullMethodName = "/product.ProductService/CreateCategory"
+	ProductService_CreateCategory_FullMethodName  = "/product.ProductService/CreateCategory"
+	ProductService_GetCategoryTree_FullMethodName = "/product.ProductService/GetCategoryTree"
 )
 
 // ProductServiceClient is the client API for ProductService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductServiceClient interface {
-	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CategoryResponse, error)
+	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*NewCategoryResponse, error)
+	GetCategoryTree(ctx context.Context, in *GetCategoryTreeRequest, opts ...grpc.CallOption) (*CategoryTreeResponse, error)
 }
 
 type productServiceClient struct {
@@ -37,10 +39,20 @@ func NewProductServiceClient(cc grpc.ClientConnInterface) ProductServiceClient {
 	return &productServiceClient{cc}
 }
 
-func (c *productServiceClient) CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CategoryResponse, error) {
+func (c *productServiceClient) CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*NewCategoryResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CategoryResponse)
+	out := new(NewCategoryResponse)
 	err := c.cc.Invoke(ctx, ProductService_CreateCategory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetCategoryTree(ctx context.Context, in *GetCategoryTreeRequest, opts ...grpc.CallOption) (*CategoryTreeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CategoryTreeResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetCategoryTree_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +63,8 @@ func (c *productServiceClient) CreateCategory(ctx context.Context, in *CreateCat
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
 type ProductServiceServer interface {
-	CreateCategory(context.Context, *CreateCategoryRequest) (*CategoryResponse, error)
+	CreateCategory(context.Context, *CreateCategoryRequest) (*NewCategoryResponse, error)
+	GetCategoryTree(context.Context, *GetCategoryTreeRequest) (*CategoryTreeResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -62,8 +75,11 @@ type ProductServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProductServiceServer struct{}
 
-func (UnimplementedProductServiceServer) CreateCategory(context.Context, *CreateCategoryRequest) (*CategoryResponse, error) {
+func (UnimplementedProductServiceServer) CreateCategory(context.Context, *CreateCategoryRequest) (*NewCategoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCategory not implemented")
+}
+func (UnimplementedProductServiceServer) GetCategoryTree(context.Context, *GetCategoryTreeRequest) (*CategoryTreeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCategoryTree not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -104,6 +120,24 @@ func _ProductService_CreateCategory_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetCategoryTree_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCategoryTreeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetCategoryTree(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetCategoryTree_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetCategoryTree(ctx, req.(*GetCategoryTreeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateCategory",
 			Handler:    _ProductService_CreateCategory_Handler,
+		},
+		{
+			MethodName: "GetCategoryTree",
+			Handler:    _ProductService_GetCategoryTree_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

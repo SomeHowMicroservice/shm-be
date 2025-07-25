@@ -52,10 +52,10 @@ func (h *ProductHandler) CreateCategory(c *gin.Context) {
 	}
 
 	res, err := h.productClient.CreateCategory(ctx, &productpb.CreateCategoryRequest{
-		Name: req.Name,
-		Slug: slug,
+		Name:      req.Name,
+		Slug:      slug,
 		ParentIds: req.ParentIDs,
-		UserId: user.Id,
+		UserId:    user.Id,
 	})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
@@ -75,5 +75,24 @@ func (h *ProductHandler) CreateCategory(c *gin.Context) {
 
 	common.JSON(c, http.StatusOK, "Tạo danh mục sản phẩm thành công", gin.H{
 		"category": res,
+	})
+}
+
+func (h *ProductHandler) GetCategoryTree(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetCategoryTree(ctx, &productpb.GetCategoryTreeRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy danh mục sản phẩm thành công", gin.H{
+		"categories": res.Categories,
 	})
 }

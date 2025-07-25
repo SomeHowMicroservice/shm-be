@@ -4,21 +4,40 @@ package product;
 option go_package = "github.com/SomeHowMicroservice/shm-be/services/product/protobuf";
 
 service ProductService {
-  rpc CreateCategory(CreateCategoryRequest) returns (CategoryResponse);
+  rpc CreateCategory(CreateCategoryRequest) returns (NewCategoryResponse);
+
+  rpc GetCategoryTree(GetCategoryTreeRequest) returns (CategoryTreeResponse);
 }
 
 message CreateCategoryRequest {
   string name = 1;
   optional string slug = 2;
   repeated string parent_ids = 3;
-  repeated string children_ids = 4;
-  string user_id = 5;
+  string user_id = 4;
+}
+
+message NewCategoryResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  repeated BaseCategoryResponse parents = 4;
+}
+
+message BaseCategoryResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
 }
 
 message CategoryResponse {
   string id = 1;
   string name = 2;
   string slug = 3;
-  repeated string parent_ids = 4;
-  repeated string children_ids = 5;
+  repeated CategoryResponse children = 4;
+}
+
+message GetCategoryTreeRequest {}
+
+message CategoryTreeResponse {
+  repeated CategoryResponse categories = 1;
 }

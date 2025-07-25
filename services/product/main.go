@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
@@ -21,18 +20,13 @@ func main() {
 		log.Fatalf("Tải cấu hình User Service thất bại: %v", err)
 	}
 
-	client, err := initialization.InitDB(cfg)
+	db, err := initialization.InitDB(cfg)
 	if err != nil {
-		log.Fatalf("Lỗi kết nối DB ở Product Services: %v", err)
+		log.Fatalf("Lỗi kết nối DB ở User Service: %v", err)
 	}
-	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			log.Fatalf("Lỗi ngắt kết nối DB ở Product Services: %v", err)
-		}
-	}()
 
 	grpcServer := grpc.NewServer()
-	categoryRepo := repository.NewCategoryRepository(client.Database("product_db"))
+	categoryRepo := repository.NewCategoryRepository(db)
 	svc := service.NewProductService(categoryRepo)
 	productHandler := handler.NewGRPCHandler(grpcServer, svc)
 	protobuf.RegisterProductServiceServer(grpcServer, productHandler)

@@ -15,5 +15,7 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 	product := rg.Group("")
 	{
 		product.POST("/categories", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{"admin"}), productHandler.CreateCategory)
+
+		product.GET("/categories/tree", productHandler.GetCategoryTree)
 	}
 }
