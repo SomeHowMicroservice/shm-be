@@ -52,7 +52,7 @@ func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreatePro
 		switch err {
 		case customErr.ErrSlugAlreadyExists:
 			return nil, status.Error(codes.AlreadyExists, err.Error())
-		case customErr.ErrCategoryNotFound:
+		case customErr.ErrCategoryNotFound, customErr.ErrHasCategoryNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())

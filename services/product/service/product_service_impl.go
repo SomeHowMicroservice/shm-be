@@ -69,10 +69,22 @@ func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Cate
 		return nil, fmt.Errorf("lấy tất cả danh mục sản phẩm thất bại: %w", err)
 	}
 
+	catMap := make(map[string]*model.Category)
+	for _, c := range categories {
+		c.Children = nil
+		catMap[c.ID] = c
+	}
+
 	var roots []*model.Category
-	for _, cat := range categories {
-		if len(cat.Parents) == 0 {
-			roots = append(roots, cat)
+	for _, c := range categories {
+		if len(c.Parents) == 0 {
+			roots = append(roots, c)
+		} else {
+			for _, p := range c.Parents {
+				if parent, ok := catMap[p.ID]; ok {
+					parent.Children = append(parent.Children, c)
+				}
+			}
 		}
 	}
 
@@ -94,6 +106,15 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 		categories, err = s.categoryRepo.FindAllByIDIn(ctx, req.CategoryIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+		}
+		if len(categories) != len(req.CategoryIds) {
+			return nil, customErr.ErrHasCategoryNotFound
+		}
+
+		for _, c := range categories {
+			if len(c.Children) > 0 {
+				return nil, fmt.Errorf("danh mục %s có danh mục con, không thể được gán cho sản phẩm", c.Name)
+			}
 		}
 	}
 
@@ -121,10 +142,10 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 		IsSale:      req.IsSale,
 		SalePrice:   req.SalePrice,
 		StartSale:   startSale,
-		EndSale: endSale,
+		EndSale:     endSale,
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
-		Categories: categories,
+		Categories:  categories,
 	}
 	if err = s.productRepo.Create(ctx, product); err != nil {
 		return nil, fmt.Errorf("tạo sản phẩm thất bại: %w", err)

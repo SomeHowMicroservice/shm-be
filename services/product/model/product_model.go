@@ -1,10 +1,6 @@
 package model
 
-import (
-	"time"
-
-	"github.com/SomeHowMicroservice/shm-be/services/user/model"
-)
+import "time"
 
 type Product struct {
 	ID          string     `gorm:"type:char(36);primaryKey" json:"id"`
@@ -18,10 +14,8 @@ type Product struct {
 	EndSale     *time.Time `json:"end_sale"`
 	CreatedAt   time.Time  `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time  `gorm:"autoUpdateTime" json:"updated_at"`
-	CreatedByID string     `gorm:"type:char(36);not null" json:"-"`
-	UpdatedByID string     `gorm:"type:char(36);not null" json:"-"`
+	CreatedByID string     `gorm:"type:char(36);not null" json:"created_by_id"`
+	UpdatedByID string     `gorm:"type:char(36);not null" json:"updated_by_id"`
 
 	Categories []*Category `gorm:"many2many:product_categories" json:"categories"`
-	CreatedBy *model.User `gorm:"foreignKey:CreatedByID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"created_by"`
-	UpdatedBy *model.User `gorm:"foreignKey:UpdatedByID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"updated_by"`
 }

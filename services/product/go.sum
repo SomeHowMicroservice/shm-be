@@ -1,7 +1,5 @@
 github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250724094205-33c25a868137 h1:/l5YBNJPEMmwK0LBE/HF5hjB34Q0KE7x6Rowfd+bmVs=
 github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250724094205-33c25a868137/go.mod h1:rawT2nJ0vHDovCoL+frmPORjej4AUPUUG2BxyLU8Qjw=
-github.com/SomeHowMicroservice/shm-be/services/user v0.0.0-20250724094205-33c25a868137 h1:iObKvHcKyay+uJbTqfQcKPtScDhJp5TKQa27V6iIFms=
-github.com/SomeHowMicroservice/shm-be/services/user v0.0.0-20250724094205-33c25a868137/go.mod h1:wJ6mTQXI+luvziklq77LTTMLws79f03RrRykkLQWXaE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

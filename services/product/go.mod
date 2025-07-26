@@ -4,7 +4,6 @@ go 1.23.4
 
 require (
 	github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250724094205-33c25a868137
-	github.com/SomeHowMicroservice/shm-be/services/user v0.0.0-20250724094205-33c25a868137
 	github.com/google/uuid v1.6.0
 	github.com/gosimple/slug v1.15.0
 	github.com/spf13/viper v1.20.1

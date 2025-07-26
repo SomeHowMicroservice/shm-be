@@ -18,7 +18,7 @@ func NewCategoryRepository(db *gorm.DB) CategoryRepository {
 }
 
 func (r *categoryRepository) Create(ctx context.Context, category *model.Category) error {
-	if err := r.db.WithContext(ctx).Preload("Children").Create(category).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(category).Error; err != nil {
 		return err
 	}
 
@@ -28,7 +28,7 @@ func (r *categoryRepository) Create(ctx context.Context, category *model.Categor
 func (r *categoryRepository) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error) {
 	var categories []*model.Category
 
-	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&categories).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Children").Where("id IN ?", ids).Find(&categories).Error; err != nil {
 		return nil, err
 	}
 
@@ -58,7 +58,7 @@ func (r *categoryRepository) ExistsByID(ctx context.Context, id string) (bool, e
 func (r *categoryRepository) FindByID(ctx context.Context, id string) (*model.Category, error) {
 	var category model.Category
 
-	if err := r.db.WithContext(ctx).Preload("Children").Where("id = ?", id).First(&category).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&category).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
