@@ -6,11 +6,9 @@ import (
 	"net"
 
 	"github.com/SomeHowMicroservice/shm-be/services/product/config"
-	"github.com/SomeHowMicroservice/shm-be/services/product/handler"
+	"github.com/SomeHowMicroservice/shm-be/services/product/container"
 	"github.com/SomeHowMicroservice/shm-be/services/product/initialization"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
-	repository "github.com/SomeHowMicroservice/shm-be/services/product/repository/category"
-	"github.com/SomeHowMicroservice/shm-be/services/product/service"
 	"google.golang.org/grpc"
 )
 
@@ -26,10 +24,8 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	categoryRepo := repository.NewCategoryRepository(db)
-	svc := service.NewProductService(categoryRepo)
-	productHandler := handler.NewGRPCHandler(grpcServer, svc)
-	protobuf.RegisterProductServiceServer(grpcServer, productHandler)
+	productContainer := container.NewContainer(db, grpcServer)
+	protobuf.RegisterProductServiceServer(grpcServer, productContainer.GRPCHandler)
 	
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))

@@ -21,7 +21,7 @@ func NewGRPCHandler(grpcServer *grpc.Server, svc service.ProductService) *GRPCHa
 	return &GRPCHandler{svc: svc}
 }
 
-func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*protobuf.NewCategoryResponse, error) {
+func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*protobuf.CategoryAdminResponse, error) {
 	category, err := h.svc.CreateCategory(ctx, req)
 	if err != nil {
 		switch err {
@@ -34,7 +34,7 @@ func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCa
 		}
 	}
 
-	return toNewCategoryResponse(category), nil
+	return toCategoryAdminResponse(category), nil
 }
 
 func (h *GRPCHandler) GetCategoryTree(ctx context.Context, req *protobuf.GetCategoryTreeRequest) (*protobuf.CategoryTreeResponse, error) {
@@ -46,13 +46,59 @@ func (h *GRPCHandler) GetCategoryTree(ctx context.Context, req *protobuf.GetCate
 	return toCategoryTreeResponse(categoryTree), nil
 }
 
-func toCategoryResponse(category *model.Category) *protobuf.CategoryResponse {
-	children := make([]*protobuf.CategoryResponse, 0, len(category.Children))
-	for _, child := range category.Children {
-		children = append(children, toCategoryResponse(child))
+func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*protobuf.ProductAdminResponse, error) {
+	product, err := h.svc.CreateProduct(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrSlugAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		case customErr.ErrCategoryNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
 
-	return &protobuf.CategoryResponse{
+	return toProductAdminResponse(product), nil
+}
+
+func toProductAdminResponse(product *model.Product) *protobuf.ProductAdminResponse {
+	var startSalePtr, endSalePtr *string
+	if product.StartSale != nil {
+		formatted := product.StartSale.Format("2006-01-02")
+		startSalePtr = &formatted
+	}
+	if product.EndSale != nil {
+		formatted := product.EndSale.Format("2006-01-02")
+		endSalePtr = &formatted
+	}
+
+	categories := make([]*protobuf.BaseCategoryResponse, len(product.Categories))
+	for i, category := range product.Categories {
+		categories[i] = toBaseCategoryResponse(category)
+	}
+
+	return &protobuf.ProductAdminResponse{
+		Id:          product.ID,
+		Title:       product.Title,
+		Slug:        product.Slug,
+		Description: product.Description,
+		Price:       product.Price,
+		IsSale:      &product.IsSale,
+		SalePrice:   product.SalePrice,
+		StartSale:   startSalePtr,
+		EndSale:     endSalePtr,
+		Categories:  categories,
+	}
+}
+
+func toCategoryPublicResponse(category *model.Category) *protobuf.CategoryPublicResponse {
+	children := make([]*protobuf.CategoryPublicResponse, 0, len(category.Children))
+	for _, child := range category.Children {
+		children = append(children, toCategoryPublicResponse(child))
+	}
+
+	return &protobuf.CategoryPublicResponse{
 		Id:       category.ID,
 		Name:     category.Name,
 		Slug:     category.Slug,
@@ -61,9 +107,9 @@ func toCategoryResponse(category *model.Category) *protobuf.CategoryResponse {
 }
 
 func toCategoryTreeResponse(categories []*model.Category) *protobuf.CategoryTreeResponse {
-	result := make([]*protobuf.CategoryResponse, 0, len(categories))
+	result := make([]*protobuf.CategoryPublicResponse, 0, len(categories))
 	for _, c := range categories {
-		result = append(result, toCategoryResponse(c))
+		result = append(result, toCategoryPublicResponse(c))
 	}
 
 	return &protobuf.CategoryTreeResponse{
@@ -71,12 +117,12 @@ func toCategoryTreeResponse(categories []*model.Category) *protobuf.CategoryTree
 	}
 }
 
-func toNewCategoryResponse(category *model.Category) *protobuf.NewCategoryResponse {
+func toCategoryAdminResponse(category *model.Category) *protobuf.CategoryAdminResponse {
 	parents := make([]*protobuf.BaseCategoryResponse, len(category.Parents))
-	for i, child := range category.Children {
-		parents[i] = toBaseCategoryResponse(child)
+	for i, parent := range category.Parents {
+		parents[i] = toBaseCategoryResponse(parent)
 	}
-	return &protobuf.NewCategoryResponse{
+	return &protobuf.CategoryAdminResponse{
 		Id:      category.ID,
 		Name:    category.Name,
 		Slug:    category.Slug,

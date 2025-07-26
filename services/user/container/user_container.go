@@ -24,7 +24,5 @@ func NewContainer(db *gorm.DB, grpcServer *grpc.Server) *Container {
 	addressRepo := addressRepo.NewAddressRepository(db)
 	svc := service.NewUserService(userRepo, roleRepo, profileRepo, measurementRepo, addressRepo)
 	hdl := handler.NewGRPCHandler(grpcServer, svc)
-	return &Container{
-		GRPCHandler: hdl,
-	}
+	return &Container{hdl}
 }

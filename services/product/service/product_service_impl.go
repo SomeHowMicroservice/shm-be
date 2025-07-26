@@ -3,21 +3,27 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/common"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	categoryRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/category"
+	productRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/product"
 	"github.com/google/uuid"
 )
 
 type productServiceImpl struct {
 	categoryRepo categoryRepo.CategoryRepository
+	productRepo  productRepo.ProductRepository
 }
 
-func NewProductService(categoryRepo categoryRepo.CategoryRepository) ProductService {
-	return &productServiceImpl{categoryRepo}
+func NewProductService(categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository) ProductService {
+	return &productServiceImpl{
+		categoryRepo,
+		productRepo,
+	}
 }
 
 func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*model.Category, error) {
@@ -63,11 +69,6 @@ func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Cate
 		return nil, fmt.Errorf("lấy tất cả danh mục sản phẩm thất bại: %w", err)
 	}
 
-	categoryMap := make(map[string]*model.Category)
-	for _, cat := range categories {
-		categoryMap[cat.ID] = cat
-	}
-
 	var roots []*model.Category
 	for _, cat := range categories {
 		if len(cat.Parents) == 0 {
@@ -76,4 +77,58 @@ func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Cate
 	}
 
 	return roots, nil
+}
+
+func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error) {
+	slug := common.GenerateSlug(req.Title)
+	exists, err := s.productRepo.ExistsBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
+	}
+	if exists {
+		return nil, customErr.ErrSlugAlreadyExists
+	}
+
+	var categories []*model.Category
+	if len(req.CategoryIds) > 0 {
+		categories, err = s.categoryRepo.FindAllByIDIn(ctx, req.CategoryIds)
+		if err != nil {
+			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+		}
+	}
+
+	var startSale, endSale *time.Time
+	if req.StartSale != nil && req.EndSale != nil {
+		parsedStartSale, err := common.ParseDate(*req.StartSale)
+		if err != nil {
+			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian bắt đầu giảm giá thất bại: %w", err)
+		}
+		startSale = &parsedStartSale
+
+		parsedEndSale, err := common.ParseDate(*req.EndSale)
+		if err != nil {
+			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian kết thúc giảm giá thất bại: %w", err)
+		}
+		endSale = &parsedEndSale
+	}
+
+	product := &model.Product{
+		ID:          uuid.NewString(),
+		Title:       req.Title,
+		Slug:        slug,
+		Description: req.Description,
+		Price:       req.Price,
+		IsSale:      req.IsSale,
+		SalePrice:   req.SalePrice,
+		StartSale:   startSale,
+		EndSale: endSale,
+		CreatedByID: req.UserId,
+		UpdatedByID: req.UserId,
+		Categories: categories,
+	}
+	if err = s.productRepo.Create(ctx, product); err != nil {
+		return nil, fmt.Errorf("tạo sản phẩm thất bại: %w", err)
+	}
+
+	return product, nil
 }

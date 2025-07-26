@@ -2,5 +2,5 @@
 tmp/
 *.exe
 *.exe~
-*.http
+http/
 *.yaml

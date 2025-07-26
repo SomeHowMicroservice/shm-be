@@ -12,6 +12,6 @@ type User struct {
 
 	Profile     *Profile     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"profile,omitempty"`
 	Measurement *Measurement `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"measurement,omitempty"`
-	Roles       []*Role      `gorm:"many2many:user_roles;" json:"roles"`
+	Roles       []*Role      `gorm:"many2many:user_roles" json:"roles"`
 	Addresses   []*Address   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"address,omitempty"`
 }

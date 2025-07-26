@@ -4,9 +4,11 @@ package product;
 option go_package = "github.com/SomeHowMicroservice/shm-be/services/product/protobuf";
 
 service ProductService {
-  rpc CreateCategory(CreateCategoryRequest) returns (NewCategoryResponse);
+  rpc CreateCategory(CreateCategoryRequest) returns (CategoryAdminResponse);
 
   rpc GetCategoryTree(GetCategoryTreeRequest) returns (CategoryTreeResponse);
+
+  rpc CreateProduct(CreateProductRequest) returns (ProductAdminResponse);
 }
 
 message CreateCategoryRequest {
@@ -16,7 +18,32 @@ message CreateCategoryRequest {
   string user_id = 4;
 }
 
-message NewCategoryResponse {
+message CreateProductRequest {
+  string title = 1;
+  string description = 2;
+  float price = 3;
+  bool is_sale = 4;
+  optional float sale_price = 5;
+  optional string start_sale = 6;
+  optional string end_sale = 7;
+  repeated string category_ids = 8;
+  string user_id = 9;
+}
+
+message ProductAdminResponse {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  string description = 4;
+  float price = 5;
+  optional bool is_sale = 6;
+  optional float sale_price = 7;
+  optional string start_sale = 8;
+  optional string end_sale = 9;
+  repeated BaseCategoryResponse categories = 10;
+}
+
+message CategoryAdminResponse {
   string id = 1;
   string name = 2;
   string slug = 3;
@@ -29,15 +56,15 @@ message BaseCategoryResponse {
   string slug = 3;
 }
 
-message CategoryResponse {
+message CategoryPublicResponse {
   string id = 1;
   string name = 2;
   string slug = 3;
-  repeated CategoryResponse children = 4;
+  repeated CategoryPublicResponse children = 4;
 }
 
 message GetCategoryTreeRequest {}
 
 message CategoryTreeResponse {
-  repeated CategoryResponse categories = 1;
+  repeated CategoryPublicResponse categories = 1;
 }

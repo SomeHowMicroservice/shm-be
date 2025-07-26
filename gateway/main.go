@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"fmt"
+	"log"
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/config"
 	"github.com/SomeHowMicroservice/shm-be/gateway/container"
@@ -32,6 +32,7 @@ func main() {
 
 	r := gin.Default()
 	config.CORSConfig(r)
+
 	api := r.Group("/api/v1")
 	router.AuthRouter(api, cfg, clients.UserClient, appContainer.Auth.Handler)
 	router.UserRouter(api, cfg, clients.UserClient, appContainer.User.Handler)

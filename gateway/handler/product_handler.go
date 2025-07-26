@@ -96,3 +96,82 @@ func (h *ProductHandler) GetCategoryTree(c *gin.Context) {
 		"categories": res.Categories,
 	})
 }
+
+func (h *ProductHandler) CreateProduct(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.CreateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	var isSale bool
+	var salePrice *float32
+	var startSale, endSale *string
+	if req.IsSale != nil {
+		isSale = *req.IsSale
+		if isSale {
+			if req.SalePrice == nil || req.StartSale == nil || req.EndSale == nil {
+				common.JSON(c, http.StatusBadRequest, "Sản phẩm giảm giá phải bổ sung thêm thông tin", nil)
+				return
+			}
+			salePrice = req.SalePrice
+
+			formattedStartSale := req.StartSale.Format("2006-01-02")
+			startSale = &formattedStartSale
+			formattedEndSale := req.EndSale.Format("2006-01-02")
+			endSale = &formattedEndSale
+		} else {
+			if req.SalePrice != nil || req.StartSale != nil || req.EndSale != nil {
+				common.JSON(c, http.StatusBadRequest, "Sản phẩm không được giảm giá vui lòng không điền thông tin liên quan", nil)
+				return
+			}
+		}
+	}
+
+	res, err := h.productClient.CreateProduct(ctx, &productpb.CreateProductRequest{
+		Title:       req.Title,
+		Description: req.Description,
+		Price:       req.Price,
+		IsSale:      isSale,
+		SalePrice:   salePrice,
+		StartSale:   startSale,
+		EndSale:     endSale,
+		CategoryIds: req.CategoryIDs,
+		UserId:      user.Id,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			case codes.AlreadyExists:
+				common.JSON(c, http.StatusConflict, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Tạo sản phẩm thành công", gin.H{
+		"product": res,
+	})
+}
