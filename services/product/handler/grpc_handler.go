@@ -62,6 +62,50 @@ func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreatePro
 	return toProductAdminResponse(product), nil
 }
 
+func (h *GRPCHandler) GetProductBySlug(ctx context.Context, req *protobuf.GetProductBySlugRequest) (*protobuf.ProductPublicResponse, error) {
+	product, err := h.svc.GetProductBySlug(ctx, req.Slug)
+	if err != nil {
+		switch err {
+		case customErr.ErrProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return toProductPublicResponse(product), nil
+}
+
+func toProductPublicResponse(product *model.Product) *protobuf.ProductPublicResponse {
+	var startSalePtr, endSalePtr *string
+	if product.StartSale != nil {
+		formatted := product.StartSale.Format("2006-01-02")
+		startSalePtr = &formatted
+	}
+	if product.EndSale != nil {
+		formatted := product.EndSale.Format("2006-01-02")
+		endSalePtr = &formatted
+	}
+
+	categories := make([]*protobuf.BaseCategoryResponse, len(product.Categories))
+	for i, category := range product.Categories {
+		categories[i] = toBaseCategoryResponse(category)
+	}
+
+	return &protobuf.ProductPublicResponse{
+		Id:          product.ID,
+		Title:       product.Title,
+		Slug:        product.Slug,
+		Description: product.Description,
+		Price:       product.Price,
+		IsSale:      &product.IsSale,
+		SalePrice:   product.SalePrice,
+		StartSale:   startSalePtr,
+		EndSale:     endSalePtr,
+		Categories:  categories,
+	}
+}
+
 func toProductAdminResponse(product *model.Product) *protobuf.ProductAdminResponse {
 	var startSalePtr, endSalePtr *string
 	if product.StartSale != nil {

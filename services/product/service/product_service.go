@@ -13,4 +13,6 @@ type ProductService interface {
 	GetCategoryTree(ctx context.Context) ([]*model.Category, error) 
 
 	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error)
+
+	GetProductBySlug(ctx context.Context, slug string) (*model.Product, error)
 }

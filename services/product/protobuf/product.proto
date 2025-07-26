@@ -9,6 +9,25 @@ service ProductService {
   rpc GetCategoryTree(GetCategoryTreeRequest) returns (CategoryTreeResponse);
 
   rpc CreateProduct(CreateProductRequest) returns (ProductAdminResponse);
+
+  rpc GetProductBySlug(GetProductBySlugRequest) returns (ProductPublicResponse);
+}
+
+message GetProductBySlugRequest {
+  string slug = 1;
+}
+
+message ProductPublicResponse {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  string description = 4;
+  float price = 5;
+  optional bool is_sale = 6;
+  optional float sale_price = 7;
+  optional string start_sale = 8;
+  optional string end_sale = 9;
+  repeated BaseCategoryResponse categories = 10;
 }
 
 message CreateCategoryRequest {

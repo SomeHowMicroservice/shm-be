@@ -153,3 +153,15 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 
 	return product, nil
 }
+
+func (s *productServiceImpl) GetProductBySlug(ctx context.Context, slug string) (*model.Product, error) {
+	product, err := s.productRepo.FindBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("lấy sản phẩm thất bại: %w", err)
+	}
+	if product == nil {
+		return nil, customErr.ErrProductNotFound
+	}
+
+	return product, nil
+}

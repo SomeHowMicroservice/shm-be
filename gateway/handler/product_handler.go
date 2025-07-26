@@ -73,7 +73,7 @@ func (h *ProductHandler) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	common.JSON(c, http.StatusOK, "Tạo danh mục sản phẩm thành công", gin.H{
+	common.JSON(c, http.StatusCreated, "Tạo danh mục sản phẩm thành công", gin.H{
 		"category": res,
 	})
 }
@@ -171,7 +171,35 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	common.JSON(c, http.StatusOK, "Tạo sản phẩm thành công", gin.H{
+	common.JSON(c, http.StatusCreated, "Tạo sản phẩm thành công", gin.H{
+		"product": res,
+	})
+}
+
+func (h *ProductHandler) ProductDetails(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	productSlug := c.Param("slug")
+
+	res, err := h.productClient.GetProductBySlug(ctx, &productpb.GetProductBySlugRequest{
+		Slug: productSlug,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy sản phẩm thành công", gin.H{
 		"product": res,
 	})
 }

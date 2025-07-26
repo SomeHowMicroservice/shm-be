@@ -13,11 +13,19 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 	accessName := cfg.Jwt.AccessName
 	secretKey := cfg.Jwt.SecretKey
 
+	product := rg.Group("/products")
 	{
-		rg.POST("/categories", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{model.RoleAdmin}), productHandler.CreateCategory)
+		product.GET("/:slug", productHandler.ProductDetails)
+	}
 
-		rg.GET("/categories/tree", productHandler.GetCategoryTree)
+	category := rg.Group("/categories")
+	{
+		category.GET("/tree", productHandler.GetCategoryTree)
+	}
 
-		rg.POST("/products", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{model.RoleAdmin}), productHandler.CreateProduct)
+	admin := rg.Group("/admin", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{model.RoleAdmin}))
+	{
+		admin.POST("/categories", productHandler.CreateCategory)
+		admin.POST("/products", productHandler.CreateProduct)
 	}
 }

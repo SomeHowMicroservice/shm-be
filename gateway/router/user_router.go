@@ -12,20 +12,20 @@ func UserRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 	accessName := cfg.Jwt.AccessName
 	secretKey := cfg.Jwt.SecretKey
 
-	user := rg.Group("/users")
+	user := rg.Group("/users", middleware.RequireAuth(accessName, secretKey, userClient))
 	{
-		user.PATCH("/profiles/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.UpdateProfile)
+		user.PATCH("/profiles/:id", userHandler.UpdateProfile)
 
-		user.GET("/me/measurements", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.MyMeasurements)
+		user.GET("/me/measurements", userHandler.MyMeasurements)
 
-		user.PATCH("/measurements/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.UpdateMeasurement)
+		user.PATCH("/measurements/:id", userHandler.UpdateMeasurement)
 
-		user.GET("/me/addresses", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.MyAddresses)
+		user.GET("/me/addresses", userHandler.MyAddresses)
 
-		user.POST("/me/addresses", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.CreateMyAddress)
+		user.POST("/me/addresses", userHandler.CreateMyAddress)
 
-		user.PUT("/addresses/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.UpdateAddress)
+		user.PUT("/addresses/:id", userHandler.UpdateAddress)
 
-		user.DELETE("/addresses/:id", middleware.RequireAuth(accessName, secretKey, userClient), userHandler.DeleteAddress)
+		user.DELETE("/addresses/:id", userHandler.DeleteAddress)
 	}
 }
