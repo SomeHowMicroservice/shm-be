@@ -12,6 +12,11 @@ import (
 var allModels = []interface{}{
 	&model.Category{},
 	&model.Product{},
+	&model.Color{},
+	&model.Size{},
+	&model.Variant{},
+	&model.Inventory{},
+	&model.Image{},
 }
 
 func InitDB(cfg *config.Config) (*gorm.DB, error) {

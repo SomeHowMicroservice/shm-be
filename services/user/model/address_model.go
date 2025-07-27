@@ -9,7 +9,7 @@ type Address struct {
 	Street      string    `gorm:"type:varchar(100);not null" json:"street"`
 	Ward        string    `gorm:"type:varchar(50);not null" json:"ward"`
 	Province    string    `gorm:"type:varchar(50);not null" json:"province"`
-	IsDefault   bool      `gorm:"type:boolean;default:false" json:"is_default"`
+	IsDefault   bool      `gorm:"type:boolean;not null" json:"is_default"`
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	UserID      string    `gorm:"type:char(36);not null" json:"-"`

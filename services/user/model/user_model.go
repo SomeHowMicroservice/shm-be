@@ -10,8 +10,8 @@ type User struct {
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	Profile     *Profile     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"profile,omitempty"`
-	Measurement *Measurement `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"measurement,omitempty"`
-	Roles       []*Role      `gorm:"many2many:user_roles" json:"roles"`
-	Addresses   []*Address   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"address,omitempty"`
+	Profile     *Profile     `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"profile"`
+	Measurement *Measurement `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"measurement"`
+	Roles       []*Role      `gorm:"many2many:user_roles;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"roles"`
+	Addresses   []*Address   `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"address,omitempty"`
 }
