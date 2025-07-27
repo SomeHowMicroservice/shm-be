@@ -15,4 +15,8 @@ type ProductService interface {
 	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error)
 
 	GetProductBySlug(ctx context.Context, slug string) (*model.Product, error)
+
+	CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error)
+
+	CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*model.Size, error)
 }

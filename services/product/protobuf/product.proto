@@ -11,6 +11,32 @@ service ProductService {
   rpc CreateProduct(CreateProductRequest) returns (ProductAdminResponse);
 
   rpc GetProductBySlug(GetProductBySlugRequest) returns (ProductPublicResponse);
+
+  rpc CreateColor(CreateColorRequest) returns (ColorAdminResponse);
+
+  rpc CreateSize(CreateSizeRequest) returns (SizeAdminResponse);
+}
+
+message CreateSizeRequest {
+  string name = 1;
+  string user_id = 2;
+}
+
+message SizeAdminResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+}
+
+message CreateColorRequest {
+  string name = 1;
+  string user_id = 2;
+}
+
+message ColorAdminResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
 }
 
 message GetProductBySlugRequest {

@@ -3,8 +3,8 @@ package request
 import "time"
 
 type CreateCategoryRequest struct {
-	Name      string   `json:"name" binding:"required,min=1,max=50"`
-	Slug      *string  `json:"slug" binding:"omitempty,min=1"`
+	Name      string   `json:"name" binding:"required,max=50"`
+	Slug      *string  `json:"slug" binding:"omitempty"`
 	ParentIDs []string `json:"parent_ids" binding:"omitempty,dive,uuid4"`
 }
 
@@ -18,3 +18,12 @@ type CreateProductRequest struct {
 	EndSale     *time.Time `json:"end_sale" binding:"omitempty"`
 	CategoryIDs []string   `json:"category_ids" binding:"required,dive,uuid4"`
 }
+
+type CreateColorRequest struct {
+	Name string `json:"name" binding:"required,max=20"`
+}
+
+type CreateSizeRequest struct {
+	Name string `json:"name" binding:"required,max=20"`
+}
+

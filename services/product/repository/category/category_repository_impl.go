@@ -9,15 +9,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type categoryRepository struct {
+type categoryRepositoryImpl struct {
 	db *gorm.DB
 }
 
 func NewCategoryRepository(db *gorm.DB) CategoryRepository {
-	return &categoryRepository{db}
+	return &categoryRepositoryImpl{db}
 }
 
-func (r *categoryRepository) Create(ctx context.Context, category *model.Category) error {
+func (r *categoryRepositoryImpl) Create(ctx context.Context, category *model.Category) error {
 	if err := r.db.WithContext(ctx).Create(category).Error; err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func (r *categoryRepository) Create(ctx context.Context, category *model.Categor
 	return nil
 }
 
-func (r *categoryRepository) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error) {
+func (r *categoryRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error) {
 	var categories []*model.Category
 
 	if err := r.db.WithContext(ctx).Preload("Children").Where("id IN ?", ids).Find(&categories).Error; err != nil {
@@ -35,7 +35,7 @@ func (r *categoryRepository) FindAllByIDIn(ctx context.Context, ids []string) ([
 	return categories, nil
 }
 
-func (r *categoryRepository) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
+func (r *categoryRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
 	var count int64
 
 	if err := r.db.WithContext(ctx).Model(&model.Category{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
@@ -45,7 +45,7 @@ func (r *categoryRepository) ExistsBySlug(ctx context.Context, slug string) (boo
 	return count > 0, nil
 }
 
-func (r *categoryRepository) ExistsByID(ctx context.Context, id string) (bool, error) {
+func (r *categoryRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
 	var count int64
 
 	if err := r.db.WithContext(ctx).Model(&model.Category{}).Where("id = ?", id).Count(&count).Error; err != nil {
@@ -55,7 +55,7 @@ func (r *categoryRepository) ExistsByID(ctx context.Context, id string) (bool, e
 	return count > 0, nil
 }
 
-func (r *categoryRepository) FindByID(ctx context.Context, id string) (*model.Category, error) {
+func (r *categoryRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Category, error) {
 	var category model.Category
 
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&category).Error; err != nil {
@@ -68,7 +68,7 @@ func (r *categoryRepository) FindByID(ctx context.Context, id string) (*model.Ca
 	return &category, nil
 }
 
-func (r *categoryRepository) FindAll(ctx context.Context) ([]*model.Category, error) {
+func (r *categoryRepositoryImpl) FindAll(ctx context.Context) ([]*model.Category, error) {
 	var categories []*model.Category
 
 	if err := r.db.WithContext(ctx).Preload("Children").Preload("Parents").Find(&categories).Error; err != nil {

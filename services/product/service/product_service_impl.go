@@ -10,19 +10,25 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	categoryRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/category"
+	colorRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/color"
 	productRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/product"
+	sizeRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/size"
 	"github.com/google/uuid"
 )
 
 type productServiceImpl struct {
 	categoryRepo categoryRepo.CategoryRepository
 	productRepo  productRepo.ProductRepository
+	colorRepo colorRepo.ColorRepository
+	sizeRepo sizeRepo.SizeRepository
 }
 
-func NewProductService(categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository) ProductService {
+func NewProductService(categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository) ProductService {
 	return &productServiceImpl{
 		categoryRepo,
 		productRepo,
+		colorRepo,
+		sizeRepo,
 	}
 }
 
@@ -164,4 +170,52 @@ func (s *productServiceImpl) GetProductBySlug(ctx context.Context, slug string) 
 	}
 
 	return product, nil
+}
+
+func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error) {
+	slug := common.GenerateSlug(req.Name)
+	exists, err := s.colorRepo.ExistsBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("kiểm tra màu tồn tại thất bại: %w", err)
+	}
+	if exists {
+		return nil, customErr.ErrColorAlreadyExists
+	}
+
+	color := &model.Color{
+		ID: uuid.NewString(),
+		Name: req.Name,
+		Slug: slug,
+		CreatedByID: req.UserId,
+		UpdatedByID: req.UserId,
+	}
+	if err = s.colorRepo.Create(ctx, color); err != nil {
+		return nil, fmt.Errorf("tạo màu sắc thất bại: %w", err)
+	}
+
+	return color, nil
+}
+
+func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*model.Size, error) {
+	slug := common.GenerateSlug(req.Name)
+	exists, err := s.sizeRepo.ExistsBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("kiểm tra size tồn tại thất bại: %w", err)
+	}
+	if exists {
+		return nil, customErr.ErrSizeAlreadyExists
+	}
+
+	size := &model.Size{
+		ID: uuid.NewString(),
+		Name: req.Name,
+		Slug: slug,
+		CreatedByID: req.UserId,
+		UpdatedByID: req.UserId,
+	}
+	if err = s.sizeRepo.Create(ctx, size); err != nil {
+		return nil, fmt.Errorf("tạo size thất bại: %w", err)
+	}
+
+	return size, nil
 }

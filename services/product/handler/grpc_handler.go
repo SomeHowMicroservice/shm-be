@@ -76,6 +76,42 @@ func (h *GRPCHandler) GetProductBySlug(ctx context.Context, req *protobuf.GetPro
 	return toProductPublicResponse(product), nil
 }
 
+func (h *GRPCHandler) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*protobuf.ColorAdminResponse, error) {
+	color, err := h.svc.CreateColor(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrColorAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.ColorAdminResponse{
+		Id:   color.ID,
+		Name: color.Name,
+		Slug: color.Slug,
+	}, nil
+}
+
+func (h *GRPCHandler) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*protobuf.SizeAdminResponse, error) {
+	size, err := h.svc.CreateSize(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrSizeAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.SizeAdminResponse{
+		Id:   size.ID,
+		Name: size.Name,
+		Slug: size.Slug,
+	}, nil
+}
+
 func toProductPublicResponse(product *model.Product) *protobuf.ProductPublicResponse {
 	var startSalePtr, endSalePtr *string
 	if product.StartSale != nil {

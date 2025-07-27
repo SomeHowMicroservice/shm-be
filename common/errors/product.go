@@ -10,4 +10,8 @@ var (
 	ErrHasCategoryNotFound = errors.New("có danh mục sản phẩm không tìm thấy")
 
 	ErrProductNotFound = errors.New("không tìm thấy sản phẩm")
+
+	ErrColorAlreadyExists = errors.New("màu sắc đã tồn tại")
+
+	ErrSizeAlreadyExists = errors.New("size đã tồn tại")
 )
