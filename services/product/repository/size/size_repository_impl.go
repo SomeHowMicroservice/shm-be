@@ -24,8 +24,17 @@ func (r *sizeRepositoryImpl) Create(ctx context.Context, size *model.Size) error
 }
 
 func (r *sizeRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
-	var count int64 
+	var count int64
 	if err := r.db.WithContext(ctx).Model(&model.Size{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (r *sizeRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&model.Size{}).Where("id = ?", id).Count(&count).Error; err != nil {
 		return false, err
 	}
 

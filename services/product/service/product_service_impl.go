@@ -13,22 +13,25 @@ import (
 	colorRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/color"
 	productRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/product"
 	sizeRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/size"
+	variantRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/variant"
 	"github.com/google/uuid"
 )
 
 type productServiceImpl struct {
 	categoryRepo categoryRepo.CategoryRepository
 	productRepo  productRepo.ProductRepository
-	colorRepo colorRepo.ColorRepository
-	sizeRepo sizeRepo.SizeRepository
+	colorRepo    colorRepo.ColorRepository
+	sizeRepo     sizeRepo.SizeRepository
+	variantRepo  variantRepo.VariantRepository
 }
 
-func NewProductService(categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository) ProductService {
+func NewProductService(categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository) ProductService {
 	return &productServiceImpl{
 		categoryRepo,
 		productRepo,
 		colorRepo,
 		sizeRepo,
+		variantRepo,
 	}
 }
 
@@ -183,9 +186,9 @@ func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.Crea
 	}
 
 	color := &model.Color{
-		ID: uuid.NewString(),
-		Name: req.Name,
-		Slug: slug,
+		ID:          uuid.NewString(),
+		Name:        req.Name,
+		Slug:        slug,
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
@@ -207,9 +210,9 @@ func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.Creat
 	}
 
 	size := &model.Size{
-		ID: uuid.NewString(),
-		Name: req.Name,
-		Slug: slug,
+		ID:          uuid.NewString(),
+		Name:        req.Name,
+		Slug:        slug,
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
@@ -218,4 +221,60 @@ func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.Creat
 	}
 
 	return size, nil
+}
+
+func (s *productServiceImpl) CreateVariant(ctx context.Context, req *protobuf.CreateVariantRequest) (*model.Variant, error) {
+	exists, err := s.variantRepo.ExistsBySKU(ctx, req.Sku)
+	if err != nil {
+		return nil, fmt.Errorf("kiểm tra tồn tại mã SKU thất bại: %w", err)
+	}
+	if exists {
+		return nil, customErr.ErrSKUAlreadyExists
+	}
+
+	exists, err = s.productRepo.ExistsByID(ctx, req.ProductId)
+	if err != nil {
+		return nil, fmt.Errorf("tìm thông tin sản phẩm thất bại: %w", err)
+	}
+	if !exists {
+		return nil, customErr.ErrProductNotFound
+	}
+
+	exists, err = s.colorRepo.ExistsByID(ctx, req.ColorId)
+	if err != nil {
+		return nil, fmt.Errorf("tìm thông tin màu sắc thất bại: %w", err)
+	}
+	if !exists {
+		return nil, customErr.ErrColorNotFound
+	}
+
+	exists, err = s.sizeRepo.ExistsByID(ctx, req.SizeId)
+	if err != nil {
+		return nil, fmt.Errorf("tìm thông tin kích cỡ thất bại: %w", err)
+	}
+	if !exists {
+		return nil, customErr.ErrSizeNotFound
+	}
+
+	variant := &model.Variant{
+		ID: uuid.NewString(),
+		SKU: req.Sku,
+		ProductID: req.ProductId,
+		ColorID: req.ColorId,
+		SizeID: req.SizeId,
+		CreatedByID: req.UserId,
+		UpdatedByID: req.UserId,
+		Inventory: &model.Inventory{
+			ID: uuid.NewString(),
+			Quantity: int(req.Quantity),
+			SoldQuantity: 0,
+			UpdatedByID: req.UserId,
+		},
+	}
+	variant.Inventory.SetStock()
+	if err = s.variantRepo.Create(ctx, variant); err != nil {
+		return nil, fmt.Errorf("tạo biến thể sản phẩm thất bại: %w", err)
+	}
+
+	return variant, nil
 }

@@ -4,17 +4,28 @@ package product;
 option go_package = "github.com/SomeHowMicroservice/shm-be/services/product/protobuf";
 
 service ProductService {
-  rpc CreateCategory(CreateCategoryRequest) returns (CategoryAdminResponse);
+  rpc CreateCategory(CreateCategoryRequest) returns (CreatedResponse);
 
   rpc GetCategoryTree(GetCategoryTreeRequest) returns (CategoryTreeResponse);
 
-  rpc CreateProduct(CreateProductRequest) returns (ProductAdminResponse);
+  rpc CreateProduct(CreateProductRequest) returns (CreatedResponse);
 
   rpc GetProductBySlug(GetProductBySlugRequest) returns (ProductPublicResponse);
 
-  rpc CreateColor(CreateColorRequest) returns (ColorAdminResponse);
+  rpc CreateColor(CreateColorRequest) returns (CreatedResponse);
 
-  rpc CreateSize(CreateSizeRequest) returns (SizeAdminResponse);
+  rpc CreateSize(CreateSizeRequest) returns (CreatedResponse);
+
+  rpc CreateVariant(CreateVariantRequest) returns (CreatedResponse);
+}
+
+message CreateVariantRequest {
+  string sku = 1;
+  string product_id = 2;
+  string color_id = 3;
+  string size_id = 4;
+  int64 quantity = 5;
+  string user_id = 6;
 }
 
 message CreateSizeRequest {
@@ -22,21 +33,13 @@ message CreateSizeRequest {
   string user_id = 2;
 }
 
-message SizeAdminResponse {
-  string id = 1;
-  string name = 2;
-  string slug = 3;
-}
-
 message CreateColorRequest {
   string name = 1;
   string user_id = 2;
 }
 
-message ColorAdminResponse {
+message CreatedResponse {
   string id = 1;
-  string name = 2;
-  string slug = 3;
 }
 
 message GetProductBySlugRequest {
@@ -73,26 +76,6 @@ message CreateProductRequest {
   optional string end_sale = 7;
   repeated string category_ids = 8;
   string user_id = 9;
-}
-
-message ProductAdminResponse {
-  string id = 1;
-  string title = 2;
-  string slug = 3;
-  string description = 4;
-  float price = 5;
-  optional bool is_sale = 6;
-  optional float sale_price = 7;
-  optional string start_sale = 8;
-  optional string end_sale = 9;
-  repeated BaseCategoryResponse categories = 10;
-}
-
-message CategoryAdminResponse {
-  string id = 1;
-  string name = 2;
-  string slug = 3;
-  repeated BaseCategoryResponse parents = 4;
 }
 
 message BaseCategoryResponse {

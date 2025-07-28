@@ -25,18 +25,20 @@ const (
 	ProductService_GetProductBySlug_FullMethodName = "/product.ProductService/GetProductBySlug"
 	ProductService_CreateColor_FullMethodName      = "/product.ProductService/CreateColor"
 	ProductService_CreateSize_FullMethodName       = "/product.ProductService/CreateSize"
+	ProductService_CreateVariant_FullMethodName    = "/product.ProductService/CreateVariant"
 )
 
 // ProductServiceClient is the client API for ProductService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductServiceClient interface {
-	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CategoryAdminResponse, error)
+	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetCategoryTree(ctx context.Context, in *GetCategoryTreeRequest, opts ...grpc.CallOption) (*CategoryTreeResponse, error)
-	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*ProductAdminResponse, error)
+	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetProductBySlug(ctx context.Context, in *GetProductBySlugRequest, opts ...grpc.CallOption) (*ProductPublicResponse, error)
-	CreateColor(ctx context.Context, in *CreateColorRequest, opts ...grpc.CallOption) (*ColorAdminResponse, error)
-	CreateSize(ctx context.Context, in *CreateSizeRequest, opts ...grpc.CallOption) (*SizeAdminResponse, error)
+	CreateColor(ctx context.Context, in *CreateColorRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	CreateSize(ctx context.Context, in *CreateSizeRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	CreateVariant(ctx context.Context, in *CreateVariantRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 }
 
 type productServiceClient struct {
@@ -47,9 +49,9 @@ func NewProductServiceClient(cc grpc.ClientConnInterface) ProductServiceClient {
 	return &productServiceClient{cc}
 }
 
-func (c *productServiceClient) CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CategoryAdminResponse, error) {
+func (c *productServiceClient) CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CategoryAdminResponse)
+	out := new(CreatedResponse)
 	err := c.cc.Invoke(ctx, ProductService_CreateCategory_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -67,9 +69,9 @@ func (c *productServiceClient) GetCategoryTree(ctx context.Context, in *GetCateg
 	return out, nil
 }
 
-func (c *productServiceClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*ProductAdminResponse, error) {
+func (c *productServiceClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProductAdminResponse)
+	out := new(CreatedResponse)
 	err := c.cc.Invoke(ctx, ProductService_CreateProduct_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -87,9 +89,9 @@ func (c *productServiceClient) GetProductBySlug(ctx context.Context, in *GetProd
 	return out, nil
 }
 
-func (c *productServiceClient) CreateColor(ctx context.Context, in *CreateColorRequest, opts ...grpc.CallOption) (*ColorAdminResponse, error) {
+func (c *productServiceClient) CreateColor(ctx context.Context, in *CreateColorRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ColorAdminResponse)
+	out := new(CreatedResponse)
 	err := c.cc.Invoke(ctx, ProductService_CreateColor_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -97,10 +99,20 @@ func (c *productServiceClient) CreateColor(ctx context.Context, in *CreateColorR
 	return out, nil
 }
 
-func (c *productServiceClient) CreateSize(ctx context.Context, in *CreateSizeRequest, opts ...grpc.CallOption) (*SizeAdminResponse, error) {
+func (c *productServiceClient) CreateSize(ctx context.Context, in *CreateSizeRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SizeAdminResponse)
+	out := new(CreatedResponse)
 	err := c.cc.Invoke(ctx, ProductService_CreateSize_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) CreateVariant(ctx context.Context, in *CreateVariantRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatedResponse)
+	err := c.cc.Invoke(ctx, ProductService_CreateVariant_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -111,12 +123,13 @@ func (c *productServiceClient) CreateSize(ctx context.Context, in *CreateSizeReq
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
 type ProductServiceServer interface {
-	CreateCategory(context.Context, *CreateCategoryRequest) (*CategoryAdminResponse, error)
+	CreateCategory(context.Context, *CreateCategoryRequest) (*CreatedResponse, error)
 	GetCategoryTree(context.Context, *GetCategoryTreeRequest) (*CategoryTreeResponse, error)
-	CreateProduct(context.Context, *CreateProductRequest) (*ProductAdminResponse, error)
+	CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error)
 	GetProductBySlug(context.Context, *GetProductBySlugRequest) (*ProductPublicResponse, error)
-	CreateColor(context.Context, *CreateColorRequest) (*ColorAdminResponse, error)
-	CreateSize(context.Context, *CreateSizeRequest) (*SizeAdminResponse, error)
+	CreateColor(context.Context, *CreateColorRequest) (*CreatedResponse, error)
+	CreateSize(context.Context, *CreateSizeRequest) (*CreatedResponse, error)
+	CreateVariant(context.Context, *CreateVariantRequest) (*CreatedResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -127,23 +140,26 @@ type ProductServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProductServiceServer struct{}
 
-func (UnimplementedProductServiceServer) CreateCategory(context.Context, *CreateCategoryRequest) (*CategoryAdminResponse, error) {
+func (UnimplementedProductServiceServer) CreateCategory(context.Context, *CreateCategoryRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCategory not implemented")
 }
 func (UnimplementedProductServiceServer) GetCategoryTree(context.Context, *GetCategoryTreeRequest) (*CategoryTreeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCategoryTree not implemented")
 }
-func (UnimplementedProductServiceServer) CreateProduct(context.Context, *CreateProductRequest) (*ProductAdminResponse, error) {
+func (UnimplementedProductServiceServer) CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProduct not implemented")
 }
 func (UnimplementedProductServiceServer) GetProductBySlug(context.Context, *GetProductBySlugRequest) (*ProductPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductBySlug not implemented")
 }
-func (UnimplementedProductServiceServer) CreateColor(context.Context, *CreateColorRequest) (*ColorAdminResponse, error) {
+func (UnimplementedProductServiceServer) CreateColor(context.Context, *CreateColorRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateColor not implemented")
 }
-func (UnimplementedProductServiceServer) CreateSize(context.Context, *CreateSizeRequest) (*SizeAdminResponse, error) {
+func (UnimplementedProductServiceServer) CreateSize(context.Context, *CreateSizeRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSize not implemented")
+}
+func (UnimplementedProductServiceServer) CreateVariant(context.Context, *CreateVariantRequest) (*CreatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateVariant not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -274,6 +290,24 @@ func _ProductService_CreateSize_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_CreateVariant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateVariantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).CreateVariant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_CreateVariant_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).CreateVariant(ctx, req.(*CreateVariantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSize",
 			Handler:    _ProductService_CreateSize_Handler,
+		},
+		{
+			MethodName: "CreateVariant",
+			Handler:    _ProductService_CreateVariant_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

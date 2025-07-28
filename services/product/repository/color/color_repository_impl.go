@@ -31,3 +31,12 @@ func (r *colorRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bo
 
 	return count > 0, nil
 }
+
+func (r *colorRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&model.Color{}).Where("id = ?", id).Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}

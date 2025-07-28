@@ -14,4 +14,10 @@ var (
 	ErrColorAlreadyExists = errors.New("màu sắc đã tồn tại")
 
 	ErrSizeAlreadyExists = errors.New("size đã tồn tại")
+
+	ErrSKUAlreadyExists = errors.New("SKU đã tồn tại")
+
+	ErrColorNotFound = errors.New("không tìm thấy màu sắc")
+
+	ErrSizeNotFound = errors.New("không tìm thấy kích cỡ")
 )

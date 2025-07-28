@@ -8,9 +8,16 @@ type Inventory struct {
 	Quantity     int       `gorm:"type:int" json:"quantity"`
 	SoldQuantity int       `gorm:"type:int" json:"sold_quantity"`
 	Stock        int       `gorm:"type:int" json:"stock"`
-	IsStock      bool      `gorm:"type:boolean;default:false" json:"is_stock"`
+	IsStock      bool      `gorm:"type:boolean;default:true" json:"is_stock"`
 	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	UpdatedByID  string    `gorm:"type:char(36);not null" json:"updated_by_id"`
 
 	Variant *Variant `gorm:"foreignKey:VariantID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
+}
+
+func (m *Inventory) SetStock() {
+	m.Stock = m.Quantity - m.SoldQuantity
+	if m.Stock <= 5 {
+		m.IsStock = false
+	}
 }

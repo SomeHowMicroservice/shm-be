@@ -74,7 +74,7 @@ func (h *ProductHandler) CreateCategory(c *gin.Context) {
 	}
 
 	common.JSON(c, http.StatusCreated, "Tạo danh mục sản phẩm thành công", gin.H{
-		"category": res,
+		"category_id": res.Id,
 	})
 }
 
@@ -172,7 +172,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	}
 
 	common.JSON(c, http.StatusCreated, "Tạo sản phẩm thành công", gin.H{
-		"product": res,
+		"product_id": res.Id,
 	})
 }
 
@@ -246,7 +246,7 @@ func (h *ProductHandler) CreateColor(c *gin.Context) {
 	}
 
 	common.JSON(c, http.StatusCreated, "Tạo màu sắc thành công", gin.H{
-		"color": res,
+		"color_id": res.Id,
 	})
 }
 
@@ -292,6 +292,58 @@ func (h *ProductHandler) CreateSize(c *gin.Context) {
 	}
 
 	common.JSON(c, http.StatusCreated, "Tạo size thành công", gin.H{
-		"size": res,
+		"size_id": res.Id,
+	})
+}
+
+func (h *ProductHandler) CreateVariant(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.CreateVariantRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	res, err := h.productClient.CreateVariant(ctx, &productpb.CreateVariantRequest{
+		Sku:       req.SKU,
+		ProductId: req.ProductID,
+		ColorId:   req.ColorID,
+		SizeId:    req.SizeID,
+		Quantity:  int64(req.Quantity),
+		UserId:    user.Id,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.AlreadyExists:
+				common.JSON(c, http.StatusConflict, st.Message(), nil)
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusCreated, "Tạo biến thể sản phẩm thành công", gin.H{
+		"variant_id": res.Id,
 	})
 }

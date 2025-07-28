@@ -19,4 +19,6 @@ type ProductService interface {
 	CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error)
 
 	CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*model.Size, error)
+
+	CreateVariant(ctx context.Context, req *protobuf.CreateVariantRequest) (*model.Variant, error)
 }

@@ -21,7 +21,7 @@ func NewGRPCHandler(grpcServer *grpc.Server, svc service.ProductService) *GRPCHa
 	return &GRPCHandler{svc: svc}
 }
 
-func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*protobuf.CategoryAdminResponse, error) {
+func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*protobuf.CreatedResponse, error) {
 	category, err := h.svc.CreateCategory(ctx, req)
 	if err != nil {
 		switch err {
@@ -34,7 +34,9 @@ func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCa
 		}
 	}
 
-	return toCategoryAdminResponse(category), nil
+	return &protobuf.CreatedResponse{
+		Id: category.ID,
+	}, nil
 }
 
 func (h *GRPCHandler) GetCategoryTree(ctx context.Context, req *protobuf.GetCategoryTreeRequest) (*protobuf.CategoryTreeResponse, error) {
@@ -46,7 +48,7 @@ func (h *GRPCHandler) GetCategoryTree(ctx context.Context, req *protobuf.GetCate
 	return toCategoryTreeResponse(categoryTree), nil
 }
 
-func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*protobuf.ProductAdminResponse, error) {
+func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*protobuf.CreatedResponse, error) {
 	product, err := h.svc.CreateProduct(ctx, req)
 	if err != nil {
 		switch err {
@@ -59,7 +61,9 @@ func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreatePro
 		}
 	}
 
-	return toProductAdminResponse(product), nil
+	return &protobuf.CreatedResponse{
+		Id: product.ID,
+	}, nil
 }
 
 func (h *GRPCHandler) GetProductBySlug(ctx context.Context, req *protobuf.GetProductBySlugRequest) (*protobuf.ProductPublicResponse, error) {
@@ -76,7 +80,7 @@ func (h *GRPCHandler) GetProductBySlug(ctx context.Context, req *protobuf.GetPro
 	return toProductPublicResponse(product), nil
 }
 
-func (h *GRPCHandler) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*protobuf.ColorAdminResponse, error) {
+func (h *GRPCHandler) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*protobuf.CreatedResponse, error) {
 	color, err := h.svc.CreateColor(ctx, req)
 	if err != nil {
 		switch err {
@@ -87,14 +91,12 @@ func (h *GRPCHandler) CreateColor(ctx context.Context, req *protobuf.CreateColor
 		}
 	}
 
-	return &protobuf.ColorAdminResponse{
-		Id:   color.ID,
-		Name: color.Name,
-		Slug: color.Slug,
+	return &protobuf.CreatedResponse{
+		Id: color.ID,
 	}, nil
 }
 
-func (h *GRPCHandler) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*protobuf.SizeAdminResponse, error) {
+func (h *GRPCHandler) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*protobuf.CreatedResponse, error) {
 	size, err := h.svc.CreateSize(ctx, req)
 	if err != nil {
 		switch err {
@@ -105,10 +107,26 @@ func (h *GRPCHandler) CreateSize(ctx context.Context, req *protobuf.CreateSizeRe
 		}
 	}
 
-	return &protobuf.SizeAdminResponse{
-		Id:   size.ID,
-		Name: size.Name,
-		Slug: size.Slug,
+	return &protobuf.CreatedResponse{
+		Id: size.ID,
+	}, nil
+}
+
+func (h *GRPCHandler) CreateVariant(ctx context.Context, req *protobuf.CreateVariantRequest) (*protobuf.CreatedResponse, error) {
+	variant, err := h.svc.CreateVariant(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrSKUAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		case customErr.ErrProductNotFound, customErr.ErrColorNotFound, customErr.ErrSizeNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.CreatedResponse{
+		Id: variant.ID,
 	}, nil
 }
 
@@ -129,36 +147,6 @@ func toProductPublicResponse(product *model.Product) *protobuf.ProductPublicResp
 	}
 
 	return &protobuf.ProductPublicResponse{
-		Id:          product.ID,
-		Title:       product.Title,
-		Slug:        product.Slug,
-		Description: product.Description,
-		Price:       product.Price,
-		IsSale:      &product.IsSale,
-		SalePrice:   product.SalePrice,
-		StartSale:   startSalePtr,
-		EndSale:     endSalePtr,
-		Categories:  categories,
-	}
-}
-
-func toProductAdminResponse(product *model.Product) *protobuf.ProductAdminResponse {
-	var startSalePtr, endSalePtr *string
-	if product.StartSale != nil {
-		formatted := product.StartSale.Format("2006-01-02")
-		startSalePtr = &formatted
-	}
-	if product.EndSale != nil {
-		formatted := product.EndSale.Format("2006-01-02")
-		endSalePtr = &formatted
-	}
-
-	categories := make([]*protobuf.BaseCategoryResponse, len(product.Categories))
-	for i, category := range product.Categories {
-		categories[i] = toBaseCategoryResponse(category)
-	}
-
-	return &protobuf.ProductAdminResponse{
 		Id:          product.ID,
 		Title:       product.Title,
 		Slug:        product.Slug,
@@ -194,19 +182,6 @@ func toCategoryTreeResponse(categories []*model.Category) *protobuf.CategoryTree
 
 	return &protobuf.CategoryTreeResponse{
 		Categories: result,
-	}
-}
-
-func toCategoryAdminResponse(category *model.Category) *protobuf.CategoryAdminResponse {
-	parents := make([]*protobuf.BaseCategoryResponse, len(category.Parents))
-	for i, parent := range category.Parents {
-		parents[i] = toBaseCategoryResponse(parent)
-	}
-	return &protobuf.CategoryAdminResponse{
-		Id:      category.ID,
-		Name:    category.Name,
-		Slug:    category.Slug,
-		Parents: parents,
 	}
 }
 

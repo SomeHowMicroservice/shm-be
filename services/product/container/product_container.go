@@ -6,6 +6,7 @@ import (
 	colorRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/color"
 	productRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/product"
 	sizeRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/size"
+	variantRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/variant"
 	"github.com/SomeHowMicroservice/shm-be/services/product/service"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
@@ -20,7 +21,8 @@ func NewContainer(db *gorm.DB, grpcServcer *grpc.Server) *Container {
 	productRepo := productRepo.NewProductRepository(db)
 	colorRepo := colorRepo.NewColorRepository(db)
 	sizeRepo := sizeRepo.NewSizeRepository(db)
-	svc := service.NewProductService(categoryRepo, productRepo, colorRepo, sizeRepo)
+	variantRepo := variantRepo.NewVariantRepository(db)
+	svc := service.NewProductService(categoryRepo, productRepo, colorRepo, sizeRepo, variantRepo)
 	hdl := handler.NewGRPCHandler(grpcServcer, svc)
 	return &Container{hdl}
 }
