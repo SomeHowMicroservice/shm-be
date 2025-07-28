@@ -18,14 +18,14 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 
 func (r *productRepositoryImpl) Create(ctx context.Context, product *model.Product) error {
 	if err := r.db.WithContext(ctx).Create(product).Error; err != nil {
-		return err 
+		return err
 	}
 
 	return nil
 }
 
 func (r *productRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
-	var count int64 
+	var count int64
 	if err := r.db.WithContext(ctx).Model(&model.Product{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
 		return false, err
 	}
@@ -38,7 +38,7 @@ func (r *productRepositoryImpl) FindBySlug(ctx context.Context, slug string) (*m
 	if err := r.db.WithContext(ctx).Preload("Categories").Where("slug = ?", slug).First(&product).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
-		} 
+		}
 		return nil, err
 	}
 
@@ -52,4 +52,16 @@ func (r *productRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool
 	}
 
 	return count > 0, nil
+}
+
+func (r *productRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Product, error) {
+	var product model.Product
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &product, nil
 }

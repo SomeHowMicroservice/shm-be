@@ -26,6 +26,7 @@ const (
 	ProductService_CreateColor_FullMethodName      = "/product.ProductService/CreateColor"
 	ProductService_CreateSize_FullMethodName       = "/product.ProductService/CreateSize"
 	ProductService_CreateVariant_FullMethodName    = "/product.ProductService/CreateVariant"
+	ProductService_CreateImage_FullMethodName      = "/product.ProductService/CreateImage"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -39,6 +40,7 @@ type ProductServiceClient interface {
 	CreateColor(ctx context.Context, in *CreateColorRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	CreateSize(ctx context.Context, in *CreateSizeRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	CreateVariant(ctx context.Context, in *CreateVariantRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 }
 
 type productServiceClient struct {
@@ -119,6 +121,16 @@ func (c *productServiceClient) CreateVariant(ctx context.Context, in *CreateVari
 	return out, nil
 }
 
+func (c *productServiceClient) CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatedResponse)
+	err := c.cc.Invoke(ctx, ProductService_CreateImage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type ProductServiceServer interface {
 	CreateColor(context.Context, *CreateColorRequest) (*CreatedResponse, error)
 	CreateSize(context.Context, *CreateSizeRequest) (*CreatedResponse, error)
 	CreateVariant(context.Context, *CreateVariantRequest) (*CreatedResponse, error)
+	CreateImage(context.Context, *CreateImageRequest) (*CreatedResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -160,6 +173,9 @@ func (UnimplementedProductServiceServer) CreateSize(context.Context, *CreateSize
 }
 func (UnimplementedProductServiceServer) CreateVariant(context.Context, *CreateVariantRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateVariant not implemented")
+}
+func (UnimplementedProductServiceServer) CreateImage(context.Context, *CreateImageRequest) (*CreatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateImage not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -308,6 +324,24 @@ func _ProductService_CreateVariant_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_CreateImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).CreateImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_CreateImage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).CreateImage(ctx, req.(*CreateImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +376,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateVariant",
 			Handler:    _ProductService_CreateVariant_Handler,
+		},
+		{
+			MethodName: "CreateImage",
+			Handler:    _ProductService_CreateImage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

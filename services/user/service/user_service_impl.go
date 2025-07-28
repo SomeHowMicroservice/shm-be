@@ -52,11 +52,20 @@ func (s *userServiceImpl) CheckUsernameExists(ctx context.Context, username stri
 }
 
 func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*model.User, error) {
+	userID := uuid.NewString();
 	user := &model.User{
-		ID:       uuid.NewString(),
+		ID:       userID,
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
+		Profile: &model.Profile{
+			ID: uuid.NewString(),
+			UserID: userID,
+		},
+		Measurement: &model.Measurement{
+			ID: uuid.NewString(),
+			UserID: userID,
+		},
 	}
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, fmt.Errorf("tạo người dùng thất bại: %w", err)
@@ -75,25 +84,6 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 	}
 	// Gán quyền vào phản hổi
 	user.Roles = []*model.Role{role}
-	// Tạo profile trống cho người dùng
-	profile := &model.Profile{
-		ID:     uuid.NewString(),
-		UserID: user.ID,
-	}
-	if err = s.profileRepo.Create(ctx, profile); err != nil {
-		return nil, fmt.Errorf("tạo hồ sơ người dùng thất bại: %w", err)
-	}
-	// Gán profile rỗng vào phản hồi
-	user.Profile = profile
-
-	// Tạo Measurement trống cho người dùng
-	measurement := &model.Measurement{
-		ID:     uuid.NewString(),
-		UserID: user.ID,
-	}
-	if err := s.measurementRepo.Create(ctx, measurement); err != nil {
-		return nil, fmt.Errorf("tạo bảng size người dùng thất bại: %w", err)
-	}
 
 	return user, nil
 }

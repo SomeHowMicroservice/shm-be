@@ -130,6 +130,22 @@ func (h *GRPCHandler) CreateVariant(ctx context.Context, req *protobuf.CreateVar
 	}, nil
 }
 
+func (h *GRPCHandler) CreateImage(ctx context.Context, req *protobuf.CreateImageRequest) (*protobuf.CreatedResponse, error) {
+	image, err := h.svc.CreateImage(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrProductNotFound, customErr.ErrColorNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.CreatedResponse{
+		Id: image.ID,
+	}, nil
+}
+
 func toProductPublicResponse(product *model.Product) *protobuf.ProductPublicResponse {
 	var startSalePtr, endSalePtr *string
 	if product.StartSale != nil {

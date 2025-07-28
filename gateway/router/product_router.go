@@ -30,5 +30,6 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 		admin.POST("/products/colors", productHandler.CreateColor)
 		admin.POST("/products/sizes", productHandler.CreateSize)
 		admin.POST("/products/variants", productHandler.CreateVariant)
+		admin.POST("/products/images", productHandler.CreateImage)
 	}
 }

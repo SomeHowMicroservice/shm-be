@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"time"
 
@@ -345,5 +346,76 @@ func (h *ProductHandler) CreateVariant(c *gin.Context) {
 
 	common.JSON(c, http.StatusCreated, "Tạo biến thể sản phẩm thành công", gin.H{
 		"variant_id": res.Id,
+	})
+}
+
+func (h *ProductHandler) CreateImage(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.CreateImageRequest
+	if err := c.ShouldBind(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	fileHeader := req.File
+
+	maxSize := int64(10 * 1024 * 1024)
+	if fileHeader.Size > maxSize {
+		common.JSON(c, http.StatusRequestEntityTooLarge, "File phải có kích thước bé hơn hoặc bằng 10MB", nil)
+		return
+	}
+
+	file, _ := fileHeader.Open()
+	defer file.Close()
+
+	data, _ := io.ReadAll(file)
+
+	var isThumbnail bool
+	if req.IsThumbnail != nil {
+		isThumbnail = *req.IsThumbnail
+	}
+
+	res, err := h.productClient.CreateImage(ctx, &productpb.CreateImageRequest{
+		ProductId:   req.ProductID,
+		ColorId:     req.ColorID,
+		File:        data,
+		FileName:    fileHeader.Filename,
+		IsThumbnail: isThumbnail,
+		SortOrder:   int32(req.SortOrder),
+		UserId:      user.Id,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			case codes.AlreadyExists:
+				common.JSON(c, http.StatusConflict, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusCreated, "Thêm hình ảnh sản phẩm thành công", gin.H{
+		"image_id": res.Id,
 	})
 }

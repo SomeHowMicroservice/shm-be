@@ -1,16 +1,21 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
 	"time"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/common"
+	"github.com/SomeHowMicroservice/shm-be/services/product/imagekit"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	categoryRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/category"
 	colorRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/color"
+	imageRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/image"
 	productRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/product"
 	sizeRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/size"
 	variantRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/variant"
@@ -18,20 +23,24 @@ import (
 )
 
 type productServiceImpl struct {
+	imageKitSvc  imagekit.ImageKitService
 	categoryRepo categoryRepo.CategoryRepository
 	productRepo  productRepo.ProductRepository
 	colorRepo    colorRepo.ColorRepository
 	sizeRepo     sizeRepo.SizeRepository
 	variantRepo  variantRepo.VariantRepository
+	imageRepo    imageRepo.ImageRepository
 }
 
-func NewProductService(categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository) ProductService {
+func NewProductService(imageKitSvc imagekit.ImageKitService, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, imageRepo imageRepo.ImageRepository) ProductService {
 	return &productServiceImpl{
+		imageKitSvc,
 		categoryRepo,
 		productRepo,
 		colorRepo,
 		sizeRepo,
 		variantRepo,
+		imageRepo,
 	}
 }
 
@@ -257,18 +266,18 @@ func (s *productServiceImpl) CreateVariant(ctx context.Context, req *protobuf.Cr
 	}
 
 	variant := &model.Variant{
-		ID: uuid.NewString(),
-		SKU: req.Sku,
-		ProductID: req.ProductId,
-		ColorID: req.ColorId,
-		SizeID: req.SizeId,
+		ID:          uuid.NewString(),
+		SKU:         req.Sku,
+		ProductID:   req.ProductId,
+		ColorID:     req.ColorId,
+		SizeID:      req.SizeId,
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 		Inventory: &model.Inventory{
-			ID: uuid.NewString(),
-			Quantity: int(req.Quantity),
+			ID:           uuid.NewString(),
+			Quantity:     int(req.Quantity),
 			SoldQuantity: 0,
-			UpdatedByID: req.UserId,
+			UpdatedByID:  req.UserId,
 		},
 	}
 	variant.Inventory.SetStock()
@@ -277,4 +286,55 @@ func (s *productServiceImpl) CreateVariant(ctx context.Context, req *protobuf.Cr
 	}
 
 	return variant, nil
+}
+
+func (s *productServiceImpl) CreateImage(ctx context.Context, req *protobuf.CreateImageRequest) (*model.Image, error) {
+	product, err := s.productRepo.FindByID(ctx, req.ProductId)
+	if err != nil {
+		return nil, fmt.Errorf("tìm thông tin sản phẩm thất bại: %w", err)
+	}
+	if product == nil {
+		return nil, customErr.ErrProductNotFound
+	}
+
+	exists, err := s.colorRepo.ExistsByID(ctx, req.ColorId)
+	if err != nil {
+		return nil, fmt.Errorf("tìm thông tin màu sắc thất bại: %w", err)
+	}
+	if !exists {
+		return nil, customErr.ErrColorNotFound
+	}
+
+	ext := strings.ToLower(filepath.Ext(req.FileName))
+	if ext == "" {
+		ext = ".jpg"
+	}
+
+	fileName := fmt.Sprintf("%s-%d%s", product.Slug, req.SortOrder, ext)
+
+	uploadFileRequest := &common.UploadFileRequest{
+		File: bytes.NewReader(req.File),
+		FileName: fileName,
+		Folder: "somehow_microservice/product",
+	}
+	uploadedRes, err := s.imageKitSvc.UploadFile(ctx, uploadFileRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	image := &model.Image{
+		ID: uuid.NewString(),
+		ProductID: req.ProductId,
+		ColorID: req.ColorId,
+		Url: uploadedRes.URL,
+		IsThumbnail: req.IsThumbnail,
+		SortOrder: int(req.SortOrder),
+		CreatedByID: req.UserId,
+		UpdatedByID: req.UserId,
+	}
+	if err = s.imageRepo.Create(ctx, image); err != nil {
+		return nil, fmt.Errorf("tạo ảnh sản phẩm thất bại: %w", err)
+	}
+
+	return image, nil
 }

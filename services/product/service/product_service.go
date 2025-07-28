@@ -21,4 +21,6 @@ type ProductService interface {
 	CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*model.Size, error)
 
 	CreateVariant(ctx context.Context, req *protobuf.CreateVariantRequest) (*model.Variant, error)
+
+	CreateImage(ctx context.Context, req *protobuf.CreateImageRequest) (*model.Image, error)
 }

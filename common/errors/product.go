@@ -20,4 +20,6 @@ var (
 	ErrColorNotFound = errors.New("không tìm thấy màu sắc")
 
 	ErrSizeNotFound = errors.New("không tìm thấy kích cỡ")
+
+	ErrUnSupportedFileType = errors.New("định dạng file không được hỗ trợ")
 )

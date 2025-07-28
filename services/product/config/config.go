@@ -15,6 +15,12 @@ type Config struct {
 		DBSSLMode        string `mapstructure:"pg_ssl_mode"`
 		DBChannelBinding string `mapstructure:"pg_channel_binding"`
 	} `mapstructure:"database"`
+
+	ImageKit struct {
+		PublicKey string `mapstructure:"public_key"`
+		PrivateKey string `mapstructure:"private_key"`
+		URLEndpoint string `mapstructure:"url_endpoint"`
+	} `mapstructure:"imagekit"`
 }
 
 func LoadConfig() (*Config, error) {

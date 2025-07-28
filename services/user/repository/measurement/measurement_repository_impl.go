@@ -17,14 +17,6 @@ func NewMeasurementRepository(db *gorm.DB) MeasurementRepository {
 	return &measurementRepositoryImpl{db}
 }
 
-func (r *measurementRepositoryImpl) Create(ctx context.Context, measurement *model.Measurement) error {
-	if err := r.db.WithContext(ctx).Create(measurement).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (r *measurementRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
 	result := r.db.WithContext(ctx).Model(&model.Measurement{}).Where("id = ?", id).Updates(updateData)
 	if result.Error != nil {

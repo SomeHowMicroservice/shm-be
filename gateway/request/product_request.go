@@ -1,6 +1,9 @@
 package request
 
-import "time"
+import (
+	"mime/multipart"
+	"time"
+)
 
 type CreateCategoryRequest struct {
 	Name      string   `json:"name" binding:"required,max=50"`
@@ -33,4 +36,12 @@ type CreateVariantRequest struct {
 	ColorID   string `json:"color_id" binding:"required,uuid4"`
 	SizeID    string `json:"size_id" binding:"required,uuid4"`
 	Quantity  int    `json:"quantity" binding:"required"`
+}
+
+type CreateImageRequest struct {
+	ProductID   string                `form:"product_id" binding:"required,uuid4"`
+	ColorID     string                `form:"color_id" binding:"required,uuid4"`
+	IsThumbnail *bool                 `form:"is_thumbnail" binding:"required"`
+	SortOrder   int                   `form:"sort_order" binding:"required"`
+	File        *multipart.FileHeader `form:"file" binding:"required"`
 }

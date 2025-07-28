@@ -24,7 +24,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	productContainer := container.NewContainer(db, grpcServer)
+	productContainer := container.NewContainer(cfg, db, grpcServer)
 	protobuf.RegisterProductServiceServer(grpcServer, productContainer.GRPCHandler)
 	
 
