@@ -35,7 +35,7 @@ func (r *productRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (
 
 func (r *productRepositoryImpl) FindBySlug(ctx context.Context, slug string) (*model.Product, error) {
 	var product model.Product
-	if err := r.db.WithContext(ctx).Preload("Categories").Where("slug = ?", slug).First(&product).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Categories").Preload("Variants").Preload("Variants.Color").Preload("Variants.Size").Preload("Variants.Inventory").Preload("Images").Preload("Images.Color").Where("slug = ?", slug).First(&product).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -64,4 +64,13 @@ func (r *productRepositoryImpl) FindByID(ctx context.Context, id string) (*model
 	}
 
 	return &product, nil
+}
+
+func (r *productRepositoryImpl) FindAllByCategorySlug(ctx context.Context, categorySlug string) ([]*model.Product, error) {
+	var products []*model.Product
+	if err := r.db.WithContext(ctx).Joins("JOIN product_categories pc ON pc.product_id = products.id").Joins("JOIN categories c ON c.id = pc.category_id").Where("c.slug = ?", categorySlug).Preload("Categories").Preload("Variants").Preload("Variants.Color").Preload("Variants.Size").Preload("Variants.Inventory").Preload("Images").Preload("Images.Color").Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	return products, nil
 }

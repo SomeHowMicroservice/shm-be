@@ -23,4 +23,6 @@ type ProductService interface {
 	CreateVariant(ctx context.Context, req *protobuf.CreateVariantRequest) (*model.Variant, error)
 
 	CreateImage(ctx context.Context, req *protobuf.CreateImageRequest) (*model.Image, error)
+
+	GetProductsByCategory(ctx context.Context, categorySlug string) ([]*model.Product, error)
 }

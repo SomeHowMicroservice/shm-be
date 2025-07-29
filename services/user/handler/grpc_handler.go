@@ -243,7 +243,6 @@ func toAddressResponse(address *model.Address) *protobuf.AddressResponse {
 
 func toAddressesResponse(addresses []*model.Address) *protobuf.AddressesResponse {
 	var addressResponses []*protobuf.AddressResponse
-
 	for _, addr := range addresses {
 		addressResponses = append(addressResponses, toAddressResponse(addr))
 	}
@@ -269,14 +268,17 @@ func toUserResponse(user *model.User) *protobuf.UserResponse {
 	for _, r := range user.Roles {
 		roles = append(roles, r.Name)
 	}
+	
 	var dob string
 	if user.Profile.DOB != nil {
 		dob = user.Profile.DOB.Format("2006-01-02")
 	}
+
 	var gender string
 	if user.Profile.Gender != nil {
 		gender = *user.Profile.Gender
 	}
+
 	return &protobuf.UserResponse{
 		Id:        user.ID,
 		Username:  user.Username,
@@ -299,14 +301,17 @@ func toUserPublicResponse(user *model.User) *protobuf.UserPublicResponse {
 	for _, r := range user.Roles {
 		roles = append(roles, r.Name)
 	}
+
 	var dob string
 	if user.Profile.DOB != nil {
 		dob = user.Profile.DOB.Format("2006-01-02")
 	}
+
 	var gender string
 	if user.Profile.Gender != nil {
 		gender = *user.Profile.Gender
 	}
+
 	return &protobuf.UserPublicResponse{
 		Id:        user.ID,
 		Username:  user.Username,

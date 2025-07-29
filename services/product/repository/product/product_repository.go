@@ -16,4 +16,6 @@ type ProductRepository interface {
 	ExistsByID(ctx context.Context, id string) (bool, error)
 
 	FindByID(ctx context.Context, id string) (*model.Product, error)
+
+	FindAllByCategorySlug(ctx context.Context, categorySlug string) ([]*model.Product, error)
 }

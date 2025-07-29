@@ -19,6 +19,16 @@ service ProductService {
   rpc CreateVariant(CreateVariantRequest) returns (CreatedResponse);
 
   rpc CreateImage(CreateImageRequest) returns (CreatedResponse);
+
+  rpc GetProductsByCategory(GetProductsByCategoryRequest) returns (ProductsPublicResponse);
+}
+
+message GetProductsByCategoryRequest {
+  string slug = 1;
+}
+
+message ProductsPublicResponse {
+  repeated ProductPublicResponse products = 1;
 }
 
 message CreateImageRequest {
@@ -69,6 +79,41 @@ message ProductPublicResponse {
   optional string start_sale = 8;
   optional string end_sale = 9;
   repeated BaseCategoryResponse categories = 10;
+  repeated BaseVariantResponse variants = 11;
+  repeated BaseImageResponse images = 12;
+}
+
+message BaseImageResponse {
+  string id = 1;
+  BaseColorResponse color = 2;
+  string url = 3;
+  int32 sort_order = 4;
+  bool is_thumbnail = 5;
+}
+
+message BaseColorResponse {
+  string id = 1;
+  string name = 2;
+}
+
+message BaseSizeResponse {
+  string id = 1;
+  string name = 2;
+}
+
+message BaseInventoryResponse {
+  string id = 1;
+  int64 sold_quantity = 2;
+  int64 stock = 3;
+  optional bool is_stock = 4;
+}
+
+message BaseVariantResponse {
+  string id = 1;
+  string sku = 2;
+  BaseColorResponse color = 3;
+  BaseSizeResponse size = 4;
+  BaseInventoryResponse inventory = 5;
 }
 
 message CreateCategoryRequest {

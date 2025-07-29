@@ -419,3 +419,31 @@ func (h *ProductHandler) CreateImage(c *gin.Context) {
 		"image_id": res.Id,
 	})
 }
+
+func (h *ProductHandler) GetProductsByCategory(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	categorySlug := c.Param("slug")
+
+	res, err := h.productClient.GetProductsByCategory(ctx, &productpb.GetProductsByCategoryRequest{
+		Slug: categorySlug,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy danh sách sản phẩm thành công", gin.H{
+		"products": res.Products,
+	})
+}

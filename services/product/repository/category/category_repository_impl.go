@@ -27,7 +27,6 @@ func (r *categoryRepositoryImpl) Create(ctx context.Context, category *model.Cat
 
 func (r *categoryRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error) {
 	var categories []*model.Category
-
 	if err := r.db.WithContext(ctx).Preload("Children").Where("id IN ?", ids).Find(&categories).Error; err != nil {
 		return nil, err
 	}
@@ -37,7 +36,6 @@ func (r *categoryRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string
 
 func (r *categoryRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
 	var count int64
-
 	if err := r.db.WithContext(ctx).Model(&model.Category{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
 		return false, err
 	}
@@ -47,7 +45,6 @@ func (r *categoryRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) 
 
 func (r *categoryRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
 	var count int64
-
 	if err := r.db.WithContext(ctx).Model(&model.Category{}).Where("id = ?", id).Count(&count).Error; err != nil {
 		return false, err
 	}
@@ -57,7 +54,6 @@ func (r *categoryRepositoryImpl) ExistsByID(ctx context.Context, id string) (boo
 
 func (r *categoryRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Category, error) {
 	var category model.Category
-
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&category).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

@@ -146,6 +146,31 @@ func (h *GRPCHandler) CreateImage(ctx context.Context, req *protobuf.CreateImage
 	}, nil
 }
 
+func (h *GRPCHandler) GetProductsByCategory(ctx context.Context, req *protobuf.GetProductsByCategoryRequest) (*protobuf.ProductsPublicResponse, error) {
+	products, err := h.svc.GetProductsByCategory(ctx, req.Slug)
+	if err != nil {
+		switch err {
+		case customErr.ErrCategoryNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return toProductsPublicResponse(products), nil
+}
+
+func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
+	var productResponses []*protobuf.ProductPublicResponse
+	for _, pro := range products {
+		productResponses = append(productResponses, toProductPublicResponse(pro))
+	}
+
+	return &protobuf.ProductsPublicResponse{
+		Products: productResponses,
+	}
+}
+
 func toProductPublicResponse(product *model.Product) *protobuf.ProductPublicResponse {
 	var startSalePtr, endSalePtr *string
 	if product.StartSale != nil {
@@ -162,6 +187,16 @@ func toProductPublicResponse(product *model.Product) *protobuf.ProductPublicResp
 		categories[i] = toBaseCategoryResponse(category)
 	}
 
+	variants := make([]*protobuf.BaseVariantResponse, len(product.Variants))
+	for i, variant := range product.Variants {
+		variants[i] = toBaseVariantResponse(variant)
+	}
+
+	images := make([]*protobuf.BaseImageResponse, len(product.Images))
+	for i, image := range product.Images {
+		images[i] = toBaseImageResponse(image)
+	}
+
 	return &protobuf.ProductPublicResponse{
 		Id:          product.ID,
 		Title:       product.Title,
@@ -173,6 +208,8 @@ func toProductPublicResponse(product *model.Product) *protobuf.ProductPublicResp
 		StartSale:   startSalePtr,
 		EndSale:     endSalePtr,
 		Categories:  categories,
+		Variants:    variants,
+		Images:      images,
 	}
 }
 
@@ -206,5 +243,38 @@ func toBaseCategoryResponse(category *model.Category) *protobuf.BaseCategoryResp
 		Id:   category.ID,
 		Name: category.Name,
 		Slug: category.Slug,
+	}
+}
+
+func toBaseVariantResponse(variant *model.Variant) *protobuf.BaseVariantResponse {
+	return &protobuf.BaseVariantResponse{
+		Id: variant.ID,
+		Color: &protobuf.BaseColorResponse{
+			Id:   variant.ColorID,
+			Name: variant.Color.Name,
+		},
+		Size: &protobuf.BaseSizeResponse{
+			Id:   variant.SizeID,
+			Name: variant.Size.Name,
+		},
+		Inventory: &protobuf.BaseInventoryResponse{
+			Id:           variant.Inventory.ID,
+			SoldQuantity: int64(variant.Inventory.SoldQuantity),
+			Stock:        int64(variant.Inventory.Stock),
+			IsStock:      &variant.Inventory.IsStock,
+		},
+	}
+}
+
+func toBaseImageResponse(image *model.Image) *protobuf.BaseImageResponse {
+	return &protobuf.BaseImageResponse{
+		Id: image.ID,
+		Color: &protobuf.BaseColorResponse{
+			Id:   image.ColorID,
+			Name: image.Color.Name,
+		},
+		Url:         image.Url,
+		SortOrder:   int32(image.SortOrder),
+		IsThumbnail: image.IsThumbnail,
 	}
 }

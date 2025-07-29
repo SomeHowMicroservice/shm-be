@@ -338,3 +338,20 @@ func (s *productServiceImpl) CreateImage(ctx context.Context, req *protobuf.Crea
 
 	return image, nil
 }
+
+func (s *productServiceImpl) GetProductsByCategory(ctx context.Context, categorySlug string) ([]*model.Product, error) {
+	exists, err := s.categoryRepo.ExistsBySlug(ctx, categorySlug)
+	if err != nil {
+		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+	}
+	if !exists {
+		return nil, customErr.ErrCategoryNotFound
+	}
+	
+	products, err := s.productRepo.FindAllByCategorySlug(ctx, categorySlug)
+	if err != nil {
+		return nil, fmt.Errorf("lấy danh sách sản phẩm theo danh mục thất bại: %w", err)
+	}
+
+	return products, nil
+}

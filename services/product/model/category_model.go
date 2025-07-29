@@ -13,5 +13,5 @@ type Category struct {
 	CreatedByID string      `gorm:"type:char(36);not null" json:"created_by_id"`
 	UpdatedByID string      `gorm:"type:char(36);not null" json:"updated_by_id"`
 
-	Product []*Product `gorm:"many2many:product_categories;constraint:OnUpdate:CASCADE;OnDelete:CASCADE" json:"products"`
+	Products []*Product `gorm:"many2many:product_categories;constraint:OnUpdate:CASCADE;OnDelete:CASCADE" json:"products"`
 }

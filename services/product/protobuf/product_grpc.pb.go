@@ -19,14 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProductService_CreateCategory_FullMethodName   = "/product.ProductService/CreateCategory"
-	ProductService_GetCategoryTree_FullMethodName  = "/product.ProductService/GetCategoryTree"
-	ProductService_CreateProduct_FullMethodName    = "/product.ProductService/CreateProduct"
-	ProductService_GetProductBySlug_FullMethodName = "/product.ProductService/GetProductBySlug"
-	ProductService_CreateColor_FullMethodName      = "/product.ProductService/CreateColor"
-	ProductService_CreateSize_FullMethodName       = "/product.ProductService/CreateSize"
-	ProductService_CreateVariant_FullMethodName    = "/product.ProductService/CreateVariant"
-	ProductService_CreateImage_FullMethodName      = "/product.ProductService/CreateImage"
+	ProductService_CreateCategory_FullMethodName        = "/product.ProductService/CreateCategory"
+	ProductService_GetCategoryTree_FullMethodName       = "/product.ProductService/GetCategoryTree"
+	ProductService_CreateProduct_FullMethodName         = "/product.ProductService/CreateProduct"
+	ProductService_GetProductBySlug_FullMethodName      = "/product.ProductService/GetProductBySlug"
+	ProductService_CreateColor_FullMethodName           = "/product.ProductService/CreateColor"
+	ProductService_CreateSize_FullMethodName            = "/product.ProductService/CreateSize"
+	ProductService_CreateVariant_FullMethodName         = "/product.ProductService/CreateVariant"
+	ProductService_CreateImage_FullMethodName           = "/product.ProductService/CreateImage"
+	ProductService_GetProductsByCategory_FullMethodName = "/product.ProductService/GetProductsByCategory"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -41,6 +42,7 @@ type ProductServiceClient interface {
 	CreateSize(ctx context.Context, in *CreateSizeRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	CreateVariant(ctx context.Context, in *CreateVariantRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	GetProductsByCategory(ctx context.Context, in *GetProductsByCategoryRequest, opts ...grpc.CallOption) (*ProductsPublicResponse, error)
 }
 
 type productServiceClient struct {
@@ -131,6 +133,16 @@ func (c *productServiceClient) CreateImage(ctx context.Context, in *CreateImageR
 	return out, nil
 }
 
+func (c *productServiceClient) GetProductsByCategory(ctx context.Context, in *GetProductsByCategoryRequest, opts ...grpc.CallOption) (*ProductsPublicResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProductsPublicResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetProductsByCategory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -143,6 +155,7 @@ type ProductServiceServer interface {
 	CreateSize(context.Context, *CreateSizeRequest) (*CreatedResponse, error)
 	CreateVariant(context.Context, *CreateVariantRequest) (*CreatedResponse, error)
 	CreateImage(context.Context, *CreateImageRequest) (*CreatedResponse, error)
+	GetProductsByCategory(context.Context, *GetProductsByCategoryRequest) (*ProductsPublicResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -176,6 +189,9 @@ func (UnimplementedProductServiceServer) CreateVariant(context.Context, *CreateV
 }
 func (UnimplementedProductServiceServer) CreateImage(context.Context, *CreateImageRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateImage not implemented")
+}
+func (UnimplementedProductServiceServer) GetProductsByCategory(context.Context, *GetProductsByCategoryRequest) (*ProductsPublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByCategory not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -342,6 +358,24 @@ func _ProductService_CreateImage_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetProductsByCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductsByCategoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetProductsByCategory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetProductsByCategory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetProductsByCategory(ctx, req.(*GetProductsByCategoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -380,6 +414,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateImage",
 			Handler:    _ProductService_CreateImage_Handler,
+		},
+		{
+			MethodName: "GetProductsByCategory",
+			Handler:    _ProductService_GetProductsByCategory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
