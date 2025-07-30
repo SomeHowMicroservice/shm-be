@@ -979,7 +979,7 @@ const file_services_auth_protobuf_auth_proto_rawDesc = "" +
 	"\x11access_expires_in\x18\x02 \x01(\x03R\x0faccessExpiresIn\x12#\n" +
 	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x12,\n" +
 	"\x12refresh_expires_in\x18\x04 \x01(\x03R\x10refreshExpiresIn\x12&\n" +
-	"\x04user\x18\x05 \x01(\v2\x12.auth.AuthResponseR\x04user2\xc2\x04\n" +
+	"\x04user\x18\x05 \x01(\v2\x12.auth.AuthResponseR\x04user2\xfe\x04\n" +
 	"\vAuthService\x123\n" +
 	"\x06SignUp\x12\x13.auth.SignUpRequest\x1a\x14.auth.SignUpResponse\x12A\n" +
 	"\fVerifySignUp\x12\x19.auth.VerifySignUpRequest\x1a\x16.auth.LoggedInResponse\x125\n" +
@@ -988,7 +988,8 @@ const file_services_auth_protobuf_auth_proto_rawDesc = "" +
 	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\x1a.auth.RefreshTokenResponse\x12K\n" +
 	"\x0eForgotPassword\x12\x1b.auth.ForgotPasswordRequest\x1a\x1c.auth.ForgotPasswordResponse\x12]\n" +
 	"\x14VerifyForgotPassword\x12!.auth.VerifyForgotPasswordRequest\x1a\".auth.VerifyForgotPasswordResponse\x12F\n" +
-	"\rResetPassword\x12\x1a.auth.ResetPasswordRequest\x1a\x19.auth.AuthUpdatedResponseB>Z<github.com/SomeHowMicroservice/shm-be/services/auth/protobufb\x06proto3"
+	"\rResetPassword\x12\x1a.auth.ResetPasswordRequest\x1a\x19.auth.AuthUpdatedResponse\x12:\n" +
+	"\vAdminSignIn\x12\x13.auth.SignInRequest\x1a\x16.auth.LoggedInResponseB>Z<github.com/SomeHowMicroservice/shm-be/services/auth/protobufb\x06proto3"
 
 var (
 	file_services_auth_protobuf_auth_proto_rawDescOnce sync.Once
@@ -1032,16 +1033,18 @@ var file_services_auth_protobuf_auth_proto_depIdxs = []int32{
 	5,  // 7: auth.AuthService.ForgotPassword:input_type -> auth.ForgotPasswordRequest
 	3,  // 8: auth.AuthService.VerifyForgotPassword:input_type -> auth.VerifyForgotPasswordRequest
 	1,  // 9: auth.AuthService.ResetPassword:input_type -> auth.ResetPasswordRequest
-	12, // 10: auth.AuthService.SignUp:output_type -> auth.SignUpResponse
-	15, // 11: auth.AuthService.VerifySignUp:output_type -> auth.LoggedInResponse
-	15, // 12: auth.AuthService.SignIn:output_type -> auth.LoggedInResponse
-	8,  // 13: auth.AuthService.RefreshToken:output_type -> auth.RefreshTokenResponse
-	8,  // 14: auth.AuthService.ChangePassword:output_type -> auth.RefreshTokenResponse
-	4,  // 15: auth.AuthService.ForgotPassword:output_type -> auth.ForgotPasswordResponse
-	2,  // 16: auth.AuthService.VerifyForgotPassword:output_type -> auth.VerifyForgotPasswordResponse
-	0,  // 17: auth.AuthService.ResetPassword:output_type -> auth.AuthUpdatedResponse
-	10, // [10:18] is the sub-list for method output_type
-	2,  // [2:10] is the sub-list for method input_type
+	14, // 10: auth.AuthService.AdminSignIn:input_type -> auth.SignInRequest
+	12, // 11: auth.AuthService.SignUp:output_type -> auth.SignUpResponse
+	15, // 12: auth.AuthService.VerifySignUp:output_type -> auth.LoggedInResponse
+	15, // 13: auth.AuthService.SignIn:output_type -> auth.LoggedInResponse
+	8,  // 14: auth.AuthService.RefreshToken:output_type -> auth.RefreshTokenResponse
+	8,  // 15: auth.AuthService.ChangePassword:output_type -> auth.RefreshTokenResponse
+	4,  // 16: auth.AuthService.ForgotPassword:output_type -> auth.ForgotPasswordResponse
+	2,  // 17: auth.AuthService.VerifyForgotPassword:output_type -> auth.VerifyForgotPasswordResponse
+	0,  // 18: auth.AuthService.ResetPassword:output_type -> auth.AuthUpdatedResponse
+	15, // 19: auth.AuthService.AdminSignIn:output_type -> auth.LoggedInResponse
+	11, // [11:20] is the sub-list for method output_type
+	2,  // [2:11] is the sub-list for method input_type
 	2,  // [2:2] is the sub-list for extension type_name
 	2,  // [2:2] is the sub-list for extension extendee
 	0,  // [0:2] is the sub-list for field type_name

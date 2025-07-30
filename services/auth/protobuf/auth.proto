@@ -19,6 +19,8 @@ service AuthService {
   rpc VerifyForgotPassword(VerifyForgotPasswordRequest) returns (VerifyForgotPasswordResponse);
 
   rpc ResetPassword(ResetPasswordRequest) returns (AuthUpdatedResponse);
+
+  rpc AdminSignIn(SignInRequest) returns (LoggedInResponse);
 }
 
 message AuthUpdatedResponse {

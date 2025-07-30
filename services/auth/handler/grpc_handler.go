@@ -65,12 +65,15 @@ func (h *grpcHandler) SignIn(ctx context.Context, req *protobuf.SignInRequest) (
 		switch err {
 		case customErr.ErrUserNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
+		case customErr.ErrForbidden:
+			return nil, status.Error(codes.PermissionDenied, err.Error())
 		case customErr.ErrInvalidPassword:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
 	return &protobuf.LoggedInResponse{
 		User:             user,
 		AccessToken:      accessToken,
@@ -159,5 +162,29 @@ func (h *grpcHandler) ResetPassword(ctx context.Context, req *protobuf.ResetPass
 
 	return &protobuf.AuthUpdatedResponse{
 		Success: true,
+	}, nil
+}
+
+func (h *grpcHandler) AdminSignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.LoggedInResponse, error) {
+	user, accessToken, accessExpiresIn, refreshToken, refreshExpiresIn, err := h.svc.AdminSignIn(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case customErr.ErrForbidden:
+			return nil, status.Error(codes.PermissionDenied, err.Error())
+		case customErr.ErrInvalidPassword:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.LoggedInResponse{
+		User:             user,
+		AccessToken:      accessToken,
+		AccessExpiresIn:  int64(accessExpiresIn.Seconds()),
+		RefreshToken:     refreshToken,
+		RefreshExpiresIn: int64(refreshExpiresIn.Seconds()),
 	}, nil
 }

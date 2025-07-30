@@ -17,6 +17,7 @@ var allModels = []interface{}{
 	&model.Variant{},
 	&model.Inventory{},
 	&model.Image{},
+	&model.Tag{},
 }
 
 func InitDB(cfg *config.Config) (*gorm.DB, error) {

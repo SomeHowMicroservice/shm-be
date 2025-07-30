@@ -18,6 +18,7 @@ import (
 	imageRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/image"
 	productRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/product"
 	sizeRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/size"
+	tagRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/tag"
 	variantRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/variant"
 	"github.com/google/uuid"
 )
@@ -26,17 +27,19 @@ type productServiceImpl struct {
 	imageKitSvc  imagekit.ImageKitService
 	categoryRepo categoryRepo.CategoryRepository
 	productRepo  productRepo.ProductRepository
+	tagRepo      tagRepo.TagRepository
 	colorRepo    colorRepo.ColorRepository
 	sizeRepo     sizeRepo.SizeRepository
 	variantRepo  variantRepo.VariantRepository
 	imageRepo    imageRepo.ImageRepository
 }
 
-func NewProductService(imageKitSvc imagekit.ImageKitService, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, imageRepo imageRepo.ImageRepository) ProductService {
+func NewProductService(imageKitSvc imagekit.ImageKitService, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, imageRepo imageRepo.ImageRepository) ProductService {
 	return &productServiceImpl{
 		imageKitSvc,
 		categoryRepo,
 		productRepo,
+		tagRepo,
 		colorRepo,
 		sizeRepo,
 		variantRepo,
@@ -313,9 +316,9 @@ func (s *productServiceImpl) CreateImage(ctx context.Context, req *protobuf.Crea
 	fileName := fmt.Sprintf("%s-%d%s", product.Slug, req.SortOrder, ext)
 
 	uploadFileRequest := &common.UploadFileRequest{
-		File: bytes.NewReader(req.File),
+		File:     bytes.NewReader(req.File),
 		FileName: fileName,
-		Folder: "somehow_microservice/product",
+		Folder:   "somehow_microservice/product",
 	}
 	uploadedRes, err := s.imageKitSvc.UploadFile(ctx, uploadFileRequest)
 	if err != nil {
@@ -323,12 +326,12 @@ func (s *productServiceImpl) CreateImage(ctx context.Context, req *protobuf.Crea
 	}
 
 	image := &model.Image{
-		ID: uuid.NewString(),
-		ProductID: req.ProductId,
-		ColorID: req.ColorId,
-		Url: uploadedRes.URL,
+		ID:          uuid.NewString(),
+		ProductID:   req.ProductId,
+		ColorID:     req.ColorId,
+		Url:         uploadedRes.URL,
 		IsThumbnail: req.IsThumbnail,
-		SortOrder: int(req.SortOrder),
+		SortOrder:   int(req.SortOrder),
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
@@ -347,7 +350,7 @@ func (s *productServiceImpl) GetProductsByCategory(ctx context.Context, category
 	if !exists {
 		return nil, customErr.ErrCategoryNotFound
 	}
-	
+
 	products, err := s.productRepo.FindAllByCategorySlug(ctx, categorySlug)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách sản phẩm theo danh mục thất bại: %w", err)

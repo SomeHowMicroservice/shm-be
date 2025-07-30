@@ -14,6 +14,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/repository"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/security"
+	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/google/uuid"
 	"github.com/rabbitmq/amqp091-go"
@@ -200,6 +201,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
 		Profile: &protobuf.ProfileResponse{
+			Id:        userRes.Profile.Id,
 			FirstName: userRes.Profile.FirstName,
 			LastName:  userRes.Profile.LastName,
 			Gender:    userRes.Profile.Gender,
@@ -230,6 +232,12 @@ func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInReques
 	if !isCorrectPassword {
 		return nil, "", 0, "", 0, customErr.ErrInvalidPassword
 	}
+
+	// Kiểm tra quyền
+	if !hasRoleUser(model.RoleUser, userRes.Roles) {
+		return nil, "", 0, "", 0, customErr.ErrForbidden
+	}
+
 	// Tạo Access Token và Refresh Token
 	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
 	if err != nil {
@@ -245,7 +253,7 @@ func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInReques
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
 		Profile: &protobuf.ProfileResponse{
-			Id: userRes.Profile.Id,
+			Id:        userRes.Profile.Id,
 			FirstName: userRes.Profile.FirstName,
 			LastName:  userRes.Profile.LastName,
 			Gender:    userRes.Profile.Gender,
@@ -459,4 +467,73 @@ func (s *authServiceImpl) ResetPassword(ctx context.Context, req *protobuf.Reset
 	}
 
 	return nil
+}
+
+func (s *authServiceImpl) AdminSignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error) {
+	// Tìm người dùng theo username
+	userRes, err := s.userClient.GetUserByUsername(ctx, &userpb.GetUserByUsernameRequest{Username: req.Username})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, "", 0, "", 0, customErr.ErrUserNotFound
+			default:
+				return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+	// Kiểm tra mật khẩu
+	isCorrectPassword := common.VerifyPassword(req.Password, userRes.Password)
+	if !isCorrectPassword {
+		return nil, "", 0, "", 0, customErr.ErrInvalidPassword
+	}
+
+	// Kiểm tra quyền
+	if !isAdmin(model.RoleUser, userRes.Roles) {
+		return nil, "", 0, "", 0, customErr.ErrForbidden
+	}
+
+	// Tạo Access Token và Refresh Token
+	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
+	if err != nil {
+		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+	}
+	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
+	if err != nil {
+		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+	}
+	authRes := &protobuf.AuthResponse{
+		Id:        userRes.Id,
+		Username:  userRes.Username,
+		Email:     userRes.Email,
+		CreatedAt: userRes.CreatedAt,
+		Profile: &protobuf.ProfileResponse{
+			Id:        userRes.Profile.Id,
+			FirstName: userRes.Profile.FirstName,
+			LastName:  userRes.Profile.LastName,
+			Gender:    userRes.Profile.Gender,
+			Dob:       userRes.Profile.Dob,
+		},
+	}
+	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+}
+
+func hasRoleUser(role string, roles []string) bool {
+	for _, r := range roles {
+		if r == role {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isAdmin(role string, roles []string) bool {
+	if len(roles) > 1 && hasRoleUser(role, roles) {
+		return true
+	}
+
+	return false
 }

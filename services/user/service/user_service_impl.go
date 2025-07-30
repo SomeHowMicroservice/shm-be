@@ -54,7 +54,7 @@ func (s *userServiceImpl) CheckUsernameExists(ctx context.Context, username stri
 func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*model.User, error) {
 	userID := uuid.NewString();
 	user := &model.User{
-		ID:       userID,
+		ID:       uuid.NewString(),
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,

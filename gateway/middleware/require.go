@@ -8,6 +8,7 @@ import (
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
+	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
@@ -120,6 +121,14 @@ func RequireAuth(accessName string, secretKey string, userClient userpb.UserServ
 			})
 			return
 		}
+
+		if !hasRoleUser(model.RoleUser, userRes.Roles) {
+			c.AbortWithStatusJSON(http.StatusForbidden, common.ApiResponse{
+				Message: "không có quyền truy cập",
+			})
+			return
+		}
+
 		// Gán vào Context đẻ sử dụng trong Handler
 		c.Set("user", userRes)
 		c.Next()
@@ -149,6 +158,16 @@ func RequireMultiRoles(allowedRoles []string) gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+func hasRoleUser(role string, roles []string) bool {
+	for _, r := range roles {
+		if r == role {
+			return true
+		}
+	}
+
+	return false
 }
 
 func fetchUserFromUserService(ctx context.Context, userID string, userClient userpb.UserServiceClient) (*userpb.UserPublicResponse, error) {

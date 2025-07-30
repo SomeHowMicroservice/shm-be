@@ -96,8 +96,10 @@ func (h *AuthHandler) VerifySignUp(c *gin.Context) {
 		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
+
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
 	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+
 	common.JSON(c, http.StatusCreated, "Đăng ký thành công", gin.H{
 		"user": res.User,
 	})
@@ -125,6 +127,8 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 				common.JSON(c, http.StatusNotFound, st.Message(), nil)
 			case codes.InvalidArgument:
 				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
+			case codes.PermissionDenied:
+				common.JSON(c, http.StatusForbidden, st.Message(), nil)
 			default:
 				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
 			}
@@ -133,8 +137,10 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
+
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
 	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+
 	common.JSON(c, http.StatusOK, "Đăng nhập thành công", gin.H{
 		"user": res.User,
 	})
@@ -143,6 +149,7 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 func (h *AuthHandler) SignOut(c *gin.Context) {
 	c.SetCookie(h.cfg.Jwt.AccessName, "", 0, "/", "", false, true)
 	c.SetCookie(h.cfg.Jwt.RefreshName, "", 0, "/api/v1/auth/refresh", "", false, true)
+
 	common.JSON(c, http.StatusOK, "Đăng xuất thành công", nil)
 }
 
@@ -157,6 +164,7 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
 		return
 	}
+
 	common.JSON(c, http.StatusOK, "Lấy thông tin người dùng thành công", gin.H{
 		"user": ToAuthResponse(user),
 	})
@@ -199,8 +207,10 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
+
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
 	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+
 	common.JSON(c, http.StatusOK, "Làm mới token thành công", nil)
 }
 
@@ -243,8 +253,10 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
+
 	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
 	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+
 	common.JSON(c, http.StatusOK, "Đổi mật khẩu thành thành công", nil)
 }
 
@@ -349,6 +361,47 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	common.JSON(c, http.StatusOK, "Làm mới mật khẩu thành công, vui lòng đăng nhập lại", nil)
 }
 
+func (h *AuthHandler) AdminSignIn(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	var req request.SignInRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	res, err := h.authClient.AdminSignIn(ctx, &authpb.SignInRequest{
+		Username: req.Username,
+		Password: req.Password,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			case codes.InvalidArgument:
+				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
+			case codes.PermissionDenied:
+				common.JSON(c, http.StatusForbidden, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	c.SetCookie(h.cfg.Jwt.AccessName, res.AccessToken, int(res.AccessExpiresIn), "/", "", false, true)
+	c.SetCookie(h.cfg.Jwt.RefreshName, res.RefreshToken, int(res.RefreshExpiresIn), "/api/v1/auth/refresh", "", false, true)
+
+	common.JSON(c, http.StatusOK, "Đăng nhập thành công", gin.H{
+		"user": res.User,
+	})
+}
+
 func ToAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
 	return &authpb.AuthResponse{
 		Id:        userRes.Id,
@@ -356,7 +409,7 @@ func ToAuthResponse(userRes *userpb.UserPublicResponse) *authpb.AuthResponse {
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
 		Profile: &authpb.ProfileResponse{
-			Id: userRes.Profile.Id,
+			Id:        userRes.Profile.Id,
 			FirstName: userRes.Profile.FirstName,
 			LastName:  userRes.Profile.LastName,
 			Gender:    userRes.Profile.Gender,

@@ -23,4 +23,6 @@ type AuthService interface {
 	VerifyForgotPassword(ctx context.Context, req *protobuf.VerifyForgotPasswordRequest) (string, error)
 
 	ResetPassword(ctx context.Context, req *protobuf.ResetPasswordRequest) error
+
+	AdminSignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error)
 }

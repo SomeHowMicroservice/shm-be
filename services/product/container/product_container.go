@@ -9,6 +9,7 @@ import (
 	imageRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/image"
 	productRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/product"
 	sizeRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/size"
+	tagRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/tag"
 	variantRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/variant"
 	"github.com/SomeHowMicroservice/shm-be/services/product/service"
 	"google.golang.org/grpc"
@@ -19,15 +20,16 @@ type Container struct {
 	GRPCHandler *handler.GRPCHandler
 }
 
-func NewContainer(cfg *config.Config, db *gorm.DB, grpcServcer *grpc.Server) *Container {
+func NewContainer(cfg *config.Config, db *gorm.DB, grpcServer *grpc.Server) *Container {
 	categoryRepo := categoryRepo.NewCategoryRepository(db)
 	productRepo := productRepo.NewProductRepository(db)
+	tagRepo := tagRepo.NewTagRepository(db)
 	colorRepo := colorRepo.NewColorRepository(db)
 	sizeRepo := sizeRepo.NewSizeRepository(db)
 	variantRepo := variantRepo.NewVariantRepository(db)
 	imageRepo := imageRepo.NewImageRepository(db)
 	imageKitSvc := imagekit.NewImageKitService(cfg)
-	svc := service.NewProductService(imageKitSvc, categoryRepo, productRepo, colorRepo, sizeRepo, variantRepo, imageRepo)
-	hdl := handler.NewGRPCHandler(grpcServcer, svc)
+	svc := service.NewProductService(imageKitSvc, categoryRepo, productRepo, tagRepo, colorRepo, sizeRepo, variantRepo, imageRepo)
+	hdl := handler.NewGRPCHandler(grpcServer, svc)
 	return &Container{hdl}
 }

@@ -18,6 +18,7 @@ type Product struct {
 	UpdatedByID string     `gorm:"type:char(36);not null" json:"updated_by_id"`
 
 	Categories []*Category `gorm:"many2many:product_categories;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"categories"`
+	Tags       []*Tag      `gorm:"many2many:product_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"tags"`
 	Variants   []*Variant  `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE;OnDelete:CASCADE" json:"variants,omitempty"`
 	Images     []*Image    `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE;OnDelete:CASCADE" json:"images,omitempty"`
 }

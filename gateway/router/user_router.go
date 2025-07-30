@@ -15,17 +15,11 @@ func UserRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 	user := rg.Group("/users", middleware.RequireAuth(accessName, secretKey, userClient))
 	{
 		user.PATCH("/profiles/:id", userHandler.UpdateProfile)
-
 		user.GET("/me/measurements", userHandler.MyMeasurements)
-
 		user.PATCH("/measurements/:id", userHandler.UpdateMeasurement)
-
 		user.GET("/me/addresses", userHandler.MyAddresses)
-
 		user.POST("/me/addresses", userHandler.CreateMyAddress)
-
 		user.PUT("/addresses/:id", userHandler.UpdateAddress)
-
 		user.DELETE("/addresses/:id", userHandler.DeleteAddress)
 	}
 }
