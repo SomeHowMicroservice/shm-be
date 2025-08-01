@@ -11,11 +11,15 @@ type CategoryRepository interface {
 
 	FindByID(ctx context.Context, id string) (*model.Category, error)
 
-	FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error)
+	FindAllByIDInWithChildren(ctx context.Context, ids []string) ([]*model.Category, error)
 
 	ExistsByID(ctx context.Context, id string) (bool, error)
 
 	ExistsBySlug(ctx context.Context, slug string) (bool, error)
 
+	FindAllWithParentsAndChildren(ctx context.Context) ([]*model.Category, error)
+
 	FindAll(ctx context.Context) ([]*model.Category, error)
+
+	FindByIDWithParentsAndProducts(ctx context.Context, id string) (*model.Category, error)
 }

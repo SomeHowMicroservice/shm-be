@@ -513,7 +513,35 @@ func (h *ProductHandler) GetAllCategories(c *gin.Context) {
 		return
 	}
 
-	common.JSON(c, http.StatusOK, "Lấy danh mục sản phẩm thành công", gin.H{
+	common.JSON(c, http.StatusOK, "Lấy tất cả danh mục sản phẩm thành công", gin.H{
 		"categories": res.Categories,
+	})
+}
+
+func (h *ProductHandler) CategoryAdminDetails(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	categoryID := c.Param("id")
+
+	res, err := h.productClient.GetCategoryById(ctx, &productpb.GetCategoryByIdRequest{
+		Id: categoryID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy danh mục sản phẩm thành công", gin.H{
+		"category": res,
 	})
 }

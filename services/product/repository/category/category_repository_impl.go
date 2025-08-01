@@ -25,7 +25,7 @@ func (r *categoryRepositoryImpl) Create(ctx context.Context, category *model.Cat
 	return nil
 }
 
-func (r *categoryRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error) {
+func (r *categoryRepositoryImpl) FindAllByIDInWithChildren(ctx context.Context, ids []string) ([]*model.Category, error) {
 	var categories []*model.Category
 	if err := r.db.WithContext(ctx).Preload("Children").Where("id IN ?", ids).Find(&categories).Error; err != nil {
 		return nil, err
@@ -64,12 +64,32 @@ func (r *categoryRepositoryImpl) FindByID(ctx context.Context, id string) (*mode
 	return &category, nil
 }
 
-func (r *categoryRepositoryImpl) FindAll(ctx context.Context) ([]*model.Category, error) {
+func (r *categoryRepositoryImpl) FindAllWithParentsAndChildren(ctx context.Context) ([]*model.Category, error) {
 	var categories []*model.Category
-
 	if err := r.db.WithContext(ctx).Preload("Children").Preload("Parents").Find(&categories).Error; err != nil {
 		return nil, err
 	}
 
 	return categories, nil
+}
+
+func (r *categoryRepositoryImpl) FindAll(ctx context.Context) ([]*model.Category, error) {
+	var categories []*model.Category
+	if err := r.db.WithContext(ctx).Find(&categories).Error; err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
+
+func (r *categoryRepositoryImpl) FindByIDWithParentsAndProducts(ctx context.Context, id string) (*model.Category, error) {
+	var category model.Category
+	if err := r.db.WithContext(ctx).Preload("Parents").Preload("Products").Preload("Products.Images", "is_thumbnail = ?", true).Where("id = ?", id).First(&category).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &category, nil
 }

@@ -25,6 +25,31 @@ service ProductService {
   rpc CreateTag(CreateTagRequest) returns (CreatedResponse);
 
   rpc GetAllCategories(GetAllCategoriesRequest) returns (CategoriesAdminResponse);
+
+  rpc GetCategoryById(GetCategoryByIdRequest) returns (CategoryAdminDetailResponse);
+}
+
+message CategoryAdminDetailResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  repeated BaseCategoryResponse parents = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  BaseUserResponse created_by = 7;
+  BaseUserResponse updated_by = 8;
+  repeated BaseProductResponse products = 9;
+}
+
+message BaseProductResponse {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  BaseImageResponse image = 4;
+}
+
+message GetCategoryByIdRequest {
+  string id = 1;
 }
 
 message GetAllCategoriesRequest {}
@@ -53,7 +78,7 @@ message CategoryAdminResponse {
 }
 
 message CategoriesAdminResponse {
-  repeated CategoryAdminResponse categories = 1;
+  repeated BaseCategoryResponse categories = 1;
 }
 
 message CreateTagRequest {

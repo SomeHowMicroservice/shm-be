@@ -190,6 +190,20 @@ func (h *GRPCHandler) GetAllCategories(ctx context.Context, req *protobuf.GetAll
 	return categories, nil
 }
 
+func (h *GRPCHandler) GetCategoryById(ctx context.Context, req *protobuf.GetCategoryByIdRequest) (*protobuf.CategoryAdminDetailResponse, error) {
+	category, err := h.svc.GetCategoryByID(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case customErr.ErrUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return category, nil
+}
+
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
 	var productResponses []*protobuf.ProductPublicResponse
 	for _, pro := range products {

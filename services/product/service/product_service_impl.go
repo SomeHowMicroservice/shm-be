@@ -68,7 +68,7 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 
 	var parents []*model.Category
 	if len(req.ParentIds) > 0 {
-		parents, err = s.categoryRepo.FindAllByIDIn(ctx, req.ParentIds)
+		parents, err = s.categoryRepo.FindAllByIDInWithChildren(ctx, req.ParentIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
 		}
@@ -90,7 +90,7 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 }
 
 func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Category, error) {
-	categories, err := s.categoryRepo.FindAll(ctx)
+	categories, err := s.categoryRepo.FindAllWithParentsAndChildren(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy tất cả danh mục sản phẩm thất bại: %w", err)
 	}
@@ -129,7 +129,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 
 	var categories []*model.Category
 	if len(req.CategoryIds) > 0 {
-		categories, err = s.categoryRepo.FindAllByIDIn(ctx, req.CategoryIds)
+		categories, err = s.categoryRepo.FindAllByIDInWithChildren(ctx, req.CategoryIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 		}
@@ -394,23 +394,25 @@ func (s *productServiceImpl) GetAllCategories(ctx context.Context) (*protobuf.Ca
 		return nil, fmt.Errorf("lấy tất cả danh mục sản phẩm thất bại: %w", err)
 	}
 
-	userIDMap := map[string]struct{}{}
-	for _, cat := range categories {
-		userIDMap[cat.CreatedByID] = struct{}{}
-		userIDMap[cat.UpdatedByID] = struct{}{}
+	return &protobuf.CategoriesAdminResponse{
+		Categories: toBaseCategoriesResponse(categories),
+	}, nil
+}
+
+func (s *productServiceImpl) GetCategoryByID(ctx context.Context, id string) (*protobuf.CategoryAdminDetailResponse, error) {
+	category, err := s.categoryRepo.FindByIDWithParentsAndProducts(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+	}
+	if category == nil {
+		return nil, customErr.ErrCategoryNotFound
 	}
 
-	var userIDs []string
-	for id := range userIDMap {
-		userIDs = append(userIDs, id)
-	}
-
-	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
-		Ids: userIDs,
+	cRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: category.CreatedByID,
 	})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
 				return nil, customErr.ErrHasUserNotFound
@@ -421,41 +423,69 @@ func (s *productServiceImpl) GetAllCategories(ctx context.Context) (*protobuf.Ca
 		return nil, fmt.Errorf("lỗi không xác định: %w", err)
 	}
 
-	userMap := make(map[string]*userpb.UserPublicResponse)
-	for _, user := range userRes.Users {
-		userMap[user.Id] = user
+	uRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: category.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
 	}
 
-	var result []*protobuf.CategoryAdminResponse
-	for _, cat := range categories {
-		result = append(result, &protobuf.CategoryAdminResponse{
-			Id:      cat.ID,
-			Name:    cat.Name,
-			Slug:    cat.Slug,
-			Parents: toBaseCategoriesResponse(cat.Parents),
-			CreatedBy: &protobuf.BaseUserResponse{
-				Id:       cat.CreatedByID,
-				Username: userMap[cat.CreatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
-					Id:        userMap[cat.CreatedByID].Profile.Id,
-					FirstName: userMap[cat.CreatedByID].Profile.FirstName,
-					LastName:  userMap[cat.CreatedByID].Profile.LastName,
-				},
-			},
-			UpdatedBy: &protobuf.BaseUserResponse{
-				Id:       cat.UpdatedByID,
-				Username: userMap[cat.UpdatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
-					Id:        userMap[cat.UpdatedByID].Profile.Id,
-					FirstName: userMap[cat.UpdatedByID].Profile.FirstName,
-					LastName:  userMap[cat.UpdatedByID].Profile.LastName,
-				},
-			},
+	var productResponses []*protobuf.BaseProductResponse
+	for _, p := range category.Products {
+		var thumb *protobuf.BaseImageResponse
+		for _, img := range p.Images {
+			if img.IsThumbnail {
+				thumb = &protobuf.BaseImageResponse{
+					Id:          img.ID,
+					Url:         img.Url,
+					IsThumbnail: img.IsThumbnail,
+				}
+				break
+			}
+		}
+
+		productResponses = append(productResponses, &protobuf.BaseProductResponse{
+			Id:    p.ID,
+			Title: p.Title,
+			Slug:  p.Slug,
+			Image: thumb,
 		})
 	}
 
-	return &protobuf.CategoriesAdminResponse{
-		Categories: result,
+	return &protobuf.CategoryAdminDetailResponse{
+		Id:        category.ID,
+		Name:      category.Name,
+		Slug:      category.Slug,
+		Parents:   toBaseCategoriesResponse(category.Parents),
+		CreatedAt: category.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: category.UpdatedAt.Format(time.RFC3339),
+		CreatedBy: &protobuf.BaseUserResponse{
+			Id:       cRes.Id,
+			Username: cRes.Username,
+			Profile: &protobuf.BaseProfileResponse{
+				Id:        cRes.Profile.Id,
+				FirstName: cRes.Profile.FirstName,
+				LastName:  cRes.Profile.LastName,
+			},
+		},
+		UpdatedBy: &protobuf.BaseUserResponse{
+			Id:       uRes.Id,
+			Username: uRes.Username,
+			Profile: &protobuf.BaseProfileResponse{
+				Id:        uRes.Profile.Id,
+				FirstName: uRes.Profile.FirstName,
+				LastName:  uRes.Profile.LastName,
+			},
+		},
+		Products: productResponses,
 	}, nil
 }
 

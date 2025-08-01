@@ -28,6 +28,7 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 	{
 		admin.POST("/categories", productHandler.CreateCategory)
 		admin.GET("/categories", productHandler.GetAllCategories)
+		admin.GET("/categories/:id", productHandler.CategoryAdminDetails)
 		admin.POST("/products", productHandler.CreateProduct)
 		admin.POST("/products/colors", productHandler.CreateColor)
 		admin.POST("/products/sizes", productHandler.CreateSize)

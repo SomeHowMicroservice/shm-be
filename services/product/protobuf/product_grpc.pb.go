@@ -30,6 +30,7 @@ const (
 	ProductService_GetProductsByCategory_FullMethodName = "/product.ProductService/GetProductsByCategory"
 	ProductService_CreateTag_FullMethodName             = "/product.ProductService/CreateTag"
 	ProductService_GetAllCategories_FullMethodName      = "/product.ProductService/GetAllCategories"
+	ProductService_GetCategoryById_FullMethodName       = "/product.ProductService/GetCategoryById"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -47,6 +48,7 @@ type ProductServiceClient interface {
 	GetProductsByCategory(ctx context.Context, in *GetProductsByCategoryRequest, opts ...grpc.CallOption) (*ProductsPublicResponse, error)
 	CreateTag(ctx context.Context, in *CreateTagRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetAllCategories(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error)
+	GetCategoryById(ctx context.Context, in *GetCategoryByIdRequest, opts ...grpc.CallOption) (*CategoryAdminDetailResponse, error)
 }
 
 type productServiceClient struct {
@@ -167,6 +169,16 @@ func (c *productServiceClient) GetAllCategories(ctx context.Context, in *GetAllC
 	return out, nil
 }
 
+func (c *productServiceClient) GetCategoryById(ctx context.Context, in *GetCategoryByIdRequest, opts ...grpc.CallOption) (*CategoryAdminDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CategoryAdminDetailResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetCategoryById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -182,6 +194,7 @@ type ProductServiceServer interface {
 	GetProductsByCategory(context.Context, *GetProductsByCategoryRequest) (*ProductsPublicResponse, error)
 	CreateTag(context.Context, *CreateTagRequest) (*CreatedResponse, error)
 	GetAllCategories(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error)
+	GetCategoryById(context.Context, *GetCategoryByIdRequest) (*CategoryAdminDetailResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -224,6 +237,9 @@ func (UnimplementedProductServiceServer) CreateTag(context.Context, *CreateTagRe
 }
 func (UnimplementedProductServiceServer) GetAllCategories(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllCategories not implemented")
+}
+func (UnimplementedProductServiceServer) GetCategoryById(context.Context, *GetCategoryByIdRequest) (*CategoryAdminDetailResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCategoryById not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -444,6 +460,24 @@ func _ProductService_GetAllCategories_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetCategoryById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCategoryByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetCategoryById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetCategoryById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetCategoryById(ctx, req.(*GetCategoryByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -494,6 +528,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllCategories",
 			Handler:    _ProductService_GetAllCategories_Handler,
+		},
+		{
+			MethodName: "GetCategoryById",
+			Handler:    _ProductService_GetCategoryById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
