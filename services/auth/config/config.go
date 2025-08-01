@@ -9,7 +9,7 @@ import (
 type Config struct {
 	App struct {
 		ServerHost string `mapstructure:"server_host"`
-		GRPCPort   int64  `mapstructure:"grpc_port"`
+		GRPCPort   int  `mapstructure:"grpc_port"`
 	} `mapstructure:"app"`
 
 	Jwt struct {
@@ -19,7 +19,7 @@ type Config struct {
 	}
 
 	Services struct {
-		UserPort int64 `mapstructure:"user_port"`
+		UserPort int `mapstructure:"user_port"`
 	} `mapstructure:"services"`
 
 	Cache struct {

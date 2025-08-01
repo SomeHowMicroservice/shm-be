@@ -20,4 +20,6 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 
 	UpdatePassword(ctx context.Context, id, password string) error
+
+	FindAllByIDIn(ctx context.Context, ids []string) ([]*model.User, error)
 }

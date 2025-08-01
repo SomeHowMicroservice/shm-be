@@ -35,4 +35,6 @@ type UserService interface {
 	UpdateAddress(ctx context.Context, req *protobuf.UpdateAddressRequest) (*model.Address, error)
 
 	DeleteAddress(ctx context.Context, req *protobuf.DeleteAddressRequest) error
+
+	GetUsersByIDs(ctx context.Context, ids []string) ([]*model.User, error)
 }

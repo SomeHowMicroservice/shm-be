@@ -28,6 +28,8 @@ const (
 	ProductService_CreateVariant_FullMethodName         = "/product.ProductService/CreateVariant"
 	ProductService_CreateImage_FullMethodName           = "/product.ProductService/CreateImage"
 	ProductService_GetProductsByCategory_FullMethodName = "/product.ProductService/GetProductsByCategory"
+	ProductService_CreateTag_FullMethodName             = "/product.ProductService/CreateTag"
+	ProductService_GetAllCategories_FullMethodName      = "/product.ProductService/GetAllCategories"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -43,6 +45,8 @@ type ProductServiceClient interface {
 	CreateVariant(ctx context.Context, in *CreateVariantRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetProductsByCategory(ctx context.Context, in *GetProductsByCategoryRequest, opts ...grpc.CallOption) (*ProductsPublicResponse, error)
+	CreateTag(ctx context.Context, in *CreateTagRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	GetAllCategories(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error)
 }
 
 type productServiceClient struct {
@@ -143,6 +147,26 @@ func (c *productServiceClient) GetProductsByCategory(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *productServiceClient) CreateTag(ctx context.Context, in *CreateTagRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatedResponse)
+	err := c.cc.Invoke(ctx, ProductService_CreateTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetAllCategories(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CategoriesAdminResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetAllCategories_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -156,6 +180,8 @@ type ProductServiceServer interface {
 	CreateVariant(context.Context, *CreateVariantRequest) (*CreatedResponse, error)
 	CreateImage(context.Context, *CreateImageRequest) (*CreatedResponse, error)
 	GetProductsByCategory(context.Context, *GetProductsByCategoryRequest) (*ProductsPublicResponse, error)
+	CreateTag(context.Context, *CreateTagRequest) (*CreatedResponse, error)
+	GetAllCategories(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -192,6 +218,12 @@ func (UnimplementedProductServiceServer) CreateImage(context.Context, *CreateIma
 }
 func (UnimplementedProductServiceServer) GetProductsByCategory(context.Context, *GetProductsByCategoryRequest) (*ProductsPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByCategory not implemented")
+}
+func (UnimplementedProductServiceServer) CreateTag(context.Context, *CreateTagRequest) (*CreatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTag not implemented")
+}
+func (UnimplementedProductServiceServer) GetAllCategories(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllCategories not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -376,6 +408,42 @@ func _ProductService_GetProductsByCategory_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_CreateTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTagRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).CreateTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_CreateTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).CreateTag(ctx, req.(*CreateTagRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_GetAllCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllCategoriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetAllCategories(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetAllCategories_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetAllCategories(ctx, req.(*GetAllCategoriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -418,6 +486,14 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProductsByCategory",
 			Handler:    _ProductService_GetProductsByCategory_Handler,
+		},
+		{
+			MethodName: "CreateTag",
+			Handler:    _ProductService_CreateTag_Handler,
+		},
+		{
+			MethodName: "GetAllCategories",
+			Handler:    _ProductService_GetAllCategories_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

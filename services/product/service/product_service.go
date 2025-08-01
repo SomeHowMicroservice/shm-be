@@ -25,4 +25,8 @@ type ProductService interface {
 	CreateImage(ctx context.Context, req *protobuf.CreateImageRequest) (*model.Image, error)
 
 	GetProductsByCategory(ctx context.Context, categorySlug string) ([]*model.Product, error)
+
+	CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (*model.Tag, error)
+
+	GetAllCategories(ctx context.Context) (*protobuf.CategoriesAdminResponse, error)
 }

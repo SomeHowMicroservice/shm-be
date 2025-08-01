@@ -44,8 +44,7 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 	// Kiểm tra Username và Email đã tồn tại chưa
 	uRes, err := s.userClient.CheckUsernameExists(ctx, &userpb.CheckUsernameExistsRequest{Username: req.Username})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			return "", fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
 		return "", fmt.Errorf("lỗi không xác định: %w", err)
@@ -56,8 +55,7 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 
 	eRes, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{Email: req.Email})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			return "", fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
 		return "", fmt.Errorf("lỗi không xác định: %w", err)
@@ -143,8 +141,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 	// Kiểm tra lại tồn tại Username và Email cho nó chắc lỡ trong quá xác thực OTP thì có tạo tài khoản ở chỗ khác rồi
 	uRes, err := s.userClient.CheckUsernameExists(ctx, &userpb.CheckUsernameExistsRequest{Username: regData.Username})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
 		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
@@ -155,8 +152,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 
 	eRes, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{Email: regData.Email})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
 		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
@@ -173,8 +169,7 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 	}
 	userRes, err := s.userClient.CreateUser(ctx, newUser)
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
 		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
@@ -216,8 +211,7 @@ func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInReques
 	// Tìm người dùng theo username
 	userRes, err := s.userClient.GetUserByUsername(ctx, &userpb.GetUserByUsernameRequest{Username: req.Username})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
 				return nil, "", 0, "", 0, customErr.ErrUserNotFound
@@ -281,8 +275,7 @@ func (s *authServiceImpl) ChangePassword(ctx context.Context, req *protobuf.Chan
 	// Lấy user theo id có mật khẩu
 	userRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: req.Id})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
 				return "", 0, "", 0, customErr.ErrUserNotFound
@@ -308,8 +301,7 @@ func (s *authServiceImpl) ChangePassword(ctx context.Context, req *protobuf.Chan
 		NewPassword: hashedNewPassword,
 	})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
 				return "", 0, "", 0, customErr.ErrUserNotFound
@@ -336,8 +328,7 @@ func (s *authServiceImpl) ForgotPassword(ctx context.Context, req *protobuf.Forg
 		Email: req.Email,
 	})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			return "", fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
 		return "", fmt.Errorf("lỗi không xác định: %w", err)
@@ -432,8 +423,7 @@ func (s *authServiceImpl) ResetPassword(ctx context.Context, req *protobuf.Reset
 		Email: email,
 	})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
 				return customErr.ErrUserNotFound
@@ -454,8 +444,7 @@ func (s *authServiceImpl) ResetPassword(ctx context.Context, req *protobuf.Reset
 		NewPassword: hashedNewPassword,
 	})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
 				return customErr.ErrUserNotFound
@@ -473,8 +462,7 @@ func (s *authServiceImpl) AdminSignIn(ctx context.Context, req *protobuf.SignInR
 	// Tìm người dùng theo username
 	userRes, err := s.userClient.GetUserByUsername(ctx, &userpb.GetUserByUsernameRequest{Username: req.Username})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
 				return nil, "", 0, "", 0, customErr.ErrUserNotFound

@@ -21,6 +21,358 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type GetAllCategoriesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAllCategoriesRequest) Reset() {
+	*x = GetAllCategoriesRequest{}
+	mi := &file_services_product_protobuf_product_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAllCategoriesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAllCategoriesRequest) ProtoMessage() {}
+
+func (x *GetAllCategoriesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_product_protobuf_product_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAllCategoriesRequest.ProtoReflect.Descriptor instead.
+func (*GetAllCategoriesRequest) Descriptor() ([]byte, []int) {
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{0}
+}
+
+type BaseProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FirstName     string                 `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName      string                 `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BaseProfileResponse) Reset() {
+	*x = BaseProfileResponse{}
+	mi := &file_services_product_protobuf_product_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BaseProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BaseProfileResponse) ProtoMessage() {}
+
+func (x *BaseProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_product_protobuf_product_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BaseProfileResponse.ProtoReflect.Descriptor instead.
+func (*BaseProfileResponse) Descriptor() ([]byte, []int) {
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *BaseProfileResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BaseProfileResponse) GetFirstName() string {
+	if x != nil {
+		return x.FirstName
+	}
+	return ""
+}
+
+func (x *BaseProfileResponse) GetLastName() string {
+	if x != nil {
+		return x.LastName
+	}
+	return ""
+}
+
+type BaseUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Profile       *BaseProfileResponse   `protobuf:"bytes,3,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BaseUserResponse) Reset() {
+	*x = BaseUserResponse{}
+	mi := &file_services_product_protobuf_product_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BaseUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BaseUserResponse) ProtoMessage() {}
+
+func (x *BaseUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_product_protobuf_product_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BaseUserResponse.ProtoReflect.Descriptor instead.
+func (*BaseUserResponse) Descriptor() ([]byte, []int) {
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *BaseUserResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BaseUserResponse) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *BaseUserResponse) GetProfile() *BaseProfileResponse {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+type CategoryAdminResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Id            string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                  `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Slug          string                  `protobuf:"bytes,3,opt,name=slug,proto3" json:"slug,omitempty"`
+	Parents       []*BaseCategoryResponse `protobuf:"bytes,4,rep,name=parents,proto3" json:"parents,omitempty"`
+	CreatedAt     string                  `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                  `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CreatedBy     *BaseUserResponse       `protobuf:"bytes,7,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	UpdatedBy     *BaseUserResponse       `protobuf:"bytes,8,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CategoryAdminResponse) Reset() {
+	*x = CategoryAdminResponse{}
+	mi := &file_services_product_protobuf_product_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CategoryAdminResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CategoryAdminResponse) ProtoMessage() {}
+
+func (x *CategoryAdminResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_product_protobuf_product_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CategoryAdminResponse.ProtoReflect.Descriptor instead.
+func (*CategoryAdminResponse) Descriptor() ([]byte, []int) {
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CategoryAdminResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CategoryAdminResponse) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CategoryAdminResponse) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *CategoryAdminResponse) GetParents() []*BaseCategoryResponse {
+	if x != nil {
+		return x.Parents
+	}
+	return nil
+}
+
+func (x *CategoryAdminResponse) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *CategoryAdminResponse) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *CategoryAdminResponse) GetCreatedBy() *BaseUserResponse {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return nil
+}
+
+func (x *CategoryAdminResponse) GetUpdatedBy() *BaseUserResponse {
+	if x != nil {
+		return x.UpdatedBy
+	}
+	return nil
+}
+
+type CategoriesAdminResponse struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Categories    []*CategoryAdminResponse `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CategoriesAdminResponse) Reset() {
+	*x = CategoriesAdminResponse{}
+	mi := &file_services_product_protobuf_product_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CategoriesAdminResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CategoriesAdminResponse) ProtoMessage() {}
+
+func (x *CategoriesAdminResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_product_protobuf_product_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CategoriesAdminResponse.ProtoReflect.Descriptor instead.
+func (*CategoriesAdminResponse) Descriptor() ([]byte, []int) {
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CategoriesAdminResponse) GetCategories() []*CategoryAdminResponse {
+	if x != nil {
+		return x.Categories
+	}
+	return nil
+}
+
+type CreateTagRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateTagRequest) Reset() {
+	*x = CreateTagRequest{}
+	mi := &file_services_product_protobuf_product_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateTagRequest) ProtoMessage() {}
+
+func (x *CreateTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_product_protobuf_product_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateTagRequest.ProtoReflect.Descriptor instead.
+func (*CreateTagRequest) Descriptor() ([]byte, []int) {
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CreateTagRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateTagRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 type GetProductsByCategoryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Slug          string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
@@ -30,7 +382,7 @@ type GetProductsByCategoryRequest struct {
 
 func (x *GetProductsByCategoryRequest) Reset() {
 	*x = GetProductsByCategoryRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[0]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +394,7 @@ func (x *GetProductsByCategoryRequest) String() string {
 func (*GetProductsByCategoryRequest) ProtoMessage() {}
 
 func (x *GetProductsByCategoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[0]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +407,7 @@ func (x *GetProductsByCategoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProductsByCategoryRequest.ProtoReflect.Descriptor instead.
 func (*GetProductsByCategoryRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{0}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetProductsByCategoryRequest) GetSlug() string {
@@ -74,7 +426,7 @@ type ProductsPublicResponse struct {
 
 func (x *ProductsPublicResponse) Reset() {
 	*x = ProductsPublicResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[1]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -86,7 +438,7 @@ func (x *ProductsPublicResponse) String() string {
 func (*ProductsPublicResponse) ProtoMessage() {}
 
 func (x *ProductsPublicResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[1]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -99,7 +451,7 @@ func (x *ProductsPublicResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProductsPublicResponse.ProtoReflect.Descriptor instead.
 func (*ProductsPublicResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{1}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ProductsPublicResponse) GetProducts() []*ProductPublicResponse {
@@ -124,7 +476,7 @@ type CreateImageRequest struct {
 
 func (x *CreateImageRequest) Reset() {
 	*x = CreateImageRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[2]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -136,7 +488,7 @@ func (x *CreateImageRequest) String() string {
 func (*CreateImageRequest) ProtoMessage() {}
 
 func (x *CreateImageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[2]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -149,7 +501,7 @@ func (x *CreateImageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateImageRequest.ProtoReflect.Descriptor instead.
 func (*CreateImageRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{2}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreateImageRequest) GetProductId() string {
@@ -215,7 +567,7 @@ type CreateVariantRequest struct {
 
 func (x *CreateVariantRequest) Reset() {
 	*x = CreateVariantRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[3]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -227,7 +579,7 @@ func (x *CreateVariantRequest) String() string {
 func (*CreateVariantRequest) ProtoMessage() {}
 
 func (x *CreateVariantRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[3]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -240,7 +592,7 @@ func (x *CreateVariantRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateVariantRequest.ProtoReflect.Descriptor instead.
 func (*CreateVariantRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{3}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CreateVariantRequest) GetSku() string {
@@ -295,7 +647,7 @@ type CreateSizeRequest struct {
 
 func (x *CreateSizeRequest) Reset() {
 	*x = CreateSizeRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[4]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -307,7 +659,7 @@ func (x *CreateSizeRequest) String() string {
 func (*CreateSizeRequest) ProtoMessage() {}
 
 func (x *CreateSizeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[4]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -320,7 +672,7 @@ func (x *CreateSizeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSizeRequest.ProtoReflect.Descriptor instead.
 func (*CreateSizeRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{4}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CreateSizeRequest) GetName() string {
@@ -347,7 +699,7 @@ type CreateColorRequest struct {
 
 func (x *CreateColorRequest) Reset() {
 	*x = CreateColorRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[5]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -359,7 +711,7 @@ func (x *CreateColorRequest) String() string {
 func (*CreateColorRequest) ProtoMessage() {}
 
 func (x *CreateColorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[5]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -372,7 +724,7 @@ func (x *CreateColorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateColorRequest.ProtoReflect.Descriptor instead.
 func (*CreateColorRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{5}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CreateColorRequest) GetName() string {
@@ -398,7 +750,7 @@ type CreatedResponse struct {
 
 func (x *CreatedResponse) Reset() {
 	*x = CreatedResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[6]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -410,7 +762,7 @@ func (x *CreatedResponse) String() string {
 func (*CreatedResponse) ProtoMessage() {}
 
 func (x *CreatedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[6]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -423,7 +775,7 @@ func (x *CreatedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatedResponse.ProtoReflect.Descriptor instead.
 func (*CreatedResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{6}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CreatedResponse) GetId() string {
@@ -442,7 +794,7 @@ type GetProductBySlugRequest struct {
 
 func (x *GetProductBySlugRequest) Reset() {
 	*x = GetProductBySlugRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[7]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -454,7 +806,7 @@ func (x *GetProductBySlugRequest) String() string {
 func (*GetProductBySlugRequest) ProtoMessage() {}
 
 func (x *GetProductBySlugRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[7]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -467,7 +819,7 @@ func (x *GetProductBySlugRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProductBySlugRequest.ProtoReflect.Descriptor instead.
 func (*GetProductBySlugRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{7}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetProductBySlugRequest) GetSlug() string {
@@ -497,7 +849,7 @@ type ProductPublicResponse struct {
 
 func (x *ProductPublicResponse) Reset() {
 	*x = ProductPublicResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[8]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -509,7 +861,7 @@ func (x *ProductPublicResponse) String() string {
 func (*ProductPublicResponse) ProtoMessage() {}
 
 func (x *ProductPublicResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[8]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -522,7 +874,7 @@ func (x *ProductPublicResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProductPublicResponse.ProtoReflect.Descriptor instead.
 func (*ProductPublicResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{8}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ProductPublicResponse) GetId() string {
@@ -622,7 +974,7 @@ type BaseImageResponse struct {
 
 func (x *BaseImageResponse) Reset() {
 	*x = BaseImageResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[9]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -634,7 +986,7 @@ func (x *BaseImageResponse) String() string {
 func (*BaseImageResponse) ProtoMessage() {}
 
 func (x *BaseImageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[9]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -647,7 +999,7 @@ func (x *BaseImageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseImageResponse.ProtoReflect.Descriptor instead.
 func (*BaseImageResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{9}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BaseImageResponse) GetId() string {
@@ -695,7 +1047,7 @@ type BaseColorResponse struct {
 
 func (x *BaseColorResponse) Reset() {
 	*x = BaseColorResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[10]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -707,7 +1059,7 @@ func (x *BaseColorResponse) String() string {
 func (*BaseColorResponse) ProtoMessage() {}
 
 func (x *BaseColorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[10]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -720,7 +1072,7 @@ func (x *BaseColorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseColorResponse.ProtoReflect.Descriptor instead.
 func (*BaseColorResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{10}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *BaseColorResponse) GetId() string {
@@ -747,7 +1099,7 @@ type BaseSizeResponse struct {
 
 func (x *BaseSizeResponse) Reset() {
 	*x = BaseSizeResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[11]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -759,7 +1111,7 @@ func (x *BaseSizeResponse) String() string {
 func (*BaseSizeResponse) ProtoMessage() {}
 
 func (x *BaseSizeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[11]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -772,7 +1124,7 @@ func (x *BaseSizeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseSizeResponse.ProtoReflect.Descriptor instead.
 func (*BaseSizeResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{11}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *BaseSizeResponse) GetId() string {
@@ -801,7 +1153,7 @@ type BaseInventoryResponse struct {
 
 func (x *BaseInventoryResponse) Reset() {
 	*x = BaseInventoryResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[12]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -813,7 +1165,7 @@ func (x *BaseInventoryResponse) String() string {
 func (*BaseInventoryResponse) ProtoMessage() {}
 
 func (x *BaseInventoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[12]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -826,7 +1178,7 @@ func (x *BaseInventoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseInventoryResponse.ProtoReflect.Descriptor instead.
 func (*BaseInventoryResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{12}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *BaseInventoryResponse) GetId() string {
@@ -870,7 +1222,7 @@ type BaseVariantResponse struct {
 
 func (x *BaseVariantResponse) Reset() {
 	*x = BaseVariantResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[13]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -882,7 +1234,7 @@ func (x *BaseVariantResponse) String() string {
 func (*BaseVariantResponse) ProtoMessage() {}
 
 func (x *BaseVariantResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[13]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -895,7 +1247,7 @@ func (x *BaseVariantResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseVariantResponse.ProtoReflect.Descriptor instead.
 func (*BaseVariantResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{13}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *BaseVariantResponse) GetId() string {
@@ -945,7 +1297,7 @@ type CreateCategoryRequest struct {
 
 func (x *CreateCategoryRequest) Reset() {
 	*x = CreateCategoryRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[14]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -957,7 +1309,7 @@ func (x *CreateCategoryRequest) String() string {
 func (*CreateCategoryRequest) ProtoMessage() {}
 
 func (x *CreateCategoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[14]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -970,7 +1322,7 @@ func (x *CreateCategoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCategoryRequest.ProtoReflect.Descriptor instead.
 func (*CreateCategoryRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{14}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateCategoryRequest) GetName() string {
@@ -1018,7 +1370,7 @@ type CreateProductRequest struct {
 
 func (x *CreateProductRequest) Reset() {
 	*x = CreateProductRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[15]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1030,7 +1382,7 @@ func (x *CreateProductRequest) String() string {
 func (*CreateProductRequest) ProtoMessage() {}
 
 func (x *CreateProductRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[15]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1043,7 +1395,7 @@ func (x *CreateProductRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProductRequest.ProtoReflect.Descriptor instead.
 func (*CreateProductRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{15}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateProductRequest) GetTitle() string {
@@ -1120,7 +1472,7 @@ type BaseCategoryResponse struct {
 
 func (x *BaseCategoryResponse) Reset() {
 	*x = BaseCategoryResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[16]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1132,7 +1484,7 @@ func (x *BaseCategoryResponse) String() string {
 func (*BaseCategoryResponse) ProtoMessage() {}
 
 func (x *BaseCategoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[16]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1145,7 +1497,7 @@ func (x *BaseCategoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseCategoryResponse.ProtoReflect.Descriptor instead.
 func (*BaseCategoryResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{16}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *BaseCategoryResponse) GetId() string {
@@ -1181,7 +1533,7 @@ type CategoryPublicResponse struct {
 
 func (x *CategoryPublicResponse) Reset() {
 	*x = CategoryPublicResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[17]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1193,7 +1545,7 @@ func (x *CategoryPublicResponse) String() string {
 func (*CategoryPublicResponse) ProtoMessage() {}
 
 func (x *CategoryPublicResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[17]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1206,7 +1558,7 @@ func (x *CategoryPublicResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CategoryPublicResponse.ProtoReflect.Descriptor instead.
 func (*CategoryPublicResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{17}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CategoryPublicResponse) GetId() string {
@@ -1245,7 +1597,7 @@ type GetCategoryTreeRequest struct {
 
 func (x *GetCategoryTreeRequest) Reset() {
 	*x = GetCategoryTreeRequest{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[18]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1257,7 +1609,7 @@ func (x *GetCategoryTreeRequest) String() string {
 func (*GetCategoryTreeRequest) ProtoMessage() {}
 
 func (x *GetCategoryTreeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[18]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1270,7 +1622,7 @@ func (x *GetCategoryTreeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCategoryTreeRequest.ProtoReflect.Descriptor instead.
 func (*GetCategoryTreeRequest) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{18}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{24}
 }
 
 type CategoryTreeResponse struct {
@@ -1282,7 +1634,7 @@ type CategoryTreeResponse struct {
 
 func (x *CategoryTreeResponse) Reset() {
 	*x = CategoryTreeResponse{}
-	mi := &file_services_product_protobuf_product_proto_msgTypes[19]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1294,7 +1646,7 @@ func (x *CategoryTreeResponse) String() string {
 func (*CategoryTreeResponse) ProtoMessage() {}
 
 func (x *CategoryTreeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_product_protobuf_product_proto_msgTypes[19]
+	mi := &file_services_product_protobuf_product_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1307,7 +1659,7 @@ func (x *CategoryTreeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CategoryTreeResponse.ProtoReflect.Descriptor instead.
 func (*CategoryTreeResponse) Descriptor() ([]byte, []int) {
-	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{19}
+	return file_services_product_protobuf_product_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CategoryTreeResponse) GetCategories() []*CategoryPublicResponse {
@@ -1321,7 +1673,37 @@ var File_services_product_protobuf_product_proto protoreflect.FileDescriptor
 
 const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"\n" +
-	"'services/product/protobuf/product.proto\x12\aproduct\"2\n" +
+	"'services/product/protobuf/product.proto\x12\aproduct\"\x19\n" +
+	"\x17GetAllCategoriesRequest\"a\n" +
+	"\x13BaseProfileResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"first_name\x18\x02 \x01(\tR\tfirstName\x12\x1b\n" +
+	"\tlast_name\x18\x03 \x01(\tR\blastName\"v\n" +
+	"\x10BaseUserResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x126\n" +
+	"\aprofile\x18\x03 \x01(\v2\x1c.product.BaseProfileResponseR\aprofile\"\xba\x02\n" +
+	"\x15CategoryAdminResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04slug\x18\x03 \x01(\tR\x04slug\x127\n" +
+	"\aparents\x18\x04 \x03(\v2\x1d.product.BaseCategoryResponseR\aparents\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x128\n" +
+	"\n" +
+	"created_by\x18\a \x01(\v2\x19.product.BaseUserResponseR\tcreatedBy\x128\n" +
+	"\n" +
+	"updated_by\x18\b \x01(\v2\x19.product.BaseUserResponseR\tupdatedBy\"Y\n" +
+	"\x17CategoriesAdminResponse\x12>\n" +
+	"\n" +
+	"categories\x18\x01 \x03(\v2\x1e.product.CategoryAdminResponseR\n" +
+	"categories\"?\n" +
+	"\x10CreateTagRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"2\n" +
 	"\x1cGetProductsByCategoryRequest\x12\x12\n" +
 	"\x04slug\x18\x01 \x01(\tR\x04slug\"T\n" +
 	"\x16ProductsPublicResponse\x12:\n" +
@@ -1437,7 +1819,7 @@ const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"\x14CategoryTreeResponse\x12?\n" +
 	"\n" +
 	"categories\x18\x01 \x03(\v2\x1f.product.CategoryPublicResponseR\n" +
-	"categories2\xca\x05\n" +
+	"categories2\xe4\x06\n" +
 	"\x0eProductService\x12J\n" +
 	"\x0eCreateCategory\x12\x1e.product.CreateCategoryRequest\x1a\x18.product.CreatedResponse\x12Q\n" +
 	"\x0fGetCategoryTree\x12\x1f.product.GetCategoryTreeRequest\x1a\x1d.product.CategoryTreeResponse\x12H\n" +
@@ -1448,7 +1830,9 @@ const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"CreateSize\x12\x1a.product.CreateSizeRequest\x1a\x18.product.CreatedResponse\x12H\n" +
 	"\rCreateVariant\x12\x1d.product.CreateVariantRequest\x1a\x18.product.CreatedResponse\x12D\n" +
 	"\vCreateImage\x12\x1b.product.CreateImageRequest\x1a\x18.product.CreatedResponse\x12_\n" +
-	"\x15GetProductsByCategory\x12%.product.GetProductsByCategoryRequest\x1a\x1f.product.ProductsPublicResponseBAZ?github.com/SomeHowMicroservice/shm-be/services/product/protobufb\x06proto3"
+	"\x15GetProductsByCategory\x12%.product.GetProductsByCategoryRequest\x1a\x1f.product.ProductsPublicResponse\x12@\n" +
+	"\tCreateTag\x12\x19.product.CreateTagRequest\x1a\x18.product.CreatedResponse\x12V\n" +
+	"\x10GetAllCategories\x12 .product.GetAllCategoriesRequest\x1a .product.CategoriesAdminResponseBAZ?github.com/SomeHowMicroservice/shm-be/services/product/protobufb\x06proto3"
 
 var (
 	file_services_product_protobuf_product_proto_rawDescOnce sync.Once
@@ -1462,63 +1846,78 @@ func file_services_product_protobuf_product_proto_rawDescGZIP() []byte {
 	return file_services_product_protobuf_product_proto_rawDescData
 }
 
-var file_services_product_protobuf_product_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_services_product_protobuf_product_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_services_product_protobuf_product_proto_goTypes = []any{
-	(*GetProductsByCategoryRequest)(nil), // 0: product.GetProductsByCategoryRequest
-	(*ProductsPublicResponse)(nil),       // 1: product.ProductsPublicResponse
-	(*CreateImageRequest)(nil),           // 2: product.CreateImageRequest
-	(*CreateVariantRequest)(nil),         // 3: product.CreateVariantRequest
-	(*CreateSizeRequest)(nil),            // 4: product.CreateSizeRequest
-	(*CreateColorRequest)(nil),           // 5: product.CreateColorRequest
-	(*CreatedResponse)(nil),              // 6: product.CreatedResponse
-	(*GetProductBySlugRequest)(nil),      // 7: product.GetProductBySlugRequest
-	(*ProductPublicResponse)(nil),        // 8: product.ProductPublicResponse
-	(*BaseImageResponse)(nil),            // 9: product.BaseImageResponse
-	(*BaseColorResponse)(nil),            // 10: product.BaseColorResponse
-	(*BaseSizeResponse)(nil),             // 11: product.BaseSizeResponse
-	(*BaseInventoryResponse)(nil),        // 12: product.BaseInventoryResponse
-	(*BaseVariantResponse)(nil),          // 13: product.BaseVariantResponse
-	(*CreateCategoryRequest)(nil),        // 14: product.CreateCategoryRequest
-	(*CreateProductRequest)(nil),         // 15: product.CreateProductRequest
-	(*BaseCategoryResponse)(nil),         // 16: product.BaseCategoryResponse
-	(*CategoryPublicResponse)(nil),       // 17: product.CategoryPublicResponse
-	(*GetCategoryTreeRequest)(nil),       // 18: product.GetCategoryTreeRequest
-	(*CategoryTreeResponse)(nil),         // 19: product.CategoryTreeResponse
+	(*GetAllCategoriesRequest)(nil),      // 0: product.GetAllCategoriesRequest
+	(*BaseProfileResponse)(nil),          // 1: product.BaseProfileResponse
+	(*BaseUserResponse)(nil),             // 2: product.BaseUserResponse
+	(*CategoryAdminResponse)(nil),        // 3: product.CategoryAdminResponse
+	(*CategoriesAdminResponse)(nil),      // 4: product.CategoriesAdminResponse
+	(*CreateTagRequest)(nil),             // 5: product.CreateTagRequest
+	(*GetProductsByCategoryRequest)(nil), // 6: product.GetProductsByCategoryRequest
+	(*ProductsPublicResponse)(nil),       // 7: product.ProductsPublicResponse
+	(*CreateImageRequest)(nil),           // 8: product.CreateImageRequest
+	(*CreateVariantRequest)(nil),         // 9: product.CreateVariantRequest
+	(*CreateSizeRequest)(nil),            // 10: product.CreateSizeRequest
+	(*CreateColorRequest)(nil),           // 11: product.CreateColorRequest
+	(*CreatedResponse)(nil),              // 12: product.CreatedResponse
+	(*GetProductBySlugRequest)(nil),      // 13: product.GetProductBySlugRequest
+	(*ProductPublicResponse)(nil),        // 14: product.ProductPublicResponse
+	(*BaseImageResponse)(nil),            // 15: product.BaseImageResponse
+	(*BaseColorResponse)(nil),            // 16: product.BaseColorResponse
+	(*BaseSizeResponse)(nil),             // 17: product.BaseSizeResponse
+	(*BaseInventoryResponse)(nil),        // 18: product.BaseInventoryResponse
+	(*BaseVariantResponse)(nil),          // 19: product.BaseVariantResponse
+	(*CreateCategoryRequest)(nil),        // 20: product.CreateCategoryRequest
+	(*CreateProductRequest)(nil),         // 21: product.CreateProductRequest
+	(*BaseCategoryResponse)(nil),         // 22: product.BaseCategoryResponse
+	(*CategoryPublicResponse)(nil),       // 23: product.CategoryPublicResponse
+	(*GetCategoryTreeRequest)(nil),       // 24: product.GetCategoryTreeRequest
+	(*CategoryTreeResponse)(nil),         // 25: product.CategoryTreeResponse
 }
 var file_services_product_protobuf_product_proto_depIdxs = []int32{
-	8,  // 0: product.ProductsPublicResponse.products:type_name -> product.ProductPublicResponse
-	16, // 1: product.ProductPublicResponse.categories:type_name -> product.BaseCategoryResponse
-	13, // 2: product.ProductPublicResponse.variants:type_name -> product.BaseVariantResponse
-	9,  // 3: product.ProductPublicResponse.images:type_name -> product.BaseImageResponse
-	10, // 4: product.BaseImageResponse.color:type_name -> product.BaseColorResponse
-	10, // 5: product.BaseVariantResponse.color:type_name -> product.BaseColorResponse
-	11, // 6: product.BaseVariantResponse.size:type_name -> product.BaseSizeResponse
-	12, // 7: product.BaseVariantResponse.inventory:type_name -> product.BaseInventoryResponse
-	17, // 8: product.CategoryPublicResponse.children:type_name -> product.CategoryPublicResponse
-	17, // 9: product.CategoryTreeResponse.categories:type_name -> product.CategoryPublicResponse
-	14, // 10: product.ProductService.CreateCategory:input_type -> product.CreateCategoryRequest
-	18, // 11: product.ProductService.GetCategoryTree:input_type -> product.GetCategoryTreeRequest
-	15, // 12: product.ProductService.CreateProduct:input_type -> product.CreateProductRequest
-	7,  // 13: product.ProductService.GetProductBySlug:input_type -> product.GetProductBySlugRequest
-	5,  // 14: product.ProductService.CreateColor:input_type -> product.CreateColorRequest
-	4,  // 15: product.ProductService.CreateSize:input_type -> product.CreateSizeRequest
-	3,  // 16: product.ProductService.CreateVariant:input_type -> product.CreateVariantRequest
-	2,  // 17: product.ProductService.CreateImage:input_type -> product.CreateImageRequest
-	0,  // 18: product.ProductService.GetProductsByCategory:input_type -> product.GetProductsByCategoryRequest
-	6,  // 19: product.ProductService.CreateCategory:output_type -> product.CreatedResponse
-	19, // 20: product.ProductService.GetCategoryTree:output_type -> product.CategoryTreeResponse
-	6,  // 21: product.ProductService.CreateProduct:output_type -> product.CreatedResponse
-	8,  // 22: product.ProductService.GetProductBySlug:output_type -> product.ProductPublicResponse
-	6,  // 23: product.ProductService.CreateColor:output_type -> product.CreatedResponse
-	6,  // 24: product.ProductService.CreateSize:output_type -> product.CreatedResponse
-	6,  // 25: product.ProductService.CreateVariant:output_type -> product.CreatedResponse
-	6,  // 26: product.ProductService.CreateImage:output_type -> product.CreatedResponse
-	1,  // 27: product.ProductService.GetProductsByCategory:output_type -> product.ProductsPublicResponse
-	19, // [19:28] is the sub-list for method output_type
-	10, // [10:19] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	1,  // 0: product.BaseUserResponse.profile:type_name -> product.BaseProfileResponse
+	22, // 1: product.CategoryAdminResponse.parents:type_name -> product.BaseCategoryResponse
+	2,  // 2: product.CategoryAdminResponse.created_by:type_name -> product.BaseUserResponse
+	2,  // 3: product.CategoryAdminResponse.updated_by:type_name -> product.BaseUserResponse
+	3,  // 4: product.CategoriesAdminResponse.categories:type_name -> product.CategoryAdminResponse
+	14, // 5: product.ProductsPublicResponse.products:type_name -> product.ProductPublicResponse
+	22, // 6: product.ProductPublicResponse.categories:type_name -> product.BaseCategoryResponse
+	19, // 7: product.ProductPublicResponse.variants:type_name -> product.BaseVariantResponse
+	15, // 8: product.ProductPublicResponse.images:type_name -> product.BaseImageResponse
+	16, // 9: product.BaseImageResponse.color:type_name -> product.BaseColorResponse
+	16, // 10: product.BaseVariantResponse.color:type_name -> product.BaseColorResponse
+	17, // 11: product.BaseVariantResponse.size:type_name -> product.BaseSizeResponse
+	18, // 12: product.BaseVariantResponse.inventory:type_name -> product.BaseInventoryResponse
+	23, // 13: product.CategoryPublicResponse.children:type_name -> product.CategoryPublicResponse
+	23, // 14: product.CategoryTreeResponse.categories:type_name -> product.CategoryPublicResponse
+	20, // 15: product.ProductService.CreateCategory:input_type -> product.CreateCategoryRequest
+	24, // 16: product.ProductService.GetCategoryTree:input_type -> product.GetCategoryTreeRequest
+	21, // 17: product.ProductService.CreateProduct:input_type -> product.CreateProductRequest
+	13, // 18: product.ProductService.GetProductBySlug:input_type -> product.GetProductBySlugRequest
+	11, // 19: product.ProductService.CreateColor:input_type -> product.CreateColorRequest
+	10, // 20: product.ProductService.CreateSize:input_type -> product.CreateSizeRequest
+	9,  // 21: product.ProductService.CreateVariant:input_type -> product.CreateVariantRequest
+	8,  // 22: product.ProductService.CreateImage:input_type -> product.CreateImageRequest
+	6,  // 23: product.ProductService.GetProductsByCategory:input_type -> product.GetProductsByCategoryRequest
+	5,  // 24: product.ProductService.CreateTag:input_type -> product.CreateTagRequest
+	0,  // 25: product.ProductService.GetAllCategories:input_type -> product.GetAllCategoriesRequest
+	12, // 26: product.ProductService.CreateCategory:output_type -> product.CreatedResponse
+	25, // 27: product.ProductService.GetCategoryTree:output_type -> product.CategoryTreeResponse
+	12, // 28: product.ProductService.CreateProduct:output_type -> product.CreatedResponse
+	14, // 29: product.ProductService.GetProductBySlug:output_type -> product.ProductPublicResponse
+	12, // 30: product.ProductService.CreateColor:output_type -> product.CreatedResponse
+	12, // 31: product.ProductService.CreateSize:output_type -> product.CreatedResponse
+	12, // 32: product.ProductService.CreateVariant:output_type -> product.CreatedResponse
+	12, // 33: product.ProductService.CreateImage:output_type -> product.CreatedResponse
+	7,  // 34: product.ProductService.GetProductsByCategory:output_type -> product.ProductsPublicResponse
+	12, // 35: product.ProductService.CreateTag:output_type -> product.CreatedResponse
+	4,  // 36: product.ProductService.GetAllCategories:output_type -> product.CategoriesAdminResponse
+	26, // [26:37] is the sub-list for method output_type
+	15, // [15:26] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_services_product_protobuf_product_proto_init() }
@@ -1526,17 +1925,17 @@ func file_services_product_protobuf_product_proto_init() {
 	if File_services_product_protobuf_product_proto != nil {
 		return
 	}
-	file_services_product_protobuf_product_proto_msgTypes[8].OneofWrappers = []any{}
-	file_services_product_protobuf_product_proto_msgTypes[12].OneofWrappers = []any{}
 	file_services_product_protobuf_product_proto_msgTypes[14].OneofWrappers = []any{}
-	file_services_product_protobuf_product_proto_msgTypes[15].OneofWrappers = []any{}
+	file_services_product_protobuf_product_proto_msgTypes[18].OneofWrappers = []any{}
+	file_services_product_protobuf_product_proto_msgTypes[20].OneofWrappers = []any{}
+	file_services_product_protobuf_product_proto_msgTypes[21].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_services_product_protobuf_product_proto_rawDesc), len(file_services_product_protobuf_product_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
-	"time"
 
 	"github.com/SomeHowMicroservice/shm-be/common/smtp"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/config"
@@ -14,9 +12,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/repository"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/service"
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
@@ -40,15 +36,8 @@ func main() {
 	}
 	defer mqc.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
-	userConn, err := grpc.DialContext(ctx, userAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
-	if err != nil {
-		log.Fatalf("Kết nối tới UserService thất bại: %v", err)
-	}
-	userClient := userpb.NewUserServiceClient(userConn)
+	clients := initialization.InitClients(userAddr)
 
 	grpcServer := grpc.NewServer()
 	cacheRepo := repository.NewCacheRepository(rdb)
@@ -63,7 +52,7 @@ func main() {
 	mailer := smtp.NewMailer(mailerCfg)
 	go startEmailConsumer(mqc, mailer)
 	
-	svc := service.NewAuthService(cacheRepo, userClient, mailer, cfg, mqc.Chann)
+	svc := service.NewAuthService(cacheRepo, clients.UserClient, mailer, cfg, mqc.Chann)
 	authHandler := handler.NewGRPCHandler(grpcServer, svc)
 
 	protobuf.RegisterAuthServiceServer(grpcServer, authHandler)

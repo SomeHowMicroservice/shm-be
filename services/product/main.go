@@ -12,6 +12,10 @@ import (
 	"google.golang.org/grpc"
 )
 
+var (
+	userAddr = "localhost:8082"
+)
+
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -23,10 +27,12 @@ func main() {
 		log.Fatalf("Lỗi kết nối DB ở User Service: %v", err)
 	}
 
+	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
+	clients := initialization.InitClients(userAddr)
+
 	grpcServer := grpc.NewServer()
-	productContainer := container.NewContainer(cfg, db, grpcServer)
+	productContainer := container.NewContainer(cfg, db, grpcServer, clients.UserClient)
 	protobuf.RegisterProductServiceServer(grpcServer, productContainer.GRPCHandler)
-	
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {

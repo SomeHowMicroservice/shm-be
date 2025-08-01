@@ -20,10 +20,14 @@ import (
 	sizeRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/size"
 	tagRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/tag"
 	variantRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/variant"
+	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type productServiceImpl struct {
+	userClient   userpb.UserServiceClient
 	imageKitSvc  imagekit.ImageKitService
 	categoryRepo categoryRepo.CategoryRepository
 	productRepo  productRepo.ProductRepository
@@ -34,8 +38,9 @@ type productServiceImpl struct {
 	imageRepo    imageRepo.ImageRepository
 }
 
-func NewProductService(imageKitSvc imagekit.ImageKitService, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, imageRepo imageRepo.ImageRepository) ProductService {
+func NewProductService(userClient userpb.UserServiceClient, imageKitSvc imagekit.ImageKitService, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, imageRepo imageRepo.ImageRepository) ProductService {
 	return &productServiceImpl{
+		userClient,
 		imageKitSvc,
 		categoryRepo,
 		productRepo,
@@ -357,4 +362,115 @@ func (s *productServiceImpl) GetProductsByCategory(ctx context.Context, category
 	}
 
 	return products, nil
+}
+
+func (s *productServiceImpl) CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (*model.Tag, error) {
+	slug := common.GenerateSlug(req.Name)
+	exists, err := s.tagRepo.ExistsBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("kiểm tra tag sản phẩm tồn tại thất bại: %w", err)
+	}
+	if exists {
+		return nil, customErr.ErrTagAlreadyExists
+	}
+
+	tag := &model.Tag{
+		ID:          uuid.NewString(),
+		Name:        req.Name,
+		Slug:        slug,
+		CreatedByID: req.UserId,
+		UpdatedByID: req.UserId,
+	}
+	if err = s.tagRepo.Create(ctx, tag); err != nil {
+		return nil, fmt.Errorf("tạo nhãn sản phẩm thất bại: %w", err)
+	}
+
+	return tag, nil
+}
+
+func (s *productServiceImpl) GetAllCategories(ctx context.Context) (*protobuf.CategoriesAdminResponse, error) {
+	categories, err := s.categoryRepo.FindAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy tất cả danh mục sản phẩm thất bại: %w", err)
+	}
+
+	userIDMap := map[string]struct{}{}
+	for _, cat := range categories {
+		userIDMap[cat.CreatedByID] = struct{}{}
+		userIDMap[cat.UpdatedByID] = struct{}{}
+	}
+
+	var userIDs []string
+	for id := range userIDMap {
+		userIDs = append(userIDs, id)
+	}
+
+	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+		Ids: userIDs,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	userMap := make(map[string]*userpb.UserPublicResponse)
+	for _, user := range userRes.Users {
+		userMap[user.Id] = user
+	}
+
+	var result []*protobuf.CategoryAdminResponse
+	for _, cat := range categories {
+		result = append(result, &protobuf.CategoryAdminResponse{
+			Id:      cat.ID,
+			Name:    cat.Name,
+			Slug:    cat.Slug,
+			Parents: toBaseCategoriesResponse(cat.Parents),
+			CreatedBy: &protobuf.BaseUserResponse{
+				Id:       cat.CreatedByID,
+				Username: userMap[cat.CreatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[cat.CreatedByID].Profile.Id,
+					FirstName: userMap[cat.CreatedByID].Profile.FirstName,
+					LastName:  userMap[cat.CreatedByID].Profile.LastName,
+				},
+			},
+			UpdatedBy: &protobuf.BaseUserResponse{
+				Id:       cat.UpdatedByID,
+				Username: userMap[cat.UpdatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[cat.UpdatedByID].Profile.Id,
+					FirstName: userMap[cat.UpdatedByID].Profile.FirstName,
+					LastName:  userMap[cat.UpdatedByID].Profile.LastName,
+				},
+			},
+		})
+	}
+
+	return &protobuf.CategoriesAdminResponse{
+		Categories: result,
+	}, nil
+}
+
+func toBaseCategoriesResponse(categories []*model.Category) []*protobuf.BaseCategoryResponse {
+	var baseCategories []*protobuf.BaseCategoryResponse
+	for _, category := range categories {
+		baseCategories = append(baseCategories, toBaseCategoryResponse(category))
+	}
+	return baseCategories
+}
+
+func toBaseCategoryResponse(category *model.Category) *protobuf.BaseCategoryResponse {
+	return &protobuf.BaseCategoryResponse{
+		Id:   category.ID,
+		Name: category.Name,
+		Slug: category.Slug,
+	}
 }

@@ -401,3 +401,15 @@ func (s *userServiceImpl) DeleteAddress(ctx context.Context, req *protobuf.Delet
 
 	return nil
 }
+
+func (s *userServiceImpl) GetUsersByIDs(ctx context.Context, ids []string) ([]*model.User, error) {
+	users, err := s.userRepo.FindAllByIDIn(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("lấy dữ liệu người dùng thất bại: %w", err)
+	}
+	if len(ids) != len(users) {
+		return nil, customErr.ErrHasUserNotFound
+	}
+
+	return users, nil
+}

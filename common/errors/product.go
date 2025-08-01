@@ -22,4 +22,6 @@ var (
 	ErrSizeNotFound = errors.New("không tìm thấy kích cỡ")
 
 	ErrUnSupportedFileType = errors.New("định dạng file không được hỗ trợ")
+
+	ErrTagAlreadyExists = errors.New("tag sản phẩm đã tồn tại")
 )

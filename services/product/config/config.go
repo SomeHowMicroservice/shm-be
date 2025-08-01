@@ -4,8 +4,13 @@ import "github.com/spf13/viper"
 
 type Config struct {
 	App struct {
-		GRPCPort int `mapstructure:"grpc_port"`
+		ServerHost string `mapstructure:"server_host"`
+		GRPCPort   int    `mapstructure:"grpc_port"`
 	} `mapstructure:"app"`
+
+	Services struct {
+		UserPort int `mapstructure:"user_port"`
+	} `mapstructure:"services"`
 
 	Database struct {
 		DBHost           string `mapstructure:"pg_host"`
@@ -17,8 +22,8 @@ type Config struct {
 	} `mapstructure:"database"`
 
 	ImageKit struct {
-		PublicKey string `mapstructure:"public_key"`
-		PrivateKey string `mapstructure:"private_key"`
+		PublicKey   string `mapstructure:"public_key"`
+		PrivateKey  string `mapstructure:"private_key"`
 		URLEndpoint string `mapstructure:"url_endpoint"`
 	} `mapstructure:"imagekit"`
 }

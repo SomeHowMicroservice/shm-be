@@ -229,6 +229,31 @@ func (h *GRPCHandler) DeleteAddress(ctx context.Context, req *protobuf.DeleteAdd
 	}, nil
 }
 
+func (h *GRPCHandler) GetUsersByIds(ctx context.Context, req *protobuf.GetUsersByIdsRequest) (*protobuf.UsersPublicResponse, error) {
+	users, err := h.svc.GetUsersByIDs(ctx, req.Ids)
+	if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return toUsersPublicResponse(users), nil
+}
+
+func toUsersPublicResponse(users []*model.User) *protobuf.UsersPublicResponse {
+	var userResponses []*protobuf.UserPublicResponse
+	for _, user := range users {
+		userResponses = append(userResponses, toUserPublicResponse(user))
+	}
+
+	return &protobuf.UsersPublicResponse{
+		Users: userResponses,
+	}
+}
+
 func toAddressResponse(address *model.Address) *protobuf.AddressResponse {
 	return &protobuf.AddressResponse{
 		Id:          address.ID,
@@ -268,7 +293,7 @@ func toUserResponse(user *model.User) *protobuf.UserResponse {
 	for _, r := range user.Roles {
 		roles = append(roles, r.Name)
 	}
-	
+
 	var dob string
 	if user.Profile.DOB != nil {
 		dob = user.Profile.DOB.Format("2006-01-02")

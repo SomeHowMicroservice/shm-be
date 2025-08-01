@@ -27,10 +27,12 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 	admin := rg.Group("/admin", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{model.RoleAdmin}))
 	{
 		admin.POST("/categories", productHandler.CreateCategory)
+		admin.GET("/categories", productHandler.GetAllCategories)
 		admin.POST("/products", productHandler.CreateProduct)
 		admin.POST("/products/colors", productHandler.CreateColor)
 		admin.POST("/products/sizes", productHandler.CreateSize)
 		admin.POST("/products/variants", productHandler.CreateVariant)
 		admin.POST("/products/images", productHandler.CreateImage)
+		admin.POST("/products/tags", productHandler.CreateTag)
 	}
 }

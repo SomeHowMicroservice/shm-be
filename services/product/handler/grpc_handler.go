@@ -160,6 +160,36 @@ func (h *GRPCHandler) GetProductsByCategory(ctx context.Context, req *protobuf.G
 	return toProductsPublicResponse(products), nil
 }
 
+func (h *GRPCHandler) CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (*protobuf.CreatedResponse, error) {
+	tag, err := h.svc.CreateTag(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrTagAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.CreatedResponse{
+		Id: tag.ID,
+	}, nil
+}
+
+func (h *GRPCHandler) GetAllCategories(ctx context.Context, req *protobuf.GetAllCategoriesRequest) (*protobuf.CategoriesAdminResponse, error) {
+	categories, err := h.svc.GetAllCategories(ctx)
+	if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return categories, nil
+}
+
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
 	var productResponses []*protobuf.ProductPublicResponse
 	for _, pro := range products {
