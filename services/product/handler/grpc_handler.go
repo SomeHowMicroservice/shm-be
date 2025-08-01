@@ -220,6 +220,20 @@ func (h *GRPCHandler) UpdateCategory(ctx context.Context, req *protobuf.UpdateCa
 	return convertedCategory, nil
 }
 
+func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetAllColorsRequest) (*protobuf.ColorsAdminResponse, error) {
+	convertedColors, err := h.svc.GetAllColors(ctx)
+	if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedColors, nil
+}
+
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
 	var productResponses []*protobuf.ProductPublicResponse
 	for _, pro := range products {

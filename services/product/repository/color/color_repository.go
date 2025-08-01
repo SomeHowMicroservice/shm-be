@@ -12,4 +12,6 @@ type ColorRepository interface {
 	ExistsBySlug(ctx context.Context, slug string) (bool, error)
 
 	ExistsByID(ctx context.Context, id string) (bool, error)
+
+	FindAll(ctx context.Context) ([]*model.Color, error)
 }

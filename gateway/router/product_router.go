@@ -31,10 +31,11 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 		admin.GET("/categories/:id", productHandler.CategoryAdminDetails)
 		admin.PUT("/categories/:id", productHandler.UpdateCategory)
 		admin.POST("/products", productHandler.CreateProduct)
-		admin.POST("/products/colors", productHandler.CreateColor)
-		admin.POST("/products/sizes", productHandler.CreateSize)
-		admin.POST("/products/variants", productHandler.CreateVariant)
-		admin.POST("/products/images", productHandler.CreateImage)
-		admin.POST("/products/tags", productHandler.CreateTag)
+		admin.POST("/colors", productHandler.CreateColor)
+		admin.GET("/colors", productHandler.GetAllColors)
+		admin.POST("/sizes", productHandler.CreateSize)
+		admin.POST("/variants", productHandler.CreateVariant)
+		admin.POST("/images", productHandler.CreateImage)
+		admin.POST("/tags", productHandler.CreateTag)
 	}
 }

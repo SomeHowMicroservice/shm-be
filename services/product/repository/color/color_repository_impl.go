@@ -40,3 +40,12 @@ func (r *colorRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, 
 
 	return count > 0, nil
 }
+
+func (r *colorRepositoryImpl) FindAll(ctx context.Context) ([]*model.Color, error) {
+	var colors []*model.Color
+	if err := r.db.WithContext(ctx).Find(&colors).Error; err != nil {
+		return nil, err
+	}
+
+	return colors, nil
+}

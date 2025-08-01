@@ -534,6 +534,75 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 	return toCategoryAdminDetailsResponse(category, productResponses, cRes, uRes), nil
 }
 
+func (s *productServiceImpl) GetAllColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error) {
+	colors, err := s.colorRepo.FindAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy danh sách màu sắc sản phẩm thất bại: %w", err)
+	}
+
+	userIDMap := map[string]struct{}{}
+	for _, color := range colors {
+		userIDMap[color.CreatedByID] = struct{}{}
+		userIDMap[color.UpdatedByID] = struct{}{}
+	}
+
+	var userIDs []string
+	for id := range userIDMap {
+		userIDs = append(userIDs, id)
+	}
+
+	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+		Ids: userIDs,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	userMap := make(map[string]*userpb.UserPublicResponse)
+	for _, user := range userRes.Users {
+		userMap[user.Id] = user
+	}
+
+	var colorResponses []*protobuf.ColorAdminResponse
+	for _, color := range colors {
+		colorResponses = append(colorResponses, &protobuf.ColorAdminResponse{
+			Id:   color.ID,
+			Name: color.Name,
+			CreatedBy: &protobuf.BaseUserResponse{
+				Id:       color.CreatedByID,
+				Username: userMap[color.CreatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[color.CreatedByID].Profile.Id,
+					FirstName: userMap[color.CreatedByID].Profile.FirstName,
+					LastName:  userMap[color.CreatedByID].Profile.LastName,
+				},
+			},
+			UpdatedBy: &protobuf.BaseUserResponse{
+				Id:       color.UpdatedByID,
+				Username: userMap[color.UpdatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[color.UpdatedByID].Profile.Id,
+					FirstName: userMap[color.UpdatedByID].Profile.FirstName,
+					LastName:  userMap[color.UpdatedByID].Profile.LastName,
+				},
+			},
+		})
+	}
+
+	return &protobuf.ColorsAdminResponse{
+		Colors: colorResponses,
+	}, nil
+}
+
 func getParentIDsFromParents(categories []*model.Category) []string {
 	var parentIDs []string
 	for _, cat := range categories {

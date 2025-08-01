@@ -596,3 +596,27 @@ func (h *ProductHandler) UpdateCategory(c *gin.Context) {
 		"category": res,
 	})
 }
+
+func (h *ProductHandler) GetAllColors(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetAllColors(ctx, &productpb.GetAllColorsRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả màu sắc sản phẩm thành công", gin.H{
+		"colors": res.Colors,
+	})
+}

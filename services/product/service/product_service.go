@@ -33,4 +33,6 @@ type ProductService interface {
 	GetCategoryByID(ctx context.Context, id string) (*protobuf.CategoryAdminDetailsResponse, error)
 
 	UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error)
+
+	GetAllColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
 }
