@@ -28,7 +28,9 @@ type ProductService interface {
 
 	CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (*model.Tag, error)
 
-	GetAllCategories(ctx context.Context) (*protobuf.CategoriesAdminResponse, error)
+	GetAllCategories(ctx context.Context) ([]*model.Category, error)
 
-	GetCategoryByID(ctx context.Context, id string) (*protobuf.CategoryAdminDetailResponse, error)
+	GetCategoryByID(ctx context.Context, id string) (*protobuf.CategoryAdminDetailsResponse, error)
+
+	UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error)
 }

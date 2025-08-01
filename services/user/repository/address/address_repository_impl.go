@@ -27,13 +27,11 @@ func (r *addressRepositoryImpl) Create(ctx context.Context, address *model.Addre
 
 func (r *addressRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
 	result := r.db.WithContext(ctx).Model(&model.Address{}).Where("id = ?", id).Updates(updateData)
-
 	if result.Error != nil {
 		return result.Error
 	}
-
 	if result.RowsAffected == 0 {
-		return customErr.ErrAddressesNotFound
+		return customErr.ErrAddressNotFound
 	}
 
 	return nil
@@ -41,7 +39,6 @@ func (r *addressRepositoryImpl) Update(ctx context.Context, id string, updateDat
 
 func (r *addressRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Address, error) {
 	var address model.Address
-
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&address).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -79,7 +76,7 @@ func (r *addressRepositoryImpl) Delete(ctx context.Context, id string) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return customErr.ErrAddressesNotFound
+		return customErr.ErrAddressNotFound
 	}
 
 	return nil

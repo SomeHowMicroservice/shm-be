@@ -178,7 +178,7 @@ func (s *userServiceImpl) GetMeasurementByUserID(ctx context.Context, userID str
 		return nil, fmt.Errorf("lấy địa chỉ người dùng thất bại: %w", err)
 	}
 	if measurement == nil {
-		return nil, customErr.ErrAddressesNotFound
+		return nil, customErr.ErrAddressNotFound
 	}
 
 	return measurement, nil
@@ -289,14 +289,14 @@ func (s *userServiceImpl) UpdateAddress(ctx context.Context, req *protobuf.Updat
 		return nil, fmt.Errorf("tìm địa chỉ thất bại: %w", err)
 	}
 	if address == nil {
-		return nil, customErr.ErrAddressesNotFound
+		return nil, customErr.ErrAddressNotFound
 	}
 
 	if address.UserID != req.UserId {
 		return nil, customErr.ErrForbidden
 	}
 
-	countAddreses, err := s.addressRepo.CountByUserID(ctx, req.UserId)
+	countAddresses, err := s.addressRepo.CountByUserID(ctx, req.UserId)
 	if err != nil {
 		return nil, fmt.Errorf("đếm địa chỉ thất bại: %w", err)
 	}
@@ -320,9 +320,9 @@ func (s *userServiceImpl) UpdateAddress(ctx context.Context, req *protobuf.Updat
 
 	if address.IsDefault != req.IsDefault {
 		if !req.IsDefault {
-			if countAddreses == 1 {
+			if countAddresses == 1 {
 				req.IsDefault = true
-			} else if countAddreses > 1 {
+			} else if countAddresses > 1 {
 				addresses, err := s.addressRepo.FindByUserID(ctx, req.UserId)
 				if err != nil {
 					return nil, fmt.Errorf("tìm địa chỉ người dùng thất bại: %w", err)
@@ -351,7 +351,10 @@ func (s *userServiceImpl) UpdateAddress(ctx context.Context, req *protobuf.Updat
 
 	if len(updateData) > 0 {
 		if err := s.addressRepo.Update(ctx, address.ID, updateData); err != nil {
-			return nil, fmt.Errorf("lỗi cập nhật địa chỉ: %w", err)
+			if errors.Is(err, customErr.ErrAddressNotFound) {
+				return nil, err
+			}
+			return nil, fmt.Errorf("cập nhật địa chỉ thất bại: %w", err)
 		}
 
 		address, err = s.addressRepo.FindByID(ctx, req.Id)
@@ -359,7 +362,7 @@ func (s *userServiceImpl) UpdateAddress(ctx context.Context, req *protobuf.Updat
 			return nil, fmt.Errorf("không thể tìm địa chỉ: %w", err)
 		}
 		if address == nil {
-			return nil, customErr.ErrAddressesNotFound
+			return nil, customErr.ErrAddressNotFound
 		}
 	}
 
@@ -372,7 +375,7 @@ func (s *userServiceImpl) DeleteAddress(ctx context.Context, req *protobuf.Delet
 		return fmt.Errorf("tìm địa chỉ thất bại: %w", err)
 	}
 	if address == nil {
-		return customErr.ErrAddressesNotFound
+		return customErr.ErrAddressNotFound
 	}
 
 	if address.UserID != req.UserId {
@@ -380,7 +383,7 @@ func (s *userServiceImpl) DeleteAddress(ctx context.Context, req *protobuf.Delet
 	}
 
 	if err := s.addressRepo.Delete(ctx, req.Id); err != nil {
-		if errors.Is(err, customErr.ErrAddressesNotFound) {
+		if errors.Is(err, customErr.ErrAddressNotFound) {
 			return err
 		}
 		return fmt.Errorf("xóa địa chỉ thất bại: %w", err)

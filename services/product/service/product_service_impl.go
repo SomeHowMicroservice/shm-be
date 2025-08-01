@@ -3,8 +3,10 @@ package service
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -68,9 +70,12 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 
 	var parents []*model.Category
 	if len(req.ParentIds) > 0 {
-		parents, err = s.categoryRepo.FindAllByIDInWithChildren(ctx, req.ParentIds)
+		parents, err = s.categoryRepo.FindAllByIDIn(ctx, req.ParentIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
+		}
+		if len(parents) != len(req.ParentIds) {
+			return nil, customErr.ErrHasCategoryNotFound
 		}
 	}
 
@@ -388,18 +393,16 @@ func (s *productServiceImpl) CreateTag(ctx context.Context, req *protobuf.Create
 	return tag, nil
 }
 
-func (s *productServiceImpl) GetAllCategories(ctx context.Context) (*protobuf.CategoriesAdminResponse, error) {
+func (s *productServiceImpl) GetAllCategories(ctx context.Context) ([]*model.Category, error) {
 	categories, err := s.categoryRepo.FindAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy tất cả danh mục sản phẩm thất bại: %w", err)
 	}
 
-	return &protobuf.CategoriesAdminResponse{
-		Categories: toBaseCategoriesResponse(categories),
-	}, nil
+	return categories, nil
 }
 
-func (s *productServiceImpl) GetCategoryByID(ctx context.Context, id string) (*protobuf.CategoryAdminDetailResponse, error) {
+func (s *productServiceImpl) GetCategoryByID(ctx context.Context, id string) (*protobuf.CategoryAdminDetailsResponse, error) {
 	category, err := s.categoryRepo.FindByIDWithParentsAndProducts(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
@@ -438,29 +441,110 @@ func (s *productServiceImpl) GetCategoryByID(ctx context.Context, id string) (*p
 		return nil, fmt.Errorf("lỗi không xác định: %w", err)
 	}
 
-	var productResponses []*protobuf.BaseProductResponse
-	for _, p := range category.Products {
-		var thumb *protobuf.BaseImageResponse
-		for _, img := range p.Images {
-			if img.IsThumbnail {
-				thumb = &protobuf.BaseImageResponse{
-					Id:          img.ID,
-					Url:         img.Url,
-					IsThumbnail: img.IsThumbnail,
-				}
-				break
-			}
-		}
+	productResponses := toBaseProductResponse(category)
 
-		productResponses = append(productResponses, &protobuf.BaseProductResponse{
-			Id:    p.ID,
-			Title: p.Title,
-			Slug:  p.Slug,
-			Image: thumb,
-		})
+	return toCategoryAdminDetailsResponse(category, productResponses, cRes, uRes), nil
+}
+
+func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error) {
+	category, err := s.categoryRepo.FindByIDWithParents(ctx, req.Id)
+	if err != nil {
+		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+	}
+	if category == nil {
+		return nil, customErr.ErrCategoryNotFound
 	}
 
-	return &protobuf.CategoryAdminDetailResponse{
+	updateData := map[string]interface{}{}
+	if category.Name != req.Name {
+		updateData["name"] = req.Name
+	}
+	if category.Slug != req.Slug {
+		updateData["slug"] = req.Slug
+	}
+	if category.UpdatedByID != req.UserId {
+		updateData["updated_by_id"] = req.UserId
+	}
+
+	if len(updateData) > 0 {
+		if err = s.categoryRepo.Update(ctx, category.ID, updateData); err != nil {
+			if errors.Is(err, customErr.ErrCategoryNotFound) {
+				return nil, err
+			}
+			return nil, fmt.Errorf("cập nhật danh mục sản phẩm thất bại: %w", err)
+		}
+	}
+
+	parentIDs := getParentIDsFromParents(category.Parents)
+
+	if !slices.Equal(parentIDs, req.ParentIds) {
+		parents, err := s.categoryRepo.FindAllByIDIn(ctx, req.ParentIds)
+		if err != nil {
+			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
+		}
+		if len(parents) != len(req.ParentIds) {
+			return nil, customErr.ErrHasCategoryNotFound
+		}
+
+		if err = s.categoryRepo.UpdateParents(ctx, category, parents); err != nil {
+			return nil, fmt.Errorf("cập nhật danh mục cha thất bại: %w", err)
+		}
+	}
+
+	category, err = s.categoryRepo.FindByIDWithParentsAndProducts(ctx, category.ID)
+	if err != nil {
+		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+	}
+	if category == nil {
+		return nil, customErr.ErrCategoryNotFound
+	}
+
+	cRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: category.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	uRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: category.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	productResponses := toBaseProductResponse(category)
+
+	return toCategoryAdminDetailsResponse(category, productResponses, cRes, uRes), nil
+}
+
+func getParentIDsFromParents(categories []*model.Category) []string {
+	var parentIDs []string
+	for _, cat := range categories {
+		parentIDs = append(parentIDs, cat.ID)
+	}
+
+	return parentIDs
+}
+
+func toCategoryAdminDetailsResponse(category *model.Category, productResponses []*protobuf.BaseProductResponse, cRes *userpb.UserResponse, uRes *userpb.UserResponse) *protobuf.CategoryAdminDetailsResponse {
+	return &protobuf.CategoryAdminDetailsResponse{
 		Id:        category.ID,
 		Name:      category.Name,
 		Slug:      category.Slug,
@@ -486,7 +570,33 @@ func (s *productServiceImpl) GetCategoryByID(ctx context.Context, id string) (*p
 			},
 		},
 		Products: productResponses,
-	}, nil
+	}
+}
+
+func toBaseProductResponse(category *model.Category) []*protobuf.BaseProductResponse {
+	var productResponses []*protobuf.BaseProductResponse
+	for _, p := range category.Products {
+		var thumb *protobuf.BaseImageResponse
+		for _, img := range p.Images {
+			if img.IsThumbnail {
+				thumb = &protobuf.BaseImageResponse{
+					Id:          img.ID,
+					Url:         img.Url,
+					IsThumbnail: img.IsThumbnail,
+				}
+				break
+			}
+		}
+
+		productResponses = append(productResponses, &protobuf.BaseProductResponse{
+			Id:    p.ID,
+			Title: p.Title,
+			Slug:  p.Slug,
+			Image: thumb,
+		})
+	}
+
+	return productResponses
 }
 
 func toBaseCategoriesResponse(categories []*model.Category) []*protobuf.BaseCategoryResponse {

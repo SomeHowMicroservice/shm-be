@@ -26,10 +26,20 @@ service ProductService {
 
   rpc GetAllCategories(GetAllCategoriesRequest) returns (CategoriesAdminResponse);
 
-  rpc GetCategoryById(GetCategoryByIdRequest) returns (CategoryAdminDetailResponse);
+  rpc GetCategoryById(GetCategoryByIdRequest) returns (CategoryAdminDetailsResponse);
+
+  rpc UpdateCategory(UpdateCategoryRequest) returns (CategoryAdminDetailsResponse);
 }
 
-message CategoryAdminDetailResponse {
+message UpdateCategoryRequest {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  repeated string parent_ids = 4;
+  string user_id = 5;
+}
+
+message CategoryAdminDetailsResponse {
   string id = 1;
   string name = 2;
   string slug = 3;

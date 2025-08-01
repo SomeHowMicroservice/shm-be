@@ -11,6 +11,8 @@ type CategoryRepository interface {
 
 	FindByID(ctx context.Context, id string) (*model.Category, error)
 
+	FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error)
+
 	FindAllByIDInWithChildren(ctx context.Context, ids []string) ([]*model.Category, error)
 
 	ExistsByID(ctx context.Context, id string) (bool, error)
@@ -22,4 +24,10 @@ type CategoryRepository interface {
 	FindAll(ctx context.Context) ([]*model.Category, error)
 
 	FindByIDWithParentsAndProducts(ctx context.Context, id string) (*model.Category, error)
+
+	Update(ctx context.Context, id string, updateData map[string]interface{}) error
+
+	FindByIDWithParents(ctx context.Context, id string) (*model.Category, error)
+
+	UpdateParents(ctx context.Context, category *model.Category, parents []*model.Category) error
 }

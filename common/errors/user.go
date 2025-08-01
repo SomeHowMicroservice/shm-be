@@ -17,7 +17,7 @@ var (
 
 	ErrMeasurementNotFound = errors.New("không tìm thấy độ đo người dùng")
 
-	ErrAddressesNotFound = errors.New("không tìm thấy địa chỉ người dùng")
+	ErrAddressNotFound = errors.New("không tìm thấy địa chỉ người dùng")
 
 	ErrHasUserNotFound = errors.New("có người dùng không tìm thấy")
 )

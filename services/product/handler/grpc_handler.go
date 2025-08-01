@@ -187,11 +187,13 @@ func (h *GRPCHandler) GetAllCategories(ctx context.Context, req *protobuf.GetAll
 		}
 	}
 
-	return categories, nil
+	return &protobuf.CategoriesAdminResponse{
+		Categories: toBaseCategoriesResponse(categories),
+	}, nil
 }
 
-func (h *GRPCHandler) GetCategoryById(ctx context.Context, req *protobuf.GetCategoryByIdRequest) (*protobuf.CategoryAdminDetailResponse, error) {
-	category, err := h.svc.GetCategoryByID(ctx, req.Id)
+func (h *GRPCHandler) GetCategoryById(ctx context.Context, req *protobuf.GetCategoryByIdRequest) (*protobuf.CategoryAdminDetailsResponse, error) {
+	convertedCategory, err := h.svc.GetCategoryByID(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case customErr.ErrUserNotFound:
@@ -201,7 +203,21 @@ func (h *GRPCHandler) GetCategoryById(ctx context.Context, req *protobuf.GetCate
 		}
 	}
 
-	return category, nil
+	return convertedCategory, nil
+}
+
+func (h *GRPCHandler) UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error) {
+	convertedCategory, err := h.svc.UpdateCategory(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrUserNotFound, customErr.ErrHasCategoryNotFound, customErr.ErrCategoryNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedCategory, nil
 }
 
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
@@ -280,6 +296,14 @@ func toCategoryTreeResponse(categories []*model.Category) *protobuf.CategoryTree
 	return &protobuf.CategoryTreeResponse{
 		Categories: result,
 	}
+}
+
+func toBaseCategoriesResponse(categories []*model.Category) []*protobuf.BaseCategoryResponse {
+	var baseCategories []*protobuf.BaseCategoryResponse
+	for _, category := range categories {
+		baseCategories = append(baseCategories, toBaseCategoryResponse(category))
+	}
+	return baseCategories
 }
 
 func toBaseCategoryResponse(category *model.Category) *protobuf.BaseCategoryResponse {

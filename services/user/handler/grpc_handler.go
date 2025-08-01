@@ -200,7 +200,7 @@ func (h *GRPCHandler) UpdateAddress(ctx context.Context, req *protobuf.UpdateAdd
 	address, err := h.svc.UpdateAddress(ctx, req)
 	if err != nil {
 		switch err {
-		case customErr.ErrAddressesNotFound:
+		case customErr.ErrAddressNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		case customErr.ErrForbidden:
 			return nil, status.Error(codes.PermissionDenied, err.Error())
@@ -215,7 +215,7 @@ func (h *GRPCHandler) UpdateAddress(ctx context.Context, req *protobuf.UpdateAdd
 func (h *GRPCHandler) DeleteAddress(ctx context.Context, req *protobuf.DeleteAddressRequest) (*protobuf.AddressDeletedResponse, error) {
 	if err := h.svc.DeleteAddress(ctx, req); err != nil {
 		switch err {
-		case customErr.ErrAddressesNotFound:
+		case customErr.ErrAddressNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		case customErr.ErrForbidden:
 			return nil, status.Error(codes.PermissionDenied, err.Error())

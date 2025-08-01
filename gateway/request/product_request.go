@@ -11,6 +11,12 @@ type CreateCategoryRequest struct {
 	ParentIDs []string `json:"parent_ids" binding:"omitempty,dive,uuid4"`
 }
 
+type UpdateCategoryRequest struct {
+	Name      string   `json:"name" binding:"required,max=50"`
+	Slug      string  `json:"slug" binding:"omitempty"`
+	ParentIDs []string `json:"parent_ids" binding:"omitempty,dive,uuid4"`
+}
+
 type CreateProductRequest struct {
 	Title       string     `json:"title" binding:"required,min=2"`
 	Description string     `json:"description" binding:"required"`
