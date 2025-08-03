@@ -31,6 +31,23 @@ service ProductService {
   rpc UpdateCategory(UpdateCategoryRequest) returns (CategoryAdminDetailsResponse);
 
   rpc GetAllColors(GetAllColorsRequest) returns (ColorsAdminResponse);
+
+  rpc GetAllSizes(GetAllSizesRequest) returns (SizesAdminResponse);
+}
+
+message GetAllSizesRequest {}
+
+message SizesAdminResponse {
+  repeated SizeAdminResponse sizes = 1;
+}
+
+message SizeAdminResponse {
+  string id = 1;
+  string name = 2;
+  string created_at = 3;
+  string updated_at = 4;
+  BaseUserResponse created_by = 5;
+  BaseUserResponse updated_by = 6;
 }
 
 message GetAllColorsRequest {}

@@ -620,3 +620,27 @@ func (h *ProductHandler) GetAllColors(c *gin.Context) {
 		"colors": res.Colors,
 	})
 }
+
+func (h *ProductHandler) GetAllSizes(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetAllSizes(ctx, &productpb.GetAllSizesRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả size sản phẩm thành công", gin.H{
+		"sizes": res.Sizes,
+	})
+}

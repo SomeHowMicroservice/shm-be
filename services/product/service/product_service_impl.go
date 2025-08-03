@@ -603,6 +603,75 @@ func (s *productServiceImpl) GetAllColors(ctx context.Context) (*protobuf.Colors
 	}, nil
 }
 
+func (s *productServiceImpl) GetAllSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error) {
+	sizes, err := s.sizeRepo.FindAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy danh sách size sản phẩm thất bại: %w", err)
+	}
+
+	userIDMap := map[string]struct{}{}
+	for _, size := range sizes {
+		userIDMap[size.CreatedByID] = struct{}{}
+		userIDMap[size.UpdatedByID] = struct{}{}
+	}
+
+	var userIDs []string
+	for id := range userIDMap {
+		userIDs = append(userIDs, id)
+	}
+
+	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+		Ids: userIDs,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	userMap := make(map[string]*userpb.UserPublicResponse)
+	for _, user := range userRes.Users {
+		userMap[user.Id] = user
+	}
+
+	var sizeResponses []*protobuf.SizeAdminResponse
+	for _, size := range sizes {
+		sizeResponses = append(sizeResponses, &protobuf.SizeAdminResponse{
+			Id:   size.ID,
+			Name: size.Name,
+			CreatedBy: &protobuf.BaseUserResponse{
+				Id:       size.CreatedByID,
+				Username: userMap[size.CreatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[size.CreatedByID].Profile.Id,
+					FirstName: userMap[size.CreatedByID].Profile.FirstName,
+					LastName:  userMap[size.CreatedByID].Profile.LastName,
+				},
+			},
+			UpdatedBy: &protobuf.BaseUserResponse{
+				Id:       size.UpdatedByID,
+				Username: userMap[size.UpdatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[size.UpdatedByID].Profile.Id,
+					FirstName: userMap[size.UpdatedByID].Profile.FirstName,
+					LastName:  userMap[size.UpdatedByID].Profile.LastName,
+				},
+			},
+		})
+	}
+
+	return &protobuf.SizesAdminResponse{
+		Sizes: sizeResponses,
+	}, nil
+}
+
 func getParentIDsFromParents(categories []*model.Category) []string {
 	var parentIDs []string
 	for _, cat := range categories {

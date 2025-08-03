@@ -35,4 +35,6 @@ type ProductService interface {
 	UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error)
 
 	GetAllColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
+
+	GetAllSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error)
 }

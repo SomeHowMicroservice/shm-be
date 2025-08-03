@@ -33,6 +33,7 @@ const (
 	ProductService_GetCategoryById_FullMethodName       = "/product.ProductService/GetCategoryById"
 	ProductService_UpdateCategory_FullMethodName        = "/product.ProductService/UpdateCategory"
 	ProductService_GetAllColors_FullMethodName          = "/product.ProductService/GetAllColors"
+	ProductService_GetAllSizes_FullMethodName           = "/product.ProductService/GetAllSizes"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -53,6 +54,7 @@ type ProductServiceClient interface {
 	GetCategoryById(ctx context.Context, in *GetCategoryByIdRequest, opts ...grpc.CallOption) (*CategoryAdminDetailsResponse, error)
 	UpdateCategory(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*CategoryAdminDetailsResponse, error)
 	GetAllColors(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error)
+	GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error)
 }
 
 type productServiceClient struct {
@@ -203,6 +205,16 @@ func (c *productServiceClient) GetAllColors(ctx context.Context, in *GetAllColor
 	return out, nil
 }
 
+func (c *productServiceClient) GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SizesAdminResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetAllSizes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -221,6 +233,7 @@ type ProductServiceServer interface {
 	GetCategoryById(context.Context, *GetCategoryByIdRequest) (*CategoryAdminDetailsResponse, error)
 	UpdateCategory(context.Context, *UpdateCategoryRequest) (*CategoryAdminDetailsResponse, error)
 	GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsAdminResponse, error)
+	GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesAdminResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -272,6 +285,9 @@ func (UnimplementedProductServiceServer) UpdateCategory(context.Context, *Update
 }
 func (UnimplementedProductServiceServer) GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllColors not implemented")
+}
+func (UnimplementedProductServiceServer) GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllSizes not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -546,6 +562,24 @@ func _ProductService_GetAllColors_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetAllSizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllSizesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetAllSizes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetAllSizes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetAllSizes(ctx, req.(*GetAllSizesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -608,6 +642,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllColors",
 			Handler:    _ProductService_GetAllColors_Handler,
+		},
+		{
+			MethodName: "GetAllSizes",
+			Handler:    _ProductService_GetAllSizes_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

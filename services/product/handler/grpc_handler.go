@@ -234,6 +234,20 @@ func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetAllColo
 	return convertedColors, nil
 }
 
+func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetAllSizesRequest) (*protobuf.SizesAdminResponse, error) {
+	convertedSizes, err := h.svc.GetAllSizes(ctx)
+		if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedSizes, nil
+}
+
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
 	var productResponses []*protobuf.ProductPublicResponse
 	for _, pro := range products {
