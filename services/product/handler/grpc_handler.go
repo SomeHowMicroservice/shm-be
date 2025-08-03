@@ -236,7 +236,7 @@ func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetAllColo
 
 func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetAllSizesRequest) (*protobuf.SizesAdminResponse, error) {
 	convertedSizes, err := h.svc.GetAllSizes(ctx)
-		if err != nil {
+	if err != nil {
 		switch err {
 		case customErr.ErrHasUserNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -246,6 +246,37 @@ func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetAllSizes
 	}
 
 	return convertedSizes, nil
+}
+
+func (h *GRPCHandler) GetAllTags(ctx context.Context, req *protobuf.GetAllTagsRequest) (*protobuf.TagsAdminResponse, error) {
+	convertedTags, err := h.svc.GetAllTags(ctx)
+	if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedTags, nil
+}
+
+func (h *GRPCHandler) UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequest) (*protobuf.UpdatedResponse, error) {
+	if err := h.svc.UpdateTag(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrTagNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case customErr.ErrTagAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.UpdatedResponse{
+		Success: true,
+	}, nil
 }
 
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {

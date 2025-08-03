@@ -10,4 +10,10 @@ type TagRepository interface {
 	ExistsBySlug(ctx context.Context, slug string) (bool, error)
 
 	Create(ctx context.Context, tag *model.Tag) error
+
+	FindAll(ctx context.Context) ([]*model.Tag, error)
+
+	FindByID(ctx context.Context, id string) (*model.Tag, error)
+
+	Update(ctx context.Context, id string, updateData map[string]interface{}) error
 }

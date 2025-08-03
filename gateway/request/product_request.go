@@ -40,6 +40,10 @@ type CreateTagRequest struct {
 	Name string `json:"name" binding:"required,max=50"`
 }
 
+type UpdateTagRequest struct {
+	Name string `json:"name" binding:"required,max=50"`
+}
+
 type CreateVariantRequest struct {
 	SKU       string `json:"sku" binding:"required,max=50"`
 	ProductID string `json:"product_id" binding:"required,uuid4"`

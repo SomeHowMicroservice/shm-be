@@ -577,6 +577,7 @@ func (s *productServiceImpl) GetAllColors(ctx context.Context) (*protobuf.Colors
 		colorResponses = append(colorResponses, &protobuf.ColorAdminResponse{
 			Id:   color.ID,
 			Name: color.Name,
+			CreatedAt: color.CreatedAt.Format(time.RFC3339),
 			CreatedBy: &protobuf.BaseUserResponse{
 				Id:       color.CreatedByID,
 				Username: userMap[color.CreatedByID].Username,
@@ -586,6 +587,7 @@ func (s *productServiceImpl) GetAllColors(ctx context.Context) (*protobuf.Colors
 					LastName:  userMap[color.CreatedByID].Profile.LastName,
 				},
 			},
+			UpdatedAt: color.UpdatedAt.Format(time.RFC3339),
 			UpdatedBy: &protobuf.BaseUserResponse{
 				Id:       color.UpdatedByID,
 				Username: userMap[color.UpdatedByID].Username,
@@ -646,6 +648,7 @@ func (s *productServiceImpl) GetAllSizes(ctx context.Context) (*protobuf.SizesAd
 		sizeResponses = append(sizeResponses, &protobuf.SizeAdminResponse{
 			Id:   size.ID,
 			Name: size.Name,
+			CreatedAt: size.CreatedAt.Format(time.RFC3339),
 			CreatedBy: &protobuf.BaseUserResponse{
 				Id:       size.CreatedByID,
 				Username: userMap[size.CreatedByID].Username,
@@ -655,6 +658,7 @@ func (s *productServiceImpl) GetAllSizes(ctx context.Context) (*protobuf.SizesAd
 					LastName:  userMap[size.CreatedByID].Profile.LastName,
 				},
 			},
+			UpdatedAt: size.UpdatedAt.Format(time.RFC3339),
 			UpdatedBy: &protobuf.BaseUserResponse{
 				Id:       size.UpdatedByID,
 				Username: userMap[size.UpdatedByID].Username,
@@ -670,6 +674,111 @@ func (s *productServiceImpl) GetAllSizes(ctx context.Context) (*protobuf.SizesAd
 	return &protobuf.SizesAdminResponse{
 		Sizes: sizeResponses,
 	}, nil
+}
+
+func (s *productServiceImpl) GetAllTags(ctx context.Context) (*protobuf.TagsAdminResponse, error) {
+	tags, err := s.tagRepo.FindAll(ctx)
+	userIDMap := map[string]struct{}{}
+	for _, tag := range tags {
+		userIDMap[tag.CreatedByID] = struct{}{}
+		userIDMap[tag.UpdatedByID] = struct{}{}
+	}
+
+	var userIDs []string
+	for id := range userIDMap {
+		userIDs = append(userIDs, id)
+	}
+
+	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+		Ids: userIDs,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	userMap := make(map[string]*userpb.UserPublicResponse)
+	for _, user := range userRes.Users {
+		userMap[user.Id] = user
+	}
+
+	var tagResponses []*protobuf.TagAdminResponse
+	for _, tag := range tags {
+		tagResponses = append(tagResponses, &protobuf.TagAdminResponse{
+			Id:   tag.ID,
+			Name: tag.Name,
+			CreatedAt: tag.CreatedAt.Format(time.RFC3339),
+			CreatedBy: &protobuf.BaseUserResponse{
+				Id:       tag.CreatedByID,
+				Username: userMap[tag.CreatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[tag.CreatedByID].Profile.Id,
+					FirstName: userMap[tag.CreatedByID].Profile.FirstName,
+					LastName:  userMap[tag.CreatedByID].Profile.LastName,
+				},
+			},
+			UpdatedAt: tag.UpdatedAt.Format(time.RFC3339),
+			UpdatedBy: &protobuf.BaseUserResponse{
+				Id:       tag.UpdatedByID,
+				Username: userMap[tag.UpdatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[tag.UpdatedByID].Profile.Id,
+					FirstName: userMap[tag.UpdatedByID].Profile.FirstName,
+					LastName:  userMap[tag.UpdatedByID].Profile.LastName,
+				},
+			},
+		})
+	}
+
+	return &protobuf.TagsAdminResponse{
+		Tags: tagResponses,
+	}, nil
+}
+
+func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequest) error {
+	tag, err := s.tagRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
+	}
+	if tag == nil {
+		return customErr.ErrTagNotFound
+	}
+
+	updateData := map[string]interface{}{}
+	if tag.Name != req.Name {
+		slug := common.GenerateSlug(req.Name)
+		exists, err := s.tagRepo.ExistsBySlug(ctx, slug)
+		if err != nil {
+			return fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
+		}
+		if exists {
+			return customErr.ErrTagAlreadyExists
+		}
+		updateData["name"] = req.Name
+		updateData["slug"] = slug
+	}
+	if tag.UpdatedByID != req.UserId {
+		updateData["updated_by_id"] = req.UserId
+	}
+
+	if len(updateData) > 0 {
+		if err = s.tagRepo.Update(ctx, tag.ID, updateData); err != nil {
+			if errors.Is(err, customErr.ErrTagNotFound) {
+				return err
+			}
+			return fmt.Errorf("cập nhật tag sản phẩm thất bại: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func getParentIDsFromParents(categories []*model.Category) []string {

@@ -24,4 +24,6 @@ var (
 	ErrUnSupportedFileType = errors.New("định dạng file không được hỗ trợ")
 
 	ErrTagAlreadyExists = errors.New("tag sản phẩm đã tồn tại")
+
+	ErrTagNotFound = errors.New("không tìm thấy tag sản phẩm")
 )

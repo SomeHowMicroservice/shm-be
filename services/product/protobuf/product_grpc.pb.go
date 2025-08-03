@@ -34,6 +34,8 @@ const (
 	ProductService_UpdateCategory_FullMethodName        = "/product.ProductService/UpdateCategory"
 	ProductService_GetAllColors_FullMethodName          = "/product.ProductService/GetAllColors"
 	ProductService_GetAllSizes_FullMethodName           = "/product.ProductService/GetAllSizes"
+	ProductService_GetAllTags_FullMethodName            = "/product.ProductService/GetAllTags"
+	ProductService_UpdateTag_FullMethodName             = "/product.ProductService/UpdateTag"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -55,6 +57,8 @@ type ProductServiceClient interface {
 	UpdateCategory(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*CategoryAdminDetailsResponse, error)
 	GetAllColors(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error)
 	GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error)
+	GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error)
+	UpdateTag(ctx context.Context, in *UpdateTagRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
 }
 
 type productServiceClient struct {
@@ -215,6 +219,26 @@ func (c *productServiceClient) GetAllSizes(ctx context.Context, in *GetAllSizesR
 	return out, nil
 }
 
+func (c *productServiceClient) GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TagsAdminResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetAllTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) UpdateTag(ctx context.Context, in *UpdateTagRequest, opts ...grpc.CallOption) (*UpdatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatedResponse)
+	err := c.cc.Invoke(ctx, ProductService_UpdateTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -234,6 +258,8 @@ type ProductServiceServer interface {
 	UpdateCategory(context.Context, *UpdateCategoryRequest) (*CategoryAdminDetailsResponse, error)
 	GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsAdminResponse, error)
 	GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesAdminResponse, error)
+	GetAllTags(context.Context, *GetAllTagsRequest) (*TagsAdminResponse, error)
+	UpdateTag(context.Context, *UpdateTagRequest) (*UpdatedResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -288,6 +314,12 @@ func (UnimplementedProductServiceServer) GetAllColors(context.Context, *GetAllCo
 }
 func (UnimplementedProductServiceServer) GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllSizes not implemented")
+}
+func (UnimplementedProductServiceServer) GetAllTags(context.Context, *GetAllTagsRequest) (*TagsAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTags not implemented")
+}
+func (UnimplementedProductServiceServer) UpdateTag(context.Context, *UpdateTagRequest) (*UpdatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTag not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -580,6 +612,42 @@ func _ProductService_GetAllSizes_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetAllTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetAllTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetAllTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetAllTags(ctx, req.(*GetAllTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_UpdateTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTagRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).UpdateTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_UpdateTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).UpdateTag(ctx, req.(*UpdateTagRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -646,6 +714,14 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllSizes",
 			Handler:    _ProductService_GetAllSizes_Handler,
+		},
+		{
+			MethodName: "GetAllTags",
+			Handler:    _ProductService_GetAllTags_Handler,
+		},
+		{
+			MethodName: "UpdateTag",
+			Handler:    _ProductService_UpdateTag_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

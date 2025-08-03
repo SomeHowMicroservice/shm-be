@@ -37,4 +37,8 @@ type ProductService interface {
 	GetAllColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
 
 	GetAllSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error)
+
+	GetAllTags(ctx context.Context) (*protobuf.TagsAdminResponse, error)
+
+	UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequest) error
 }

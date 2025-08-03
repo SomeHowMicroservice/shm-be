@@ -33,6 +33,35 @@ service ProductService {
   rpc GetAllColors(GetAllColorsRequest) returns (ColorsAdminResponse);
 
   rpc GetAllSizes(GetAllSizesRequest) returns (SizesAdminResponse);
+
+  rpc GetAllTags(GetAllTagsRequest) returns (TagsAdminResponse);
+
+  rpc UpdateTag(UpdateTagRequest) returns (UpdatedResponse);
+}
+
+message UpdatedResponse {
+  bool success = 1;
+}
+
+message UpdateTagRequest {
+  string id = 1;
+  string name = 2;
+  string user_id = 3;
+}
+
+message GetAllTagsRequest {}
+
+message TagsAdminResponse {
+  repeated TagAdminResponse tags = 1;
+}
+
+message TagAdminResponse {
+  string id = 1;
+  string name = 2;
+  string created_at = 3;
+  string updated_at = 4;
+  BaseUserResponse created_by = 5;
+  BaseUserResponse updated_by = 6;
 }
 
 message GetAllSizesRequest {}
