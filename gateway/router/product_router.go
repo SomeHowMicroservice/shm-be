@@ -24,21 +24,37 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 		category.GET("/:slug/products", productHandler.GetProductsByCategory)
 	}
 
+	color := rg.Group("/colors")
+	{
+		color.GET("", productHandler.GetAllColors)
+	}
+
+	size := rg.Group("/sizes")
+	{
+		size.GET("", productHandler.GetAllSizes)
+	}
+
+	tag := rg.Group("/tags")
+	{
+		tag.GET("", productHandler.GetAllTags)
+	}
+
 	admin := rg.Group("/admin", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{model.RoleAdmin}))
 	{
 		admin.POST("/categories", productHandler.CreateCategory)
-		admin.GET("/categories", productHandler.GetAllCategories)
+		admin.GET("/categories", productHandler.GetAllCategoriesAdmin)
 		admin.GET("/categories/:id", productHandler.CategoryAdminDetails)
 		admin.PUT("/categories/:id", productHandler.UpdateCategory)
 		admin.POST("/products", productHandler.CreateProduct)
+		admin.POST("/products/main", productHandler.CreateProductMain)
 		admin.POST("/colors", productHandler.CreateColor)
-		admin.GET("/colors", productHandler.GetAllColors)
+		admin.GET("/colors", productHandler.GetAllColorsAdmin)
 		admin.POST("/sizes", productHandler.CreateSize)
-		admin.GET("/sizes", productHandler.GetAllSizes)
+		admin.GET("/sizes", productHandler.GetAllSizesAdmin)
 		admin.POST("/variants", productHandler.CreateVariant)
 		admin.POST("/images", productHandler.CreateImage)
 		admin.POST("/tags", productHandler.CreateTag)
-		admin.GET("/tags", productHandler.GetAllTags)
+		admin.GET("/tags", productHandler.GetAllTagsAdmin)
 		admin.PUT("/tags/:id", productHandler.UpdateTag)
 	}
 }

@@ -29,13 +29,16 @@ const (
 	ProductService_CreateImage_FullMethodName           = "/product.ProductService/CreateImage"
 	ProductService_GetProductsByCategory_FullMethodName = "/product.ProductService/GetProductsByCategory"
 	ProductService_CreateTag_FullMethodName             = "/product.ProductService/CreateTag"
-	ProductService_GetAllCategories_FullMethodName      = "/product.ProductService/GetAllCategories"
+	ProductService_GetAllCategoriesAdmin_FullMethodName = "/product.ProductService/GetAllCategoriesAdmin"
 	ProductService_GetCategoryById_FullMethodName       = "/product.ProductService/GetCategoryById"
 	ProductService_UpdateCategory_FullMethodName        = "/product.ProductService/UpdateCategory"
+	ProductService_GetAllColorsAdmin_FullMethodName     = "/product.ProductService/GetAllColorsAdmin"
+	ProductService_GetAllSizesAdmin_FullMethodName      = "/product.ProductService/GetAllSizesAdmin"
+	ProductService_GetAllTagsAdmin_FullMethodName       = "/product.ProductService/GetAllTagsAdmin"
+	ProductService_UpdateTag_FullMethodName             = "/product.ProductService/UpdateTag"
 	ProductService_GetAllColors_FullMethodName          = "/product.ProductService/GetAllColors"
 	ProductService_GetAllSizes_FullMethodName           = "/product.ProductService/GetAllSizes"
 	ProductService_GetAllTags_FullMethodName            = "/product.ProductService/GetAllTags"
-	ProductService_UpdateTag_FullMethodName             = "/product.ProductService/UpdateTag"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -52,13 +55,16 @@ type ProductServiceClient interface {
 	CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetProductsByCategory(ctx context.Context, in *GetProductsByCategoryRequest, opts ...grpc.CallOption) (*ProductsPublicResponse, error)
 	CreateTag(ctx context.Context, in *CreateTagRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
-	GetAllCategories(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error)
+	GetAllCategoriesAdmin(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error)
 	GetCategoryById(ctx context.Context, in *GetCategoryByIdRequest, opts ...grpc.CallOption) (*CategoryAdminDetailsResponse, error)
 	UpdateCategory(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*CategoryAdminDetailsResponse, error)
-	GetAllColors(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error)
-	GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error)
-	GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error)
+	GetAllColorsAdmin(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error)
+	GetAllSizesAdmin(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error)
+	GetAllTagsAdmin(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error)
 	UpdateTag(ctx context.Context, in *UpdateTagRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
+	GetAllColors(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsPublicResponse, error)
+	GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesPublicResponse, error)
+	GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsPublicResponse, error)
 }
 
 type productServiceClient struct {
@@ -169,10 +175,10 @@ func (c *productServiceClient) CreateTag(ctx context.Context, in *CreateTagReque
 	return out, nil
 }
 
-func (c *productServiceClient) GetAllCategories(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error) {
+func (c *productServiceClient) GetAllCategoriesAdmin(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CategoriesAdminResponse)
-	err := c.cc.Invoke(ctx, ProductService_GetAllCategories_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ProductService_GetAllCategoriesAdmin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -199,30 +205,30 @@ func (c *productServiceClient) UpdateCategory(ctx context.Context, in *UpdateCat
 	return out, nil
 }
 
-func (c *productServiceClient) GetAllColors(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error) {
+func (c *productServiceClient) GetAllColorsAdmin(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ColorsAdminResponse)
-	err := c.cc.Invoke(ctx, ProductService_GetAllColors_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ProductService_GetAllColorsAdmin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *productServiceClient) GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error) {
+func (c *productServiceClient) GetAllSizesAdmin(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SizesAdminResponse)
-	err := c.cc.Invoke(ctx, ProductService_GetAllSizes_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ProductService_GetAllSizesAdmin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *productServiceClient) GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error) {
+func (c *productServiceClient) GetAllTagsAdmin(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TagsAdminResponse)
-	err := c.cc.Invoke(ctx, ProductService_GetAllTags_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ProductService_GetAllTagsAdmin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -233,6 +239,36 @@ func (c *productServiceClient) UpdateTag(ctx context.Context, in *UpdateTagReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdatedResponse)
 	err := c.cc.Invoke(ctx, ProductService_UpdateTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetAllColors(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsPublicResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ColorsPublicResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetAllColors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesPublicResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SizesPublicResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetAllSizes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsPublicResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TagsPublicResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetAllTags_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -253,13 +289,16 @@ type ProductServiceServer interface {
 	CreateImage(context.Context, *CreateImageRequest) (*CreatedResponse, error)
 	GetProductsByCategory(context.Context, *GetProductsByCategoryRequest) (*ProductsPublicResponse, error)
 	CreateTag(context.Context, *CreateTagRequest) (*CreatedResponse, error)
-	GetAllCategories(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error)
+	GetAllCategoriesAdmin(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error)
 	GetCategoryById(context.Context, *GetCategoryByIdRequest) (*CategoryAdminDetailsResponse, error)
 	UpdateCategory(context.Context, *UpdateCategoryRequest) (*CategoryAdminDetailsResponse, error)
-	GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsAdminResponse, error)
-	GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesAdminResponse, error)
-	GetAllTags(context.Context, *GetAllTagsRequest) (*TagsAdminResponse, error)
+	GetAllColorsAdmin(context.Context, *GetAllColorsRequest) (*ColorsAdminResponse, error)
+	GetAllSizesAdmin(context.Context, *GetAllSizesRequest) (*SizesAdminResponse, error)
+	GetAllTagsAdmin(context.Context, *GetAllTagsRequest) (*TagsAdminResponse, error)
 	UpdateTag(context.Context, *UpdateTagRequest) (*UpdatedResponse, error)
+	GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsPublicResponse, error)
+	GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesPublicResponse, error)
+	GetAllTags(context.Context, *GetAllTagsRequest) (*TagsPublicResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -300,8 +339,8 @@ func (UnimplementedProductServiceServer) GetProductsByCategory(context.Context, 
 func (UnimplementedProductServiceServer) CreateTag(context.Context, *CreateTagRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTag not implemented")
 }
-func (UnimplementedProductServiceServer) GetAllCategories(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllCategories not implemented")
+func (UnimplementedProductServiceServer) GetAllCategoriesAdmin(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllCategoriesAdmin not implemented")
 }
 func (UnimplementedProductServiceServer) GetCategoryById(context.Context, *GetCategoryByIdRequest) (*CategoryAdminDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCategoryById not implemented")
@@ -309,17 +348,26 @@ func (UnimplementedProductServiceServer) GetCategoryById(context.Context, *GetCa
 func (UnimplementedProductServiceServer) UpdateCategory(context.Context, *UpdateCategoryRequest) (*CategoryAdminDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCategory not implemented")
 }
-func (UnimplementedProductServiceServer) GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsAdminResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllColors not implemented")
+func (UnimplementedProductServiceServer) GetAllColorsAdmin(context.Context, *GetAllColorsRequest) (*ColorsAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllColorsAdmin not implemented")
 }
-func (UnimplementedProductServiceServer) GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesAdminResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllSizes not implemented")
+func (UnimplementedProductServiceServer) GetAllSizesAdmin(context.Context, *GetAllSizesRequest) (*SizesAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllSizesAdmin not implemented")
 }
-func (UnimplementedProductServiceServer) GetAllTags(context.Context, *GetAllTagsRequest) (*TagsAdminResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllTags not implemented")
+func (UnimplementedProductServiceServer) GetAllTagsAdmin(context.Context, *GetAllTagsRequest) (*TagsAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTagsAdmin not implemented")
 }
 func (UnimplementedProductServiceServer) UpdateTag(context.Context, *UpdateTagRequest) (*UpdatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateTag not implemented")
+}
+func (UnimplementedProductServiceServer) GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsPublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllColors not implemented")
+}
+func (UnimplementedProductServiceServer) GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesPublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllSizes not implemented")
+}
+func (UnimplementedProductServiceServer) GetAllTags(context.Context, *GetAllTagsRequest) (*TagsPublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTags not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -522,20 +570,20 @@ func _ProductService_CreateTag_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProductService_GetAllCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ProductService_GetAllCategoriesAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAllCategoriesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProductServiceServer).GetAllCategories(ctx, in)
+		return srv.(ProductServiceServer).GetAllCategoriesAdmin(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProductService_GetAllCategories_FullMethodName,
+		FullMethod: ProductService_GetAllCategoriesAdmin_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).GetAllCategories(ctx, req.(*GetAllCategoriesRequest))
+		return srv.(ProductServiceServer).GetAllCategoriesAdmin(ctx, req.(*GetAllCategoriesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -572,6 +620,78 @@ func _ProductService_UpdateCategory_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProductServiceServer).UpdateCategory(ctx, req.(*UpdateCategoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_GetAllColorsAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllColorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetAllColorsAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetAllColorsAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetAllColorsAdmin(ctx, req.(*GetAllColorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_GetAllSizesAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllSizesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetAllSizesAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetAllSizesAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetAllSizesAdmin(ctx, req.(*GetAllSizesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_GetAllTagsAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetAllTagsAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetAllTagsAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetAllTagsAdmin(ctx, req.(*GetAllTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_UpdateTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTagRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).UpdateTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_UpdateTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).UpdateTag(ctx, req.(*UpdateTagRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -630,24 +750,6 @@ func _ProductService_GetAllTags_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProductService_UpdateTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateTagRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProductServiceServer).UpdateTag(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ProductService_UpdateTag_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).UpdateTag(ctx, req.(*UpdateTagRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -696,8 +798,8 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProductService_CreateTag_Handler,
 		},
 		{
-			MethodName: "GetAllCategories",
-			Handler:    _ProductService_GetAllCategories_Handler,
+			MethodName: "GetAllCategoriesAdmin",
+			Handler:    _ProductService_GetAllCategoriesAdmin_Handler,
 		},
 		{
 			MethodName: "GetCategoryById",
@@ -706,6 +808,22 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateCategory",
 			Handler:    _ProductService_UpdateCategory_Handler,
+		},
+		{
+			MethodName: "GetAllColorsAdmin",
+			Handler:    _ProductService_GetAllColorsAdmin_Handler,
+		},
+		{
+			MethodName: "GetAllSizesAdmin",
+			Handler:    _ProductService_GetAllSizesAdmin_Handler,
+		},
+		{
+			MethodName: "GetAllTagsAdmin",
+			Handler:    _ProductService_GetAllTagsAdmin_Handler,
+		},
+		{
+			MethodName: "UpdateTag",
+			Handler:    _ProductService_UpdateTag_Handler,
 		},
 		{
 			MethodName: "GetAllColors",
@@ -718,10 +836,6 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllTags",
 			Handler:    _ProductService_GetAllTags_Handler,
-		},
-		{
-			MethodName: "UpdateTag",
-			Handler:    _ProductService_UpdateTag_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

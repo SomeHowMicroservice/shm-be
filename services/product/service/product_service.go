@@ -34,11 +34,17 @@ type ProductService interface {
 
 	UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error)
 
-	GetAllColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
+	GetAllColorsAdmin(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
 
-	GetAllSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error)
+	GetAllSizesAdmin(ctx context.Context) (*protobuf.SizesAdminResponse, error)
 
-	GetAllTags(ctx context.Context) (*protobuf.TagsAdminResponse, error)
+	GetAllTagsAdmin(ctx context.Context) (*protobuf.TagsAdminResponse, error)
 
 	UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequest) error
+
+	GetAllColors(ctx context.Context) ([]*model.Color, error)
+
+	GetAllSizes(ctx context.Context) ([]*model.Size, error)
+
+	GetAllTags(ctx context.Context) ([]*model.Tag, error)
 }

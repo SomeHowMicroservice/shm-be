@@ -24,19 +24,42 @@ service ProductService {
 
   rpc CreateTag(CreateTagRequest) returns (CreatedResponse);
 
-  rpc GetAllCategories(GetAllCategoriesRequest) returns (CategoriesAdminResponse);
+  rpc GetAllCategoriesAdmin(GetAllCategoriesRequest) returns (CategoriesAdminResponse);
 
   rpc GetCategoryById(GetCategoryByIdRequest) returns (CategoryAdminDetailsResponse);
 
   rpc UpdateCategory(UpdateCategoryRequest) returns (CategoryAdminDetailsResponse);
 
-  rpc GetAllColors(GetAllColorsRequest) returns (ColorsAdminResponse);
+  rpc GetAllColorsAdmin(GetAllColorsRequest) returns (ColorsAdminResponse);
 
-  rpc GetAllSizes(GetAllSizesRequest) returns (SizesAdminResponse);
+  rpc GetAllSizesAdmin(GetAllSizesRequest) returns (SizesAdminResponse);
 
-  rpc GetAllTags(GetAllTagsRequest) returns (TagsAdminResponse);
+  rpc GetAllTagsAdmin(GetAllTagsRequest) returns (TagsAdminResponse);
 
   rpc UpdateTag(UpdateTagRequest) returns (UpdatedResponse);
+
+  rpc GetAllColors(GetAllColorsRequest) returns (ColorsPublicResponse);
+
+  rpc GetAllSizes(GetAllSizesRequest) returns (SizesPublicResponse);
+
+  rpc GetAllTags(GetAllTagsRequest) returns (TagsPublicResponse);
+}
+
+message TagsPublicResponse {
+  repeated BaseTagResponse tags = 1;
+}
+
+message BaseTagResponse {
+  string id = 1;
+  string name = 2;
+}
+
+message SizesPublicResponse {
+  repeated BaseSizeResponse sizes = 1;
+}
+
+message ColorsPublicResponse {
+  repeated BaseColorResponse colors = 1;
 }
 
 message UpdatedResponse {

@@ -2,13 +2,17 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/SomeHowMicroservice/shm-be/gateway/request"
 	productpb "github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
+	"github.com/go-playground/validator/v10"
 
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/gin-gonic/gin"
@@ -174,6 +178,183 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 
 	common.JSON(c, http.StatusCreated, "Tạo sản phẩm thành công", gin.H{
 		"product_id": res.Id,
+	})
+}
+
+func (h *ProductHandler) CreateProductMain(c *gin.Context) {
+	// ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	// defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Lỗi parse form: " + err.Error()})
+		return
+	}
+
+	var req request.CreateProductForm
+	req.Title = strings.TrimSpace(c.PostForm("title"))
+	req.Description = strings.TrimSpace(c.PostForm("description"))
+
+	if priceStr := c.PostForm("price"); priceStr != "" {
+		if price, err := strconv.ParseFloat(priceStr, 32); err == nil {
+			req.Price = float32(price)
+		}
+	}
+
+	if isSaleStr := c.PostForm("is_sale"); isSaleStr != "" {
+		if isSale, err := strconv.ParseBool(isSaleStr); err == nil {
+			req.IsSale = &isSale
+		}
+	}
+
+	if salePriceStr := c.PostForm("sale_price"); salePriceStr != "" {
+		if salePrice, err := strconv.ParseFloat(salePriceStr, 32); err == nil {
+			salePriceFloat := float32(salePrice)
+			req.SalePrice = &salePriceFloat
+		}
+	}
+
+	if startSaleStr := c.PostForm("start_sale"); startSaleStr != "" {
+		if startSale, err := time.Parse("2006-01-02", startSaleStr); err == nil {
+			req.StartSale = &startSale
+		}
+	}
+
+	if endSaleStr := c.PostForm("end_sale"); endSaleStr != "" {
+		if endSale, err := time.Parse("2006-01-02", endSaleStr); err == nil {
+			req.EndSale = &endSale
+		}
+	}
+
+	form := c.Request.MultipartForm
+	req.CategoryIDs = form.Value["category_ids"]
+	req.TagIDs = form.Value["tag_ids"]
+
+	req.Variants = []request.CreateVariantForm{}
+	i := 0
+	for {
+		skuKey := fmt.Sprintf("variants[%d][sku]", i)
+		colorKey := fmt.Sprintf("variants[%d][color_id]", i)
+		sizeKey := fmt.Sprintf("variants[%d][size_id]", i)
+		quantityKey := fmt.Sprintf("variants[%d][quantity]", i)
+
+		sku := strings.TrimSpace(c.PostForm(skuKey))
+
+		if sku == "" {
+			break
+		}
+
+		colorID := strings.TrimSpace(c.PostForm(colorKey))
+		sizeID := strings.TrimSpace(c.PostForm(sizeKey))
+		quantityStr := strings.TrimSpace(c.PostForm(quantityKey))
+
+		quantity := 0
+		if quantityStr != "" {
+			quantity, _ = strconv.Atoi(quantityStr)
+		}
+
+		variant := request.CreateVariantForm{
+			SKU:      sku,
+			ColorID:  colorID,
+			SizeID:   sizeID,
+			Quantity: quantity,
+		}
+
+		req.Variants = append(req.Variants, variant)
+		i++
+	}
+
+	req.Images = []request.CreateImageForm{}
+	j := 0
+	for {
+		productIDKey := fmt.Sprintf("images[%d][product_id]", j)
+		colorIDKey := fmt.Sprintf("images[%d][color_id]", j)
+		isThumbnailKey := fmt.Sprintf("images[%d][is_thumbnail]", j)
+		sortOrderKey := fmt.Sprintf("images[%d][sort_order]", j)
+		fileKey := fmt.Sprintf("images[%d][file]", j)
+
+		productID := strings.TrimSpace(c.PostForm(productIDKey))
+
+		if productID == "" {
+			break
+		}
+
+		colorID := strings.TrimSpace(c.PostForm(colorIDKey))
+		isThumbnailStr := strings.TrimSpace(c.PostForm(isThumbnailKey))
+		sortOrderStr := strings.TrimSpace(c.PostForm(sortOrderKey))
+
+		isThumbnail := false
+		if isThumbnailStr != "" {
+			isThumbnail, _ = strconv.ParseBool(isThumbnailStr)
+		}
+
+		sortOrder := 0
+		if sortOrderStr != "" {
+			sortOrder, _ = strconv.Atoi(sortOrderStr)
+		}
+
+		file, err := c.FormFile(fileKey)
+		if err != nil {
+			common.JSON(c, http.StatusBadRequest, fmt.Sprintf("Không tìm thấy file cho image %d: %s", j, err.Error()), nil)
+			return
+		}
+
+		image := request.CreateImageForm{
+			ColorID:     colorID,
+			IsThumbnail: isThumbnail,
+			SortOrder:   sortOrder,
+			File:        file,
+		}
+
+		req.Images = append(req.Images, image)
+		j++
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	// var isSale bool
+	// var salePrice *float32
+	// var startSale, endSale *string
+	// if req.IsSale != nil {
+	// 	isSale = *req.IsSale
+	// 	if isSale {
+	// 		if req.SalePrice == nil || req.StartSale == nil || req.EndSale == nil {
+	// 			common.JSON(c, http.StatusBadRequest, "Sản phẩm giảm giá phải bổ sung thêm thông tin", nil)
+	// 			return
+	// 		}
+	// 		salePrice = req.SalePrice
+
+	// 		formattedStartSale := req.StartSale.Format("2006-01-02")
+	// 		startSale = &formattedStartSale
+	// 		formattedEndSale := req.EndSale.Format("2006-01-02")
+	// 		endSale = &formattedEndSale
+	// 	} else {
+	// 		if req.SalePrice != nil || req.StartSale != nil || req.EndSale != nil {
+	// 			common.JSON(c, http.StatusBadRequest, "Sản phẩm không được giảm giá vui lòng không điền thông tin liên quan", nil)
+	// 			return
+	// 		}
+	// 	}
+	// }
+
+	common.JSON(c, http.StatusOK, "Haha", gin.H{
+		"request": req,
+		"user":    user,
 	})
 }
 
@@ -494,11 +675,11 @@ func (h *ProductHandler) CreateTag(c *gin.Context) {
 	})
 }
 
-func (h *ProductHandler) GetAllCategories(c *gin.Context) {
+func (h *ProductHandler) GetAllCategoriesAdmin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllCategories(ctx, &productpb.GetAllCategoriesRequest{})
+	res, err := h.productClient.GetAllCategoriesAdmin(ctx, &productpb.GetAllCategoriesRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -597,11 +778,11 @@ func (h *ProductHandler) UpdateCategory(c *gin.Context) {
 	})
 }
 
-func (h *ProductHandler) GetAllColors(c *gin.Context) {
+func (h *ProductHandler) GetAllColorsAdmin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllColors(ctx, &productpb.GetAllColorsRequest{})
+	res, err := h.productClient.GetAllColorsAdmin(ctx, &productpb.GetAllColorsRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -621,11 +802,30 @@ func (h *ProductHandler) GetAllColors(c *gin.Context) {
 	})
 }
 
-func (h *ProductHandler) GetAllSizes(c *gin.Context) {
+func (h *ProductHandler) GetAllColors(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllSizes(ctx, &productpb.GetAllSizesRequest{})
+	res, err := h.productClient.GetAllColors(ctx, &productpb.GetAllColorsRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả màu sắc sản phẩm thành công", gin.H{
+		"colors": res.Colors,
+	})
+}
+
+func (h *ProductHandler) GetAllSizesAdmin(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetAllSizesAdmin(ctx, &productpb.GetAllSizesRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -645,11 +845,30 @@ func (h *ProductHandler) GetAllSizes(c *gin.Context) {
 	})
 }
 
-func (h *ProductHandler) GetAllTags(c *gin.Context) {
+func (h *ProductHandler) GetAllSizes(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllTags(ctx, &productpb.GetAllTagsRequest{})
+	res, err := h.productClient.GetAllSizes(ctx, &productpb.GetAllSizesRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả size sản phẩm thành công", gin.H{
+		"sizes": res.Sizes,
+	})
+}
+
+func (h *ProductHandler) GetAllTagsAdmin(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetAllTagsAdmin(ctx, &productpb.GetAllTagsRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -665,6 +884,25 @@ func (h *ProductHandler) GetAllTags(c *gin.Context) {
 	}
 
 	common.JSON(c, http.StatusOK, "Lấy tất cả size sản phẩm thành công", gin.H{
+		"tags": res.Tags,
+	})
+}
+
+func (h *ProductHandler) GetAllTags(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetAllTags(ctx, &productpb.GetAllTagsRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả tag sản phẩm thành công", gin.H{
 		"tags": res.Tags,
 	})
 }

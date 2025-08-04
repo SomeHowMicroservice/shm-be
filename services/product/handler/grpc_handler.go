@@ -176,7 +176,7 @@ func (h *GRPCHandler) CreateTag(ctx context.Context, req *protobuf.CreateTagRequ
 	}, nil
 }
 
-func (h *GRPCHandler) GetAllCategories(ctx context.Context, req *protobuf.GetAllCategoriesRequest) (*protobuf.CategoriesAdminResponse, error) {
+func (h *GRPCHandler) GetAllCategoriesAdmin(ctx context.Context, req *protobuf.GetAllCategoriesRequest) (*protobuf.CategoriesAdminResponse, error) {
 	categories, err := h.svc.GetAllCategories(ctx)
 	if err != nil {
 		switch err {
@@ -220,8 +220,8 @@ func (h *GRPCHandler) UpdateCategory(ctx context.Context, req *protobuf.UpdateCa
 	return convertedCategory, nil
 }
 
-func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetAllColorsRequest) (*protobuf.ColorsAdminResponse, error) {
-	convertedColors, err := h.svc.GetAllColors(ctx)
+func (h *GRPCHandler) GetAllColorsAdmin(ctx context.Context, req *protobuf.GetAllColorsRequest) (*protobuf.ColorsAdminResponse, error) {
+	convertedColors, err := h.svc.GetAllColorsAdmin(ctx)
 	if err != nil {
 		switch err {
 		case customErr.ErrHasUserNotFound:
@@ -234,8 +234,17 @@ func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetAllColo
 	return convertedColors, nil
 }
 
-func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetAllSizesRequest) (*protobuf.SizesAdminResponse, error) {
-	convertedSizes, err := h.svc.GetAllSizes(ctx)
+func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetAllColorsRequest) (*protobuf.ColorsPublicResponse, error) {
+	colors, err := h.svc.GetAllColors(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return toColorsPublicResponse(colors), nil
+}
+
+func (h *GRPCHandler) GetAllSizesAdmin(ctx context.Context, req *protobuf.GetAllSizesRequest) (*protobuf.SizesAdminResponse, error) {
+	convertedSizes, err := h.svc.GetAllSizesAdmin(ctx)
 	if err != nil {
 		switch err {
 		case customErr.ErrHasUserNotFound:
@@ -248,8 +257,17 @@ func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetAllSizes
 	return convertedSizes, nil
 }
 
-func (h *GRPCHandler) GetAllTags(ctx context.Context, req *protobuf.GetAllTagsRequest) (*protobuf.TagsAdminResponse, error) {
-	convertedTags, err := h.svc.GetAllTags(ctx)
+func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetAllSizesRequest) (*protobuf.SizesPublicResponse, error) {
+	sizes, err := h.svc.GetAllSizes(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return toSizesPublicResponse(sizes), nil
+}
+
+func (h *GRPCHandler) GetAllTagsAdmin(ctx context.Context, req *protobuf.GetAllTagsRequest) (*protobuf.TagsAdminResponse, error) {
+	convertedTags, err := h.svc.GetAllTagsAdmin(ctx)
 	if err != nil {
 		switch err {
 		case customErr.ErrHasUserNotFound:
@@ -260,6 +278,25 @@ func (h *GRPCHandler) GetAllTags(ctx context.Context, req *protobuf.GetAllTagsRe
 	}
 
 	return convertedTags, nil
+}
+
+func (h *GRPCHandler) GetAllTags(ctx context.Context, req *protobuf.GetAllTagsRequest) (*protobuf.TagsPublicResponse, error) {
+	tags, err := h.svc.GetAllTags(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	var baseTags []*protobuf.BaseTagResponse
+	for _, tag := range tags {
+		baseTags = append(baseTags, &protobuf.BaseTagResponse{
+			Id:   tag.ID,
+			Name: tag.Name,
+		})
+	}
+
+	return &protobuf.TagsPublicResponse{
+		Tags: baseTags,
+	}, nil
 }
 
 func (h *GRPCHandler) UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequest) (*protobuf.UpdatedResponse, error) {
@@ -370,6 +407,40 @@ func toBaseCategoryResponse(category *model.Category) *protobuf.BaseCategoryResp
 		Id:   category.ID,
 		Name: category.Name,
 		Slug: category.Slug,
+	}
+}
+
+func toColorsPublicResponse(colors []*model.Color) *protobuf.ColorsPublicResponse {
+	var baseColors []*protobuf.BaseColorResponse
+	for _, color := range colors {
+		baseColors = append(baseColors, toBaseColorResponse(color))
+	}
+	return &protobuf.ColorsPublicResponse{
+		Colors: baseColors,
+	}
+}
+
+func toBaseColorResponse(color *model.Color) *protobuf.BaseColorResponse {
+	return &protobuf.BaseColorResponse{
+		Id:   color.ID,
+		Name: color.Name,
+	}
+}
+
+func toSizesPublicResponse(sizes []*model.Size) *protobuf.SizesPublicResponse {
+	var baseSizes []*protobuf.BaseSizeResponse
+	for _, size := range sizes {
+		baseSizes = append(baseSizes, toBaseSizeResponse(size))
+	}
+	return &protobuf.SizesPublicResponse{
+		Sizes: baseSizes,
+	}
+}
+
+func toBaseSizeResponse(size *model.Size) *protobuf.BaseSizeResponse {
+	return &protobuf.BaseSizeResponse{
+		Id:   size.ID,
+		Name: size.Name,
 	}
 }
 

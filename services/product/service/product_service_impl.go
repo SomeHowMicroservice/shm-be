@@ -534,7 +534,7 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 	return toCategoryAdminDetailsResponse(category, productResponses, cRes, uRes), nil
 }
 
-func (s *productServiceImpl) GetAllColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error) {
+func (s *productServiceImpl) GetAllColorsAdmin(ctx context.Context) (*protobuf.ColorsAdminResponse, error) {
 	colors, err := s.colorRepo.FindAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách màu sắc sản phẩm thất bại: %w", err)
@@ -605,7 +605,7 @@ func (s *productServiceImpl) GetAllColors(ctx context.Context) (*protobuf.Colors
 	}, nil
 }
 
-func (s *productServiceImpl) GetAllSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error) {
+func (s *productServiceImpl) GetAllSizesAdmin(ctx context.Context) (*protobuf.SizesAdminResponse, error) {
 	sizes, err := s.sizeRepo.FindAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách size sản phẩm thất bại: %w", err)
@@ -676,8 +676,12 @@ func (s *productServiceImpl) GetAllSizes(ctx context.Context) (*protobuf.SizesAd
 	}, nil
 }
 
-func (s *productServiceImpl) GetAllTags(ctx context.Context) (*protobuf.TagsAdminResponse, error) {
+func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*protobuf.TagsAdminResponse, error) {
 	tags, err := s.tagRepo.FindAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy danh sách tag sản phẩm thất bại: %w", err)
+	}
+	
 	userIDMap := map[string]struct{}{}
 	for _, tag := range tags {
 		userIDMap[tag.CreatedByID] = struct{}{}
@@ -779,6 +783,33 @@ func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.Update
 	}
 
 	return nil
+}
+
+func (s *productServiceImpl) GetAllColors(ctx context.Context) ([]*model.Color, error) {
+	colors, err := s.colorRepo.FindAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy tất cả màu sắc sản phẩm thất bại: %w", err)
+	}
+
+	return colors, nil
+}
+
+func (s *productServiceImpl) GetAllSizes(ctx context.Context) ([]*model.Size, error) {
+	sizes, err := s.sizeRepo.FindAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy tất cả size sản phẩm thất bại: %w", err)
+	}
+
+	return sizes, nil
+}
+
+func (s *productServiceImpl) GetAllTags(ctx context.Context) ([]*model.Tag, error) {
+	tags, err := s.tagRepo.FindAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy tất cả tag sản phẩm thất bại: %w", err)
+	}
+
+	return tags, nil
 }
 
 func getParentIDsFromParents(categories []*model.Category) []string {
