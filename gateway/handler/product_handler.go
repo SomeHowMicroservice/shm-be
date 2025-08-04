@@ -182,8 +182,8 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 }
 
 func (h *ProductHandler) CreateProductMain(c *gin.Context) {
-	// ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 60*time.Second)
+	defer cancel()
 
 	userAny, exists := c.Get("user")
 	if !exists {
@@ -278,19 +278,16 @@ func (h *ProductHandler) CreateProductMain(c *gin.Context) {
 	req.Images = []request.CreateImageForm{}
 	j := 0
 	for {
-		productIDKey := fmt.Sprintf("images[%d][product_id]", j)
 		colorIDKey := fmt.Sprintf("images[%d][color_id]", j)
 		isThumbnailKey := fmt.Sprintf("images[%d][is_thumbnail]", j)
 		sortOrderKey := fmt.Sprintf("images[%d][sort_order]", j)
 		fileKey := fmt.Sprintf("images[%d][file]", j)
 
-		productID := strings.TrimSpace(c.PostForm(productIDKey))
-
-		if productID == "" {
+		colorID := strings.TrimSpace(c.PostForm(colorIDKey))
+		if colorID == "" {
 			break
 		}
 
-		colorID := strings.TrimSpace(c.PostForm(colorIDKey))
 		isThumbnailStr := strings.TrimSpace(c.PostForm(isThumbnailKey))
 		sortOrderStr := strings.TrimSpace(c.PostForm(sortOrderKey))
 
@@ -328,33 +325,96 @@ func (h *ProductHandler) CreateProductMain(c *gin.Context) {
 		return
 	}
 
-	// var isSale bool
-	// var salePrice *float32
-	// var startSale, endSale *string
-	// if req.IsSale != nil {
-	// 	isSale = *req.IsSale
-	// 	if isSale {
-	// 		if req.SalePrice == nil || req.StartSale == nil || req.EndSale == nil {
-	// 			common.JSON(c, http.StatusBadRequest, "Sản phẩm giảm giá phải bổ sung thêm thông tin", nil)
-	// 			return
-	// 		}
-	// 		salePrice = req.SalePrice
+	var isSale bool
+	var salePrice *float32
+	var startSale, endSale *string
+	if req.IsSale != nil {
+		isSale = *req.IsSale
+		if isSale {
+			if req.SalePrice == nil || req.StartSale == nil || req.EndSale == nil {
+				common.JSON(c, http.StatusBadRequest, "Sản phẩm giảm giá phải bổ sung thêm thông tin", nil)
+				return
+			}
+			salePrice = req.SalePrice
 
-	// 		formattedStartSale := req.StartSale.Format("2006-01-02")
-	// 		startSale = &formattedStartSale
-	// 		formattedEndSale := req.EndSale.Format("2006-01-02")
-	// 		endSale = &formattedEndSale
-	// 	} else {
-	// 		if req.SalePrice != nil || req.StartSale != nil || req.EndSale != nil {
-	// 			common.JSON(c, http.StatusBadRequest, "Sản phẩm không được giảm giá vui lòng không điền thông tin liên quan", nil)
-	// 			return
-	// 		}
-	// 	}
-	// }
+			formattedStartSale := req.StartSale.Format("2006-01-02")
+			startSale = &formattedStartSale
+			formattedEndSale := req.EndSale.Format("2006-01-02")
+			endSale = &formattedEndSale
+		} else {
+			if req.SalePrice != nil || req.StartSale != nil || req.EndSale != nil {
+				common.JSON(c, http.StatusBadRequest, "Sản phẩm không được giảm giá vui lòng không điền thông tin liên quan", nil)
+				return
+			}
+		}
+	}
 
-	common.JSON(c, http.StatusOK, "Haha", gin.H{
-		"request": req,
-		"user":    user,
+	variants := make([]*productpb.CreateVariantForm, 0, len(req.Variants))
+	for _, v := range req.Variants {
+		variants = append(variants, &productpb.CreateVariantForm{
+			Sku:      v.SKU,
+			ColorId:  v.ColorID,
+			SizeId:   v.SizeID,
+			Quantity: int64(v.Quantity),
+		})
+	}
+
+	images := make([]*productpb.CreateImageForm, 0, len(req.Images))
+	for _, img := range req.Images {
+		openedFile, err := img.File.Open()
+		if err != nil {
+			common.JSON(c, http.StatusBadRequest, "Không mở được file", nil)
+			return
+		}
+		defer openedFile.Close()
+
+		fileBytes, err := io.ReadAll(openedFile)
+		if err != nil {
+			common.JSON(c, http.StatusInternalServerError, "Đọc file thất bại", nil)
+			return
+		}
+
+		images = append(images, &productpb.CreateImageForm{
+			ColorId:     img.ColorID,
+			File:        fileBytes,
+			FileName:    img.File.Filename,
+			IsThumbnail: img.IsThumbnail,
+			SortOrder:   int32(img.SortOrder),
+		})
+	}
+
+	res, err := h.productClient.CreateProductMain(ctx, &productpb.CreateProductMainRequest{
+		Title:       req.Title,
+		Description: req.Description,
+		Price:       req.Price,
+		IsSale:      isSale,
+		SalePrice:   salePrice,
+		StartSale:   startSale,
+		EndSale:     endSale,
+		CategoryIds: req.CategoryIDs,
+		TagIds:      req.TagIDs,
+		Variants:    variants,
+		Images:      images,
+		UserId:      user.Id,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			case codes.AlreadyExists:
+				common.JSON(c, http.StatusConflict, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusCreated, "Tạo sản phẩm thành công", gin.H{
+		"product_id": res.Id,
 	})
 }
 

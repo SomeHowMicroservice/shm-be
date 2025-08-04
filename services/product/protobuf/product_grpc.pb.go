@@ -39,6 +39,7 @@ const (
 	ProductService_GetAllColors_FullMethodName          = "/product.ProductService/GetAllColors"
 	ProductService_GetAllSizes_FullMethodName           = "/product.ProductService/GetAllSizes"
 	ProductService_GetAllTags_FullMethodName            = "/product.ProductService/GetAllTags"
+	ProductService_CreateProductMain_FullMethodName     = "/product.ProductService/CreateProductMain"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -65,6 +66,7 @@ type ProductServiceClient interface {
 	GetAllColors(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsPublicResponse, error)
 	GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesPublicResponse, error)
 	GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsPublicResponse, error)
+	CreateProductMain(ctx context.Context, in *CreateProductMainRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 }
 
 type productServiceClient struct {
@@ -275,6 +277,16 @@ func (c *productServiceClient) GetAllTags(ctx context.Context, in *GetAllTagsReq
 	return out, nil
 }
 
+func (c *productServiceClient) CreateProductMain(ctx context.Context, in *CreateProductMainRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatedResponse)
+	err := c.cc.Invoke(ctx, ProductService_CreateProductMain_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -299,6 +311,7 @@ type ProductServiceServer interface {
 	GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsPublicResponse, error)
 	GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesPublicResponse, error)
 	GetAllTags(context.Context, *GetAllTagsRequest) (*TagsPublicResponse, error)
+	CreateProductMain(context.Context, *CreateProductMainRequest) (*CreatedResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -368,6 +381,9 @@ func (UnimplementedProductServiceServer) GetAllSizes(context.Context, *GetAllSiz
 }
 func (UnimplementedProductServiceServer) GetAllTags(context.Context, *GetAllTagsRequest) (*TagsPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllTags not implemented")
+}
+func (UnimplementedProductServiceServer) CreateProductMain(context.Context, *CreateProductMainRequest) (*CreatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProductMain not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -750,6 +766,24 @@ func _ProductService_GetAllTags_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_CreateProductMain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProductMainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).CreateProductMain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_CreateProductMain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).CreateProductMain(ctx, req.(*CreateProductMainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -836,6 +870,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllTags",
 			Handler:    _ProductService_GetAllTags_Handler,
+		},
+		{
+			MethodName: "CreateProductMain",
+			Handler:    _ProductService_CreateProductMain_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

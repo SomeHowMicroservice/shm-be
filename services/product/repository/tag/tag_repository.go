@@ -16,4 +16,6 @@ type TagRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Tag, error)
 
 	Update(ctx context.Context, id string, updateData map[string]interface{}) error
+	
+	FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Tag, error)
 }

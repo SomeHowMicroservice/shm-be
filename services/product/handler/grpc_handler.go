@@ -316,6 +316,24 @@ func (h *GRPCHandler) UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequ
 	}, nil
 }
 
+func (h *GRPCHandler) CreateProductMain(ctx context.Context, req *protobuf.CreateProductMainRequest) (*protobuf.CreatedResponse, error) {
+	product, err := h.svc.CreateProductMain(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrSlugAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		case customErr.ErrHasCategoryNotFound, customErr.ErrHasTagNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.CreatedResponse{
+		Id: product.ID,
+	}, nil
+}
+
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
 	var productResponses []*protobuf.ProductPublicResponse
 	for _, pro := range products {

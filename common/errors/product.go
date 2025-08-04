@@ -9,6 +9,8 @@ var (
 
 	ErrHasCategoryNotFound = errors.New("có danh mục sản phẩm không tìm thấy")
 
+	ErrHasTagNotFound = errors.New("có tag mục sản phẩm không tìm thấy")
+
 	ErrProductNotFound = errors.New("không tìm thấy sản phẩm")
 
 	ErrColorAlreadyExists = errors.New("màu sắc đã tồn tại")

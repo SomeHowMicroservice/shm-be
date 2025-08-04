@@ -43,6 +43,38 @@ service ProductService {
   rpc GetAllSizes(GetAllSizesRequest) returns (SizesPublicResponse);
 
   rpc GetAllTags(GetAllTagsRequest) returns (TagsPublicResponse);
+
+  rpc CreateProductMain(CreateProductMainRequest) returns (CreatedResponse);
+}
+
+message CreateProductMainRequest {
+  string title = 1;
+  string description = 2;
+  float price = 3;
+  bool is_sale = 4;
+  optional float sale_price = 5;
+  optional string start_sale = 6;
+  optional string end_sale = 7;
+  repeated string category_ids = 8;
+  repeated string tag_ids = 9;
+  repeated CreateVariantForm variants = 10;
+  repeated CreateImageForm images = 11;
+  string user_id = 12;
+}
+
+message CreateVariantForm {
+  string sku = 1;
+  string color_id = 2;
+  string size_id = 3;
+  int64 quantity = 4;
+}
+
+message CreateImageForm {
+  string color_id = 1;
+  bytes file = 2;
+  string file_name = 3;
+  bool is_thumbnail = 4;
+  int32 sort_order = 5;
 }
 
 message TagsPublicResponse {

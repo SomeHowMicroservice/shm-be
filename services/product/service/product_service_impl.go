@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -575,8 +576,8 @@ func (s *productServiceImpl) GetAllColorsAdmin(ctx context.Context) (*protobuf.C
 	var colorResponses []*protobuf.ColorAdminResponse
 	for _, color := range colors {
 		colorResponses = append(colorResponses, &protobuf.ColorAdminResponse{
-			Id:   color.ID,
-			Name: color.Name,
+			Id:        color.ID,
+			Name:      color.Name,
 			CreatedAt: color.CreatedAt.Format(time.RFC3339),
 			CreatedBy: &protobuf.BaseUserResponse{
 				Id:       color.CreatedByID,
@@ -646,8 +647,8 @@ func (s *productServiceImpl) GetAllSizesAdmin(ctx context.Context) (*protobuf.Si
 	var sizeResponses []*protobuf.SizeAdminResponse
 	for _, size := range sizes {
 		sizeResponses = append(sizeResponses, &protobuf.SizeAdminResponse{
-			Id:   size.ID,
-			Name: size.Name,
+			Id:        size.ID,
+			Name:      size.Name,
 			CreatedAt: size.CreatedAt.Format(time.RFC3339),
 			CreatedBy: &protobuf.BaseUserResponse{
 				Id:       size.CreatedByID,
@@ -681,7 +682,7 @@ func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*protobuf.Tag
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách tag sản phẩm thất bại: %w", err)
 	}
-	
+
 	userIDMap := map[string]struct{}{}
 	for _, tag := range tags {
 		userIDMap[tag.CreatedByID] = struct{}{}
@@ -717,8 +718,8 @@ func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*protobuf.Tag
 	var tagResponses []*protobuf.TagAdminResponse
 	for _, tag := range tags {
 		tagResponses = append(tagResponses, &protobuf.TagAdminResponse{
-			Id:   tag.ID,
-			Name: tag.Name,
+			Id:        tag.ID,
+			Name:      tag.Name,
 			CreatedAt: tag.CreatedAt.Format(time.RFC3339),
 			CreatedBy: &protobuf.BaseUserResponse{
 				Id:       tag.CreatedByID,
@@ -810,6 +811,138 @@ func (s *productServiceImpl) GetAllTags(ctx context.Context) ([]*model.Tag, erro
 	}
 
 	return tags, nil
+}
+
+func (s *productServiceImpl) CreateProductMain(ctx context.Context, req *protobuf.CreateProductMainRequest) (*model.Product, error) {
+	slug := common.GenerateSlug(req.Title)
+	exists, err := s.productRepo.ExistsBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
+	}
+	if exists {
+		return nil, customErr.ErrSlugAlreadyExists
+	}
+
+	var categories []*model.Category
+	if len(req.CategoryIds) > 0 {
+		categories, err = s.categoryRepo.FindAllByIDInWithChildren(ctx, req.CategoryIds)
+		if err != nil {
+			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+		}
+		if len(categories) != len(req.CategoryIds) {
+			return nil, customErr.ErrHasCategoryNotFound
+		}
+
+		for _, c := range categories {
+			if len(c.Children) > 0 {
+				return nil, fmt.Errorf("danh mục %s có danh mục con, không thể được gán cho sản phẩm", c.Name)
+			}
+		}
+	}
+
+	var tags []*model.Tag
+	if len(req.TagIds) > 0 {
+		tags, err = s.tagRepo.FindAllByIDIn(ctx, req.TagIds)
+		if err != nil {
+			return nil, fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
+		}
+		if len(tags) != len(req.TagIds) {
+			return nil, customErr.ErrHasTagNotFound
+		}
+	}
+
+	var startSale, endSale *time.Time
+	if req.StartSale != nil && req.EndSale != nil {
+		parsedStartSale, err := common.ParseDate(*req.StartSale)
+		if err != nil {
+			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian bắt đầu giảm giá thất bại: %w", err)
+		}
+		startSale = &parsedStartSale
+
+		parsedEndSale, err := common.ParseDate(*req.EndSale)
+		if err != nil {
+			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian kết thúc giảm giá thất bại: %w", err)
+		}
+		endSale = &parsedEndSale
+	}
+
+	product := &model.Product{
+		ID:          uuid.NewString(),
+		Title:       req.Title,
+		Slug:        slug,
+		Description: req.Description,
+		Price:       req.Price,
+		IsSale:      req.IsSale,
+		SalePrice:   req.SalePrice,
+		StartSale:   startSale,
+		EndSale:     endSale,
+		Categories:  categories,
+		Tags:        tags,
+		CreatedByID: req.UserId,
+		UpdatedByID: req.UserId,
+	}
+
+	variants := make([]*model.Variant, 0, len(req.Variants))
+	for _, v := range req.Variants {
+		variant := &model.Variant{
+			ID:        uuid.NewString(),
+			ProductID: product.ID,
+			SKU:       v.Sku,
+			ColorID:   v.ColorId,
+			SizeID:    v.SizeId,
+			Inventory: &model.Inventory{
+				ID:       uuid.NewString(),
+				Quantity: int(v.Quantity),
+				UpdatedByID: req.UserId,
+			},
+			CreatedByID: req.UserId,
+			UpdatedByID: req.UserId,
+		}
+		variant.Inventory.SetStock()
+
+		variants = append(variants, variant)
+	}
+	product.Variants = variants
+
+	images := make([]*model.Image, 0, len(req.Images))
+	for _, img := range req.Images {
+		ext := strings.ToLower(filepath.Ext(img.FileName))
+		if ext == "" {
+			ext = ".jpg"
+		}
+		fileName := fmt.Sprintf("%s-%d%s", product.Slug, img.SortOrder, ext)
+		uploadFileRequest := &common.UploadFileRequest{
+			File:     bytes.NewReader(img.File),
+			FileName: fileName,
+			Folder:   "somehow_microservice/product",
+		}
+		uploadedRes, err := s.imageKitSvc.UploadFile(ctx, uploadFileRequest)
+		if err != nil {
+			return nil, fmt.Errorf("tải lên ảnh sản phẩm thất bại: %w", err)
+		}
+
+		log.Printf("Đã tải lên ảnh sản phẩm: %s", uploadedRes.URL)
+
+		image := &model.Image{
+			ID:          uuid.NewString(),
+			ProductID:   product.ID,
+			ColorID:     img.ColorId,
+			Url:         uploadedRes.URL,
+			IsThumbnail: img.IsThumbnail,
+			SortOrder:   int(img.SortOrder),
+			CreatedByID: req.UserId,
+			UpdatedByID: req.UserId,
+		}
+
+		images = append(images, image)
+	}
+	product.Images = images
+
+	if err = s.productRepo.Create(ctx, product); err != nil {
+		return nil, fmt.Errorf("tạo sản phẩm thất bại: %w", err)
+	}
+
+	return product, nil
 }
 
 func getParentIDsFromParents(categories []*model.Category) []string {

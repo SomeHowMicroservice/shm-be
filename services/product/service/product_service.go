@@ -47,4 +47,6 @@ type ProductService interface {
 	GetAllSizes(ctx context.Context) ([]*model.Size, error)
 
 	GetAllTags(ctx context.Context) ([]*model.Tag, error)
+
+	CreateProductMain(ctx context.Context, req *protobuf.CreateProductMainRequest) (*model.Product, error)
 }
