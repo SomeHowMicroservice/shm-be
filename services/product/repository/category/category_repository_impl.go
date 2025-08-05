@@ -92,6 +92,10 @@ func (r *categoryRepositoryImpl) UpdateParents(ctx context.Context, category *mo
 	return nil
 }
 
+func (r *categoryRepositoryImpl) FindAllWithChildren(ctx context.Context) ([]*model.Category, error) {
+	return r.findAllBase(ctx, "Children")
+}
+
 func (r *categoryRepositoryImpl) findByIDBase(ctx context.Context, id string, preloads ...common.Preload) (*model.Category, error) {
 	var category model.Category
 	query := r.db.WithContext(ctx)

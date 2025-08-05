@@ -22,6 +22,7 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 	{
 		category.GET("/tree", productHandler.GetCategoryTree)
 		category.GET("/:slug/products", productHandler.GetProductsByCategory)
+		category.GET("/no-child", productHandler.GetCategoriesNoChild)
 	}
 
 	color := rg.Group("/colors")
@@ -46,13 +47,10 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 		admin.GET("/categories/:id", productHandler.CategoryAdminDetails)
 		admin.PUT("/categories/:id", productHandler.UpdateCategory)
 		admin.POST("/products", productHandler.CreateProduct)
-		admin.POST("/products/main", productHandler.CreateProductMain)
 		admin.POST("/colors", productHandler.CreateColor)
 		admin.GET("/colors", productHandler.GetAllColorsAdmin)
 		admin.POST("/sizes", productHandler.CreateSize)
 		admin.GET("/sizes", productHandler.GetAllSizesAdmin)
-		admin.POST("/variants", productHandler.CreateVariant)
-		admin.POST("/images", productHandler.CreateImage)
 		admin.POST("/tags", productHandler.CreateTag)
 		admin.GET("/tags", productHandler.GetAllTagsAdmin)
 		admin.PUT("/tags/:id", productHandler.UpdateTag)

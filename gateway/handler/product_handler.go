@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -102,87 +103,27 @@ func (h *ProductHandler) GetCategoryTree(c *gin.Context) {
 	})
 }
 
-func (h *ProductHandler) CreateProduct(c *gin.Context) {
+func (h *ProductHandler) GetCategoriesNoChild(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	userAny, exists := c.Get("user")
-	if !exists {
-		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
-		return
-	}
-
-	user, ok := userAny.(*userpb.UserPublicResponse)
-	if !ok {
-		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
-		return
-	}
-
-	var req request.CreateProductRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		message := common.HandleValidationError(err)
-		common.JSON(c, http.StatusBadRequest, message, nil)
-		return
-	}
-
-	var isSale bool
-	var salePrice *float32
-	var startSale, endSale *string
-	if req.IsSale != nil {
-		isSale = *req.IsSale
-		if isSale {
-			if req.SalePrice == nil || req.StartSale == nil || req.EndSale == nil {
-				common.JSON(c, http.StatusBadRequest, "Sản phẩm giảm giá phải bổ sung thêm thông tin", nil)
-				return
-			}
-			salePrice = req.SalePrice
-
-			formattedStartSale := req.StartSale.Format("2006-01-02")
-			startSale = &formattedStartSale
-			formattedEndSale := req.EndSale.Format("2006-01-02")
-			endSale = &formattedEndSale
-		} else {
-			if req.SalePrice != nil || req.StartSale != nil || req.EndSale != nil {
-				common.JSON(c, http.StatusBadRequest, "Sản phẩm không được giảm giá vui lòng không điền thông tin liên quan", nil)
-				return
-			}
-		}
-	}
-
-	res, err := h.productClient.CreateProduct(ctx, &productpb.CreateProductRequest{
-		Title:       req.Title,
-		Description: req.Description,
-		Price:       req.Price,
-		IsSale:      isSale,
-		SalePrice:   salePrice,
-		StartSale:   startSale,
-		EndSale:     endSale,
-		CategoryIds: req.CategoryIDs,
-		UserId:      user.Id,
-	})
+	res, err := h.productClient.GetCategoriesNoChild(ctx, &productpb.GetCategoriesNoChildRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
-			switch st.Code() {
-			case codes.NotFound:
-				common.JSON(c, http.StatusNotFound, st.Message(), nil)
-			case codes.AlreadyExists:
-				common.JSON(c, http.StatusConflict, st.Message(), nil)
-			default:
-				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
-			}
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
 			return
 		}
 		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 
-	common.JSON(c, http.StatusCreated, "Tạo sản phẩm thành công", gin.H{
-		"product_id": res.Id,
+	common.JSON(c, http.StatusOK, "Lấy danh mục sản phẩm không có con thành công", gin.H{
+		"categories": res.Categories,
 	})
 }
 
-func (h *ProductHandler) CreateProductMain(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 60*time.Second)
+func (h *ProductHandler) CreateProduct(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
 	userAny, exists := c.Get("user")
@@ -349,9 +290,9 @@ func (h *ProductHandler) CreateProductMain(c *gin.Context) {
 		}
 	}
 
-	variants := make([]*productpb.CreateVariantForm, 0, len(req.Variants))
+	variants := make([]*productpb.CreateVariantRequest, 0, len(req.Variants))
 	for _, v := range req.Variants {
-		variants = append(variants, &productpb.CreateVariantForm{
+		variants = append(variants, &productpb.CreateVariantRequest{
 			Sku:      v.SKU,
 			ColorId:  v.ColorID,
 			SizeId:   v.SizeID,
@@ -359,7 +300,7 @@ func (h *ProductHandler) CreateProductMain(c *gin.Context) {
 		})
 	}
 
-	images := make([]*productpb.CreateImageForm, 0, len(req.Images))
+	images := make([]*productpb.CreateImageRequest, 0, len(req.Images))
 	for _, img := range req.Images {
 		openedFile, err := img.File.Open()
 		if err != nil {
@@ -374,16 +315,18 @@ func (h *ProductHandler) CreateProductMain(c *gin.Context) {
 			return
 		}
 
-		images = append(images, &productpb.CreateImageForm{
+		base64Data := base64.StdEncoding.EncodeToString(fileBytes)
+
+		images = append(images, &productpb.CreateImageRequest{
 			ColorId:     img.ColorID,
-			File:        fileBytes,
+			Base64Data:  base64Data, 
 			FileName:    img.File.Filename,
 			IsThumbnail: img.IsThumbnail,
 			SortOrder:   int32(img.SortOrder),
 		})
 	}
 
-	res, err := h.productClient.CreateProductMain(ctx, &productpb.CreateProductMainRequest{
+	res, err := h.productClient.CreateProduct(ctx, &productpb.CreateProductRequest{
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       req.Price,
@@ -535,129 +478,6 @@ func (h *ProductHandler) CreateSize(c *gin.Context) {
 
 	common.JSON(c, http.StatusCreated, "Tạo size thành công", gin.H{
 		"size_id": res.Id,
-	})
-}
-
-func (h *ProductHandler) CreateVariant(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	defer cancel()
-
-	userAny, exists := c.Get("user")
-	if !exists {
-		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
-		return
-	}
-
-	user, ok := userAny.(*userpb.UserPublicResponse)
-	if !ok {
-		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
-		return
-	}
-
-	var req request.CreateVariantRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		message := common.HandleValidationError(err)
-		common.JSON(c, http.StatusBadRequest, message, nil)
-		return
-	}
-
-	res, err := h.productClient.CreateVariant(ctx, &productpb.CreateVariantRequest{
-		Sku:       req.SKU,
-		ProductId: req.ProductID,
-		ColorId:   req.ColorID,
-		SizeId:    req.SizeID,
-		Quantity:  int64(req.Quantity),
-		UserId:    user.Id,
-	})
-	if err != nil {
-		if st, ok := status.FromError(err); ok {
-			switch st.Code() {
-			case codes.AlreadyExists:
-				common.JSON(c, http.StatusConflict, st.Message(), nil)
-			case codes.NotFound:
-				common.JSON(c, http.StatusNotFound, st.Message(), nil)
-			default:
-				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
-			}
-			return
-		}
-		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
-		return
-	}
-
-	common.JSON(c, http.StatusCreated, "Tạo biến thể sản phẩm thành công", gin.H{
-		"variant_id": res.Id,
-	})
-}
-
-func (h *ProductHandler) CreateImage(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	defer cancel()
-
-	userAny, exists := c.Get("user")
-	if !exists {
-		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
-		return
-	}
-
-	user, ok := userAny.(*userpb.UserPublicResponse)
-	if !ok {
-		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
-		return
-	}
-
-	var req request.CreateImageRequest
-	if err := c.ShouldBind(&req); err != nil {
-		message := common.HandleValidationError(err)
-		common.JSON(c, http.StatusBadRequest, message, nil)
-		return
-	}
-
-	fileHeader := req.File
-
-	maxSize := int64(10 * 1024 * 1024)
-	if fileHeader.Size > maxSize {
-		common.JSON(c, http.StatusRequestEntityTooLarge, "File phải có kích thước bé hơn hoặc bằng 10MB", nil)
-		return
-	}
-
-	file, _ := fileHeader.Open()
-	defer file.Close()
-
-	data, _ := io.ReadAll(file)
-
-	var isThumbnail bool
-	if req.IsThumbnail != nil {
-		isThumbnail = *req.IsThumbnail
-	}
-
-	res, err := h.productClient.CreateImage(ctx, &productpb.CreateImageRequest{
-		ProductId:   req.ProductID,
-		ColorId:     req.ColorID,
-		File:        data,
-		FileName:    fileHeader.Filename,
-		IsThumbnail: isThumbnail,
-		SortOrder:   int32(req.SortOrder),
-		UserId:      user.Id,
-	})
-	if err != nil {
-		if st, ok := status.FromError(err); ok {
-			switch st.Code() {
-			case codes.NotFound:
-				common.JSON(c, http.StatusNotFound, st.Message(), nil)
-			case codes.AlreadyExists:
-				common.JSON(c, http.StatusConflict, st.Message(), nil)
-			default:
-				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
-			}
-			return
-		}
-		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
-		return
-	}
-
-	common.JSON(c, http.StatusCreated, "Thêm hình ảnh sản phẩm thành công", gin.H{
-		"image_id": res.Id,
 	})
 }
 

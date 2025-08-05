@@ -10,19 +10,15 @@ import (
 type ProductService interface {
 	CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*model.Category, error)
 
-	GetCategoryTree(ctx context.Context) ([]*model.Category, error) 
+	GetCategoryTree(ctx context.Context) ([]*model.Category, error)
 
-	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error)
+	GetCategoriesNoChild(ctx context.Context) ([]*model.Category, error) 
 
 	GetProductBySlug(ctx context.Context, slug string) (*model.Product, error)
 
 	CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error)
 
 	CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*model.Size, error)
-
-	CreateVariant(ctx context.Context, req *protobuf.CreateVariantRequest) (*model.Variant, error)
-
-	CreateImage(ctx context.Context, req *protobuf.CreateImageRequest) (*model.Image, error)
 
 	GetProductsByCategory(ctx context.Context, categorySlug string) ([]*model.Product, error)
 
@@ -48,5 +44,5 @@ type ProductService interface {
 
 	GetAllTags(ctx context.Context) ([]*model.Tag, error)
 
-	CreateProductMain(ctx context.Context, req *protobuf.CreateProductMainRequest) (*model.Product, error)
+	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error)
 }

@@ -21,12 +21,9 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ProductService_CreateCategory_FullMethodName        = "/product.ProductService/CreateCategory"
 	ProductService_GetCategoryTree_FullMethodName       = "/product.ProductService/GetCategoryTree"
-	ProductService_CreateProduct_FullMethodName         = "/product.ProductService/CreateProduct"
 	ProductService_GetProductBySlug_FullMethodName      = "/product.ProductService/GetProductBySlug"
 	ProductService_CreateColor_FullMethodName           = "/product.ProductService/CreateColor"
 	ProductService_CreateSize_FullMethodName            = "/product.ProductService/CreateSize"
-	ProductService_CreateVariant_FullMethodName         = "/product.ProductService/CreateVariant"
-	ProductService_CreateImage_FullMethodName           = "/product.ProductService/CreateImage"
 	ProductService_GetProductsByCategory_FullMethodName = "/product.ProductService/GetProductsByCategory"
 	ProductService_CreateTag_FullMethodName             = "/product.ProductService/CreateTag"
 	ProductService_GetAllCategoriesAdmin_FullMethodName = "/product.ProductService/GetAllCategoriesAdmin"
@@ -39,7 +36,8 @@ const (
 	ProductService_GetAllColors_FullMethodName          = "/product.ProductService/GetAllColors"
 	ProductService_GetAllSizes_FullMethodName           = "/product.ProductService/GetAllSizes"
 	ProductService_GetAllTags_FullMethodName            = "/product.ProductService/GetAllTags"
-	ProductService_CreateProductMain_FullMethodName     = "/product.ProductService/CreateProductMain"
+	ProductService_CreateProduct_FullMethodName         = "/product.ProductService/CreateProduct"
+	ProductService_GetCategoriesNoChild_FullMethodName  = "/product.ProductService/GetCategoriesNoChild"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -48,15 +46,12 @@ const (
 type ProductServiceClient interface {
 	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetCategoryTree(ctx context.Context, in *GetCategoryTreeRequest, opts ...grpc.CallOption) (*CategoryTreeResponse, error)
-	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetProductBySlug(ctx context.Context, in *GetProductBySlugRequest, opts ...grpc.CallOption) (*ProductPublicResponse, error)
 	CreateColor(ctx context.Context, in *CreateColorRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	CreateSize(ctx context.Context, in *CreateSizeRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
-	CreateVariant(ctx context.Context, in *CreateVariantRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
-	CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetProductsByCategory(ctx context.Context, in *GetProductsByCategoryRequest, opts ...grpc.CallOption) (*ProductsPublicResponse, error)
 	CreateTag(ctx context.Context, in *CreateTagRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
-	GetAllCategoriesAdmin(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error)
+	GetAllCategoriesAdmin(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
 	GetCategoryById(ctx context.Context, in *GetCategoryByIdRequest, opts ...grpc.CallOption) (*CategoryAdminDetailsResponse, error)
 	UpdateCategory(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*CategoryAdminDetailsResponse, error)
 	GetAllColorsAdmin(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error)
@@ -66,7 +61,8 @@ type ProductServiceClient interface {
 	GetAllColors(ctx context.Context, in *GetAllColorsRequest, opts ...grpc.CallOption) (*ColorsPublicResponse, error)
 	GetAllSizes(ctx context.Context, in *GetAllSizesRequest, opts ...grpc.CallOption) (*SizesPublicResponse, error)
 	GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsPublicResponse, error)
-	CreateProductMain(ctx context.Context, in *CreateProductMainRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	GetCategoriesNoChild(ctx context.Context, in *GetCategoriesNoChildRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
 }
 
 type productServiceClient struct {
@@ -91,16 +87,6 @@ func (c *productServiceClient) GetCategoryTree(ctx context.Context, in *GetCateg
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CategoryTreeResponse)
 	err := c.cc.Invoke(ctx, ProductService_GetCategoryTree_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *productServiceClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreatedResponse)
-	err := c.cc.Invoke(ctx, ProductService_CreateProduct_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -137,26 +123,6 @@ func (c *productServiceClient) CreateSize(ctx context.Context, in *CreateSizeReq
 	return out, nil
 }
 
-func (c *productServiceClient) CreateVariant(ctx context.Context, in *CreateVariantRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreatedResponse)
-	err := c.cc.Invoke(ctx, ProductService_CreateVariant_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *productServiceClient) CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreatedResponse)
-	err := c.cc.Invoke(ctx, ProductService_CreateImage_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *productServiceClient) GetProductsByCategory(ctx context.Context, in *GetProductsByCategoryRequest, opts ...grpc.CallOption) (*ProductsPublicResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ProductsPublicResponse)
@@ -177,9 +143,9 @@ func (c *productServiceClient) CreateTag(ctx context.Context, in *CreateTagReque
 	return out, nil
 }
 
-func (c *productServiceClient) GetAllCategoriesAdmin(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*CategoriesAdminResponse, error) {
+func (c *productServiceClient) GetAllCategoriesAdmin(ctx context.Context, in *GetAllCategoriesRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CategoriesAdminResponse)
+	out := new(BaseCategoriesResponse)
 	err := c.cc.Invoke(ctx, ProductService_GetAllCategoriesAdmin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -277,10 +243,20 @@ func (c *productServiceClient) GetAllTags(ctx context.Context, in *GetAllTagsReq
 	return out, nil
 }
 
-func (c *productServiceClient) CreateProductMain(ctx context.Context, in *CreateProductMainRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
+func (c *productServiceClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreatedResponse)
-	err := c.cc.Invoke(ctx, ProductService_CreateProductMain_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ProductService_CreateProduct_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetCategoriesNoChild(ctx context.Context, in *GetCategoriesNoChildRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BaseCategoriesResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetCategoriesNoChild_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -293,15 +269,12 @@ func (c *productServiceClient) CreateProductMain(ctx context.Context, in *Create
 type ProductServiceServer interface {
 	CreateCategory(context.Context, *CreateCategoryRequest) (*CreatedResponse, error)
 	GetCategoryTree(context.Context, *GetCategoryTreeRequest) (*CategoryTreeResponse, error)
-	CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error)
 	GetProductBySlug(context.Context, *GetProductBySlugRequest) (*ProductPublicResponse, error)
 	CreateColor(context.Context, *CreateColorRequest) (*CreatedResponse, error)
 	CreateSize(context.Context, *CreateSizeRequest) (*CreatedResponse, error)
-	CreateVariant(context.Context, *CreateVariantRequest) (*CreatedResponse, error)
-	CreateImage(context.Context, *CreateImageRequest) (*CreatedResponse, error)
 	GetProductsByCategory(context.Context, *GetProductsByCategoryRequest) (*ProductsPublicResponse, error)
 	CreateTag(context.Context, *CreateTagRequest) (*CreatedResponse, error)
-	GetAllCategoriesAdmin(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error)
+	GetAllCategoriesAdmin(context.Context, *GetAllCategoriesRequest) (*BaseCategoriesResponse, error)
 	GetCategoryById(context.Context, *GetCategoryByIdRequest) (*CategoryAdminDetailsResponse, error)
 	UpdateCategory(context.Context, *UpdateCategoryRequest) (*CategoryAdminDetailsResponse, error)
 	GetAllColorsAdmin(context.Context, *GetAllColorsRequest) (*ColorsAdminResponse, error)
@@ -311,7 +284,8 @@ type ProductServiceServer interface {
 	GetAllColors(context.Context, *GetAllColorsRequest) (*ColorsPublicResponse, error)
 	GetAllSizes(context.Context, *GetAllSizesRequest) (*SizesPublicResponse, error)
 	GetAllTags(context.Context, *GetAllTagsRequest) (*TagsPublicResponse, error)
-	CreateProductMain(context.Context, *CreateProductMainRequest) (*CreatedResponse, error)
+	CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error)
+	GetCategoriesNoChild(context.Context, *GetCategoriesNoChildRequest) (*BaseCategoriesResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -328,9 +302,6 @@ func (UnimplementedProductServiceServer) CreateCategory(context.Context, *Create
 func (UnimplementedProductServiceServer) GetCategoryTree(context.Context, *GetCategoryTreeRequest) (*CategoryTreeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCategoryTree not implemented")
 }
-func (UnimplementedProductServiceServer) CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateProduct not implemented")
-}
 func (UnimplementedProductServiceServer) GetProductBySlug(context.Context, *GetProductBySlugRequest) (*ProductPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductBySlug not implemented")
 }
@@ -340,19 +311,13 @@ func (UnimplementedProductServiceServer) CreateColor(context.Context, *CreateCol
 func (UnimplementedProductServiceServer) CreateSize(context.Context, *CreateSizeRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSize not implemented")
 }
-func (UnimplementedProductServiceServer) CreateVariant(context.Context, *CreateVariantRequest) (*CreatedResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateVariant not implemented")
-}
-func (UnimplementedProductServiceServer) CreateImage(context.Context, *CreateImageRequest) (*CreatedResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateImage not implemented")
-}
 func (UnimplementedProductServiceServer) GetProductsByCategory(context.Context, *GetProductsByCategoryRequest) (*ProductsPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByCategory not implemented")
 }
 func (UnimplementedProductServiceServer) CreateTag(context.Context, *CreateTagRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTag not implemented")
 }
-func (UnimplementedProductServiceServer) GetAllCategoriesAdmin(context.Context, *GetAllCategoriesRequest) (*CategoriesAdminResponse, error) {
+func (UnimplementedProductServiceServer) GetAllCategoriesAdmin(context.Context, *GetAllCategoriesRequest) (*BaseCategoriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllCategoriesAdmin not implemented")
 }
 func (UnimplementedProductServiceServer) GetCategoryById(context.Context, *GetCategoryByIdRequest) (*CategoryAdminDetailsResponse, error) {
@@ -382,8 +347,11 @@ func (UnimplementedProductServiceServer) GetAllSizes(context.Context, *GetAllSiz
 func (UnimplementedProductServiceServer) GetAllTags(context.Context, *GetAllTagsRequest) (*TagsPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllTags not implemented")
 }
-func (UnimplementedProductServiceServer) CreateProductMain(context.Context, *CreateProductMainRequest) (*CreatedResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateProductMain not implemented")
+func (UnimplementedProductServiceServer) CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProduct not implemented")
+}
+func (UnimplementedProductServiceServer) GetCategoriesNoChild(context.Context, *GetCategoriesNoChildRequest) (*BaseCategoriesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCategoriesNoChild not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -442,24 +410,6 @@ func _ProductService_GetCategoryTree_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProductService_CreateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateProductRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProductServiceServer).CreateProduct(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ProductService_CreateProduct_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).CreateProduct(ctx, req.(*CreateProductRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ProductService_GetProductBySlug_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProductBySlugRequest)
 	if err := dec(in); err != nil {
@@ -510,42 +460,6 @@ func _ProductService_CreateSize_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProductServiceServer).CreateSize(ctx, req.(*CreateSizeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ProductService_CreateVariant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateVariantRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProductServiceServer).CreateVariant(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ProductService_CreateVariant_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).CreateVariant(ctx, req.(*CreateVariantRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ProductService_CreateImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateImageRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProductServiceServer).CreateImage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ProductService_CreateImage_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).CreateImage(ctx, req.(*CreateImageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -766,20 +680,38 @@ func _ProductService_GetAllTags_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProductService_CreateProductMain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateProductMainRequest)
+func _ProductService_CreateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProductRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProductServiceServer).CreateProductMain(ctx, in)
+		return srv.(ProductServiceServer).CreateProduct(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProductService_CreateProductMain_FullMethodName,
+		FullMethod: ProductService_CreateProduct_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).CreateProductMain(ctx, req.(*CreateProductMainRequest))
+		return srv.(ProductServiceServer).CreateProduct(ctx, req.(*CreateProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_GetCategoriesNoChild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCategoriesNoChildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetCategoriesNoChild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetCategoriesNoChild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetCategoriesNoChild(ctx, req.(*GetCategoriesNoChildRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -800,10 +732,6 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProductService_GetCategoryTree_Handler,
 		},
 		{
-			MethodName: "CreateProduct",
-			Handler:    _ProductService_CreateProduct_Handler,
-		},
-		{
 			MethodName: "GetProductBySlug",
 			Handler:    _ProductService_GetProductBySlug_Handler,
 		},
@@ -814,14 +742,6 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSize",
 			Handler:    _ProductService_CreateSize_Handler,
-		},
-		{
-			MethodName: "CreateVariant",
-			Handler:    _ProductService_CreateVariant_Handler,
-		},
-		{
-			MethodName: "CreateImage",
-			Handler:    _ProductService_CreateImage_Handler,
 		},
 		{
 			MethodName: "GetProductsByCategory",
@@ -872,8 +792,12 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProductService_GetAllTags_Handler,
 		},
 		{
-			MethodName: "CreateProductMain",
-			Handler:    _ProductService_CreateProductMain_Handler,
+			MethodName: "CreateProduct",
+			Handler:    _ProductService_CreateProduct_Handler,
+		},
+		{
+			MethodName: "GetCategoriesNoChild",
+			Handler:    _ProductService_GetCategoriesNoChild_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

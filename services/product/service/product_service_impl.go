@@ -1,11 +1,10 @@
 package service
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -13,8 +12,9 @@ import (
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/common"
-	"github.com/SomeHowMicroservice/shm-be/services/product/imagekit"
+	"github.com/SomeHowMicroservice/shm-be/services/product/config"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
+	"github.com/SomeHowMicroservice/shm-be/services/product/mq"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	categoryRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/category"
 	colorRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/color"
@@ -25,13 +25,15 @@ import (
 	variantRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/variant"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/google/uuid"
+	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type productServiceImpl struct {
+	cfg          *config.Config
 	userClient   userpb.UserServiceClient
-	imageKitSvc  imagekit.ImageKitService
+	mqChannel    *amqp091.Channel
 	categoryRepo categoryRepo.CategoryRepository
 	productRepo  productRepo.ProductRepository
 	tagRepo      tagRepo.TagRepository
@@ -41,10 +43,11 @@ type productServiceImpl struct {
 	imageRepo    imageRepo.ImageRepository
 }
 
-func NewProductService(userClient userpb.UserServiceClient, imageKitSvc imagekit.ImageKitService, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, imageRepo imageRepo.ImageRepository) ProductService {
+func NewProductService(cfg *config.Config, userClient userpb.UserServiceClient, mqChannel *amqp091.Channel, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, imageRepo imageRepo.ImageRepository) ProductService {
 	return &productServiceImpl{
+		cfg,
 		userClient,
-		imageKitSvc,
+		mqChannel,
 		categoryRepo,
 		productRepo,
 		tagRepo,
@@ -123,69 +126,6 @@ func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Cate
 	return roots, nil
 }
 
-func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error) {
-	slug := common.GenerateSlug(req.Title)
-	exists, err := s.productRepo.ExistsBySlug(ctx, slug)
-	if err != nil {
-		return nil, fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
-	}
-	if exists {
-		return nil, customErr.ErrSlugAlreadyExists
-	}
-
-	var categories []*model.Category
-	if len(req.CategoryIds) > 0 {
-		categories, err = s.categoryRepo.FindAllByIDInWithChildren(ctx, req.CategoryIds)
-		if err != nil {
-			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
-		}
-		if len(categories) != len(req.CategoryIds) {
-			return nil, customErr.ErrHasCategoryNotFound
-		}
-
-		for _, c := range categories {
-			if len(c.Children) > 0 {
-				return nil, fmt.Errorf("danh mục %s có danh mục con, không thể được gán cho sản phẩm", c.Name)
-			}
-		}
-	}
-
-	var startSale, endSale *time.Time
-	if req.StartSale != nil && req.EndSale != nil {
-		parsedStartSale, err := common.ParseDate(*req.StartSale)
-		if err != nil {
-			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian bắt đầu giảm giá thất bại: %w", err)
-		}
-		startSale = &parsedStartSale
-
-		parsedEndSale, err := common.ParseDate(*req.EndSale)
-		if err != nil {
-			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian kết thúc giảm giá thất bại: %w", err)
-		}
-		endSale = &parsedEndSale
-	}
-
-	product := &model.Product{
-		ID:          uuid.NewString(),
-		Title:       req.Title,
-		Slug:        slug,
-		Description: req.Description,
-		Price:       req.Price,
-		IsSale:      req.IsSale,
-		SalePrice:   req.SalePrice,
-		StartSale:   startSale,
-		EndSale:     endSale,
-		CreatedByID: req.UserId,
-		UpdatedByID: req.UserId,
-		Categories:  categories,
-	}
-	if err = s.productRepo.Create(ctx, product); err != nil {
-		return nil, fmt.Errorf("tạo sản phẩm thất bại: %w", err)
-	}
-
-	return product, nil
-}
-
 func (s *productServiceImpl) GetProductBySlug(ctx context.Context, slug string) (*model.Product, error) {
 	product, err := s.productRepo.FindBySlug(ctx, slug)
 	if err != nil {
@@ -244,113 +184,6 @@ func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.Creat
 	}
 
 	return size, nil
-}
-
-func (s *productServiceImpl) CreateVariant(ctx context.Context, req *protobuf.CreateVariantRequest) (*model.Variant, error) {
-	exists, err := s.variantRepo.ExistsBySKU(ctx, req.Sku)
-	if err != nil {
-		return nil, fmt.Errorf("kiểm tra tồn tại mã SKU thất bại: %w", err)
-	}
-	if exists {
-		return nil, customErr.ErrSKUAlreadyExists
-	}
-
-	exists, err = s.productRepo.ExistsByID(ctx, req.ProductId)
-	if err != nil {
-		return nil, fmt.Errorf("tìm thông tin sản phẩm thất bại: %w", err)
-	}
-	if !exists {
-		return nil, customErr.ErrProductNotFound
-	}
-
-	exists, err = s.colorRepo.ExistsByID(ctx, req.ColorId)
-	if err != nil {
-		return nil, fmt.Errorf("tìm thông tin màu sắc thất bại: %w", err)
-	}
-	if !exists {
-		return nil, customErr.ErrColorNotFound
-	}
-
-	exists, err = s.sizeRepo.ExistsByID(ctx, req.SizeId)
-	if err != nil {
-		return nil, fmt.Errorf("tìm thông tin kích cỡ thất bại: %w", err)
-	}
-	if !exists {
-		return nil, customErr.ErrSizeNotFound
-	}
-
-	variant := &model.Variant{
-		ID:          uuid.NewString(),
-		SKU:         req.Sku,
-		ProductID:   req.ProductId,
-		ColorID:     req.ColorId,
-		SizeID:      req.SizeId,
-		CreatedByID: req.UserId,
-		UpdatedByID: req.UserId,
-		Inventory: &model.Inventory{
-			ID:           uuid.NewString(),
-			Quantity:     int(req.Quantity),
-			SoldQuantity: 0,
-			UpdatedByID:  req.UserId,
-		},
-	}
-	variant.Inventory.SetStock()
-	if err = s.variantRepo.Create(ctx, variant); err != nil {
-		return nil, fmt.Errorf("tạo biến thể sản phẩm thất bại: %w", err)
-	}
-
-	return variant, nil
-}
-
-func (s *productServiceImpl) CreateImage(ctx context.Context, req *protobuf.CreateImageRequest) (*model.Image, error) {
-	product, err := s.productRepo.FindByID(ctx, req.ProductId)
-	if err != nil {
-		return nil, fmt.Errorf("tìm thông tin sản phẩm thất bại: %w", err)
-	}
-	if product == nil {
-		return nil, customErr.ErrProductNotFound
-	}
-
-	exists, err := s.colorRepo.ExistsByID(ctx, req.ColorId)
-	if err != nil {
-		return nil, fmt.Errorf("tìm thông tin màu sắc thất bại: %w", err)
-	}
-	if !exists {
-		return nil, customErr.ErrColorNotFound
-	}
-
-	ext := strings.ToLower(filepath.Ext(req.FileName))
-	if ext == "" {
-		ext = ".jpg"
-	}
-
-	fileName := fmt.Sprintf("%s-%d%s", product.Slug, req.SortOrder, ext)
-
-	uploadFileRequest := &common.UploadFileRequest{
-		File:     bytes.NewReader(req.File),
-		FileName: fileName,
-		Folder:   "somehow_microservice/product",
-	}
-	uploadedRes, err := s.imageKitSvc.UploadFile(ctx, uploadFileRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	image := &model.Image{
-		ID:          uuid.NewString(),
-		ProductID:   req.ProductId,
-		ColorID:     req.ColorId,
-		Url:         uploadedRes.URL,
-		IsThumbnail: req.IsThumbnail,
-		SortOrder:   int(req.SortOrder),
-		CreatedByID: req.UserId,
-		UpdatedByID: req.UserId,
-	}
-	if err = s.imageRepo.Create(ctx, image); err != nil {
-		return nil, fmt.Errorf("tạo ảnh sản phẩm thất bại: %w", err)
-	}
-
-	return image, nil
 }
 
 func (s *productServiceImpl) GetProductsByCategory(ctx context.Context, categorySlug string) ([]*model.Product, error) {
@@ -813,7 +646,23 @@ func (s *productServiceImpl) GetAllTags(ctx context.Context) ([]*model.Tag, erro
 	return tags, nil
 }
 
-func (s *productServiceImpl) CreateProductMain(ctx context.Context, req *protobuf.CreateProductMainRequest) (*model.Product, error) {
+func (s *productServiceImpl) GetCategoriesNoChild(ctx context.Context) ([]*model.Category, error) {
+	categories, err := s.categoryRepo.FindAllWithChildren(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy tất cả danh mục sản phẩm thất bại: %w", err)
+	}
+
+	var noChildCategories []*model.Category
+	for _, c := range categories {
+		if len(c.Children) == 0 {
+			noChildCategories = append(noChildCategories, c)
+		}
+	}
+
+	return noChildCategories, nil
+}
+
+func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error) {
 	slug := common.GenerateSlug(req.Title)
 	exists, err := s.productRepo.ExistsBySlug(ctx, slug)
 	if err != nil {
@@ -891,8 +740,8 @@ func (s *productServiceImpl) CreateProductMain(ctx context.Context, req *protobu
 			ColorID:   v.ColorId,
 			SizeID:    v.SizeId,
 			Inventory: &model.Inventory{
-				ID:       uuid.NewString(),
-				Quantity: int(v.Quantity),
+				ID:          uuid.NewString(),
+				Quantity:    int(v.Quantity),
 				UpdatedByID: req.UserId,
 			},
 			CreatedByID: req.UserId,
@@ -911,23 +760,28 @@ func (s *productServiceImpl) CreateProductMain(ctx context.Context, req *protobu
 			ext = ".jpg"
 		}
 		fileName := fmt.Sprintf("%s-%d%s", product.Slug, img.SortOrder, ext)
-		uploadFileRequest := &common.UploadFileRequest{
-			File:     bytes.NewReader(img.File),
-			FileName: fileName,
-			Folder:   "somehow_microservice/product",
+
+		uploadFileRequest := &common.Base64UploadRequest{
+			Base64Data: img.Base64Data,
+			FileName:   fileName,
+			Folder:     "somehow_microservice/product",
 		}
-		uploadedRes, err := s.imageKitSvc.UploadFile(ctx, uploadFileRequest)
+		
+		body, err := json.Marshal(uploadFileRequest)
 		if err != nil {
-			return nil, fmt.Errorf("tải lên ảnh sản phẩm thất bại: %w", err)
+			return nil, fmt.Errorf("marshal json thất bại: %w", err)
 		}
 
-		log.Printf("Đã tải lên ảnh sản phẩm: %s", uploadedRes.URL)
+		if err = mq.PublishMessage(s.mqChannel, "", "image.upload", body); err != nil {
+			return nil, fmt.Errorf("publish upload image msg thất bại: %w", err)
+		}
 
+		imageUrl := fmt.Sprintf("%s/%s/%s", s.cfg.ImageKit.URLEndpoint, "somehow_microservice/product", fileName)
 		image := &model.Image{
 			ID:          uuid.NewString(),
 			ProductID:   product.ID,
 			ColorID:     img.ColorId,
-			Url:         uploadedRes.URL,
+			Url:         imageUrl,
 			IsThumbnail: img.IsThumbnail,
 			SortOrder:   int(img.SortOrder),
 			CreatedByID: req.UserId,
@@ -943,6 +797,21 @@ func (s *productServiceImpl) CreateProductMain(ctx context.Context, req *protobu
 	}
 
 	return product, nil
+}
+
+func getMimeType(ext string) string {
+	switch ext {
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	case ".webp":
+		return "image/webp"
+	default:
+		return "image/jpeg"
+	}
 }
 
 func getParentIDsFromParents(categories []*model.Category) []string {

@@ -48,24 +48,6 @@ func (h *GRPCHandler) GetCategoryTree(ctx context.Context, req *protobuf.GetCate
 	return toCategoryTreeResponse(categoryTree), nil
 }
 
-func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*protobuf.CreatedResponse, error) {
-	product, err := h.svc.CreateProduct(ctx, req)
-	if err != nil {
-		switch err {
-		case customErr.ErrSlugAlreadyExists:
-			return nil, status.Error(codes.AlreadyExists, err.Error())
-		case customErr.ErrCategoryNotFound, customErr.ErrHasCategoryNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, err.Error())
-		}
-	}
-
-	return &protobuf.CreatedResponse{
-		Id: product.ID,
-	}, nil
-}
-
 func (h *GRPCHandler) GetProductBySlug(ctx context.Context, req *protobuf.GetProductBySlugRequest) (*protobuf.ProductPublicResponse, error) {
 	product, err := h.svc.GetProductBySlug(ctx, req.Slug)
 	if err != nil {
@@ -112,40 +94,6 @@ func (h *GRPCHandler) CreateSize(ctx context.Context, req *protobuf.CreateSizeRe
 	}, nil
 }
 
-func (h *GRPCHandler) CreateVariant(ctx context.Context, req *protobuf.CreateVariantRequest) (*protobuf.CreatedResponse, error) {
-	variant, err := h.svc.CreateVariant(ctx, req)
-	if err != nil {
-		switch err {
-		case customErr.ErrSKUAlreadyExists:
-			return nil, status.Error(codes.AlreadyExists, err.Error())
-		case customErr.ErrProductNotFound, customErr.ErrColorNotFound, customErr.ErrSizeNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, err.Error())
-		}
-	}
-
-	return &protobuf.CreatedResponse{
-		Id: variant.ID,
-	}, nil
-}
-
-func (h *GRPCHandler) CreateImage(ctx context.Context, req *protobuf.CreateImageRequest) (*protobuf.CreatedResponse, error) {
-	image, err := h.svc.CreateImage(ctx, req)
-	if err != nil {
-		switch err {
-		case customErr.ErrProductNotFound, customErr.ErrColorNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, err.Error())
-		}
-	}
-
-	return &protobuf.CreatedResponse{
-		Id: image.ID,
-	}, nil
-}
-
 func (h *GRPCHandler) GetProductsByCategory(ctx context.Context, req *protobuf.GetProductsByCategoryRequest) (*protobuf.ProductsPublicResponse, error) {
 	products, err := h.svc.GetProductsByCategory(ctx, req.Slug)
 	if err != nil {
@@ -176,7 +124,7 @@ func (h *GRPCHandler) CreateTag(ctx context.Context, req *protobuf.CreateTagRequ
 	}, nil
 }
 
-func (h *GRPCHandler) GetAllCategoriesAdmin(ctx context.Context, req *protobuf.GetAllCategoriesRequest) (*protobuf.CategoriesAdminResponse, error) {
+func (h *GRPCHandler) GetAllCategoriesAdmin(ctx context.Context, req *protobuf.GetAllCategoriesRequest) (*protobuf.BaseCategoriesResponse, error) {
 	categories, err := h.svc.GetAllCategories(ctx)
 	if err != nil {
 		switch err {
@@ -187,7 +135,7 @@ func (h *GRPCHandler) GetAllCategoriesAdmin(ctx context.Context, req *protobuf.G
 		}
 	}
 
-	return &protobuf.CategoriesAdminResponse{
+	return &protobuf.BaseCategoriesResponse{
 		Categories: toBaseCategoriesResponse(categories),
 	}, nil
 }
@@ -316,8 +264,8 @@ func (h *GRPCHandler) UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequ
 	}, nil
 }
 
-func (h *GRPCHandler) CreateProductMain(ctx context.Context, req *protobuf.CreateProductMainRequest) (*protobuf.CreatedResponse, error) {
-	product, err := h.svc.CreateProductMain(ctx, req)
+func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*protobuf.CreatedResponse, error) {
+	product, err := h.svc.CreateProduct(ctx, req)
 	if err != nil {
 		switch err {
 		case customErr.ErrSlugAlreadyExists:
@@ -331,6 +279,22 @@ func (h *GRPCHandler) CreateProductMain(ctx context.Context, req *protobuf.Creat
 
 	return &protobuf.CreatedResponse{
 		Id: product.ID,
+	}, nil
+}
+
+func (h *GRPCHandler) GetCategoriesNoChild(ctx context.Context, req *protobuf.GetCategoriesNoChildRequest) (*protobuf.BaseCategoriesResponse, error) {
+	categories, err := h.svc.GetCategoriesNoChild(ctx)
+	if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.BaseCategoriesResponse{
+		Categories: toBaseCategoriesResponse(categories),
 	}, nil
 }
 

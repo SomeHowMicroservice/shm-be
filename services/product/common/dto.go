@@ -1,15 +1,11 @@
 package common
 
-import (
-	"io"
+import "gorm.io/gorm"
 
-	"gorm.io/gorm"
-)
-
-type UploadFileRequest struct {
-	File     io.Reader
-	FileName string
-	Folder   string
+type Base64UploadRequest struct {
+	Base64Data string `json:"base64_data"`
+	FileName   string `json:"file_name"`
+	Folder     string `json:"folder"`
 }
 
 type UploadFileResponse struct {

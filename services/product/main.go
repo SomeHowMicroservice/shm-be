@@ -7,6 +7,7 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/services/product/config"
 	"github.com/SomeHowMicroservice/shm-be/services/product/container"
+	"github.com/SomeHowMicroservice/shm-be/services/product/imagekit"
 	"github.com/SomeHowMicroservice/shm-be/services/product/initialization"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	"google.golang.org/grpc"
@@ -27,12 +28,21 @@ func main() {
 		log.Fatalf("Lỗi kết nối DB ở User Service: %v", err)
 	}
 
+	mqc, err := initialization.InitMessageQueue(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer mqc.Close()
+
 	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
 	clients := initialization.InitClients(userAddr)
 
 	grpcServer := grpc.NewServer()
-	productContainer := container.NewContainer(cfg, db, grpcServer, clients.UserClient)
+	productContainer := container.NewContainer(cfg, db, mqc.Chann, grpcServer, clients.UserClient)
 	protobuf.RegisterProductServiceServer(grpcServer, productContainer.GRPCHandler)
+
+	imagekit := imagekit.NewImageKitService(cfg)
+	go startUploadImageConsumer(mqc, imagekit)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {

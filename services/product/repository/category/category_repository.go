@@ -30,4 +30,6 @@ type CategoryRepository interface {
 	FindByIDWithParents(ctx context.Context, id string) (*model.Category, error)
 
 	UpdateParents(ctx context.Context, category *model.Category, parents []*model.Category) error
+
+	FindAllWithChildren(ctx context.Context) ([]*model.Category, error)
 }

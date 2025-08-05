@@ -44,27 +44,11 @@ type UpdateTagRequest struct {
 	Name string `json:"name" binding:"required,max=50"`
 }
 
-type CreateVariantRequest struct {
-	SKU       string `json:"sku" binding:"required,max=50"`
-	ProductID string `json:"product_id" binding:"required,uuid4"`
-	ColorID   string `json:"color_id" binding:"required,uuid4"`
-	SizeID    string `json:"size_id" binding:"required,uuid4"`
-	Quantity  int    `json:"quantity" binding:"required"`
-}
-
 type CreateImageForm struct {
 	ColorID     string                `form:"color_id" binding:"required,uuid4"`
 	IsThumbnail bool                  `form:"is_thumbnail" binding:"required"`
 	SortOrder   int                   `form:"sort_order" binding:"required"`
 	File        *multipart.FileHeader `form:"file" binding:"required"`
-}
-
-type CreateImageRequest struct {
-	ProductID   string                `form:"product_id" validate:"required,uuid4"`
-	ColorID     string                `form:"color_id" validate:"required,uuid4"`
-	IsThumbnail *bool                 `form:"is_thumbnail" validate:"required"`
-	SortOrder   int                   `form:"sort_order" validate:"required"`
-	File        *multipart.FileHeader `form:"file" validate:"required"`
 }
 
 type CreateProductForm struct {

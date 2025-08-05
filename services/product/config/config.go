@@ -21,6 +21,12 @@ type Config struct {
 		DBChannelBinding string `mapstructure:"pg_channel_binding"`
 	} `mapstructure:"database"`
 
+	MessageQueue struct {
+		RHost     string `mapstructure:"rb_host"`
+		RUser     string `mapstructure:"rb_user"`
+		RPassword string `mapstructure:"rb_password"`
+	} `mapstructure:"message_queue"`
+
 	ImageKit struct {
 		PublicKey   string `mapstructure:"public_key"`
 		PrivateKey  string `mapstructure:"private_key"`
