@@ -298,6 +298,20 @@ func (h *GRPCHandler) GetCategoriesNoChild(ctx context.Context, req *protobuf.Ge
 	}, nil
 }
 
+func (h *GRPCHandler) GetProductById(ctx context.Context, req *protobuf.GetProductByIdRequest) (*protobuf.ProductAdminDetailsResponse, error) {
+	convertedProduct, err := h.svc.GetProductByID(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case customErr.ErrProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedProduct, nil
+}
+
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
 	var productResponses []*protobuf.ProductPublicResponse
 	for _, pro := range products {

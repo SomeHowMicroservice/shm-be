@@ -38,6 +38,7 @@ const (
 	ProductService_GetAllTags_FullMethodName            = "/product.ProductService/GetAllTags"
 	ProductService_CreateProduct_FullMethodName         = "/product.ProductService/CreateProduct"
 	ProductService_GetCategoriesNoChild_FullMethodName  = "/product.ProductService/GetCategoriesNoChild"
+	ProductService_GetProductById_FullMethodName        = "/product.ProductService/GetProductById"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -63,6 +64,7 @@ type ProductServiceClient interface {
 	GetAllTags(ctx context.Context, in *GetAllTagsRequest, opts ...grpc.CallOption) (*TagsPublicResponse, error)
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetCategoriesNoChild(ctx context.Context, in *GetCategoriesNoChildRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
+	GetProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 }
 
 type productServiceClient struct {
@@ -263,6 +265,16 @@ func (c *productServiceClient) GetCategoriesNoChild(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *productServiceClient) GetProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProductAdminDetailsResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetProductById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -286,6 +298,7 @@ type ProductServiceServer interface {
 	GetAllTags(context.Context, *GetAllTagsRequest) (*TagsPublicResponse, error)
 	CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error)
 	GetCategoriesNoChild(context.Context, *GetCategoriesNoChildRequest) (*BaseCategoriesResponse, error)
+	GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -352,6 +365,9 @@ func (UnimplementedProductServiceServer) CreateProduct(context.Context, *CreateP
 }
 func (UnimplementedProductServiceServer) GetCategoriesNoChild(context.Context, *GetCategoriesNoChildRequest) (*BaseCategoriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCategoriesNoChild not implemented")
+}
+func (UnimplementedProductServiceServer) GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductById not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -716,6 +732,24 @@ func _ProductService_GetCategoriesNoChild_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetProductById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetProductById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetProductById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetProductById(ctx, req.(*GetProductByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -798,6 +832,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCategoriesNoChild",
 			Handler:    _ProductService_GetCategoriesNoChild_Handler,
+		},
+		{
+			MethodName: "GetProductById",
+			Handler:    _ProductService_GetProductById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

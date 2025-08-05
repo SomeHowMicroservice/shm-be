@@ -41,6 +41,32 @@ service ProductService {
   rpc CreateProduct(CreateProductRequest) returns (CreatedResponse);
 
   rpc GetCategoriesNoChild(GetCategoriesNoChildRequest) returns (BaseCategoriesResponse);
+
+  rpc GetProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
+}
+
+message GetProductByIdRequest {
+  string id = 1;
+}
+
+message ProductAdminDetailsResponse {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  string description = 4;
+  float price = 5;
+  optional bool is_sale = 6;
+  optional float sale_price = 7;
+  optional string start_sale = 8;
+  optional string end_sale = 9;
+  repeated BaseCategoryResponse categories = 10;
+  repeated BaseVariantResponse variants = 11;
+  repeated BaseImageResponse images = 12;
+  repeated BaseTagResponse tags = 13;
+  string created_at = 14;
+  string updated_at = 15;
+  BaseUserResponse created_by = 16;
+  BaseUserResponse updated_by = 17;
 }
 
 message BaseCategoriesResponse {

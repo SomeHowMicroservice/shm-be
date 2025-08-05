@@ -127,7 +127,7 @@ func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Cate
 }
 
 func (s *productServiceImpl) GetProductBySlug(ctx context.Context, slug string) (*model.Product, error) {
-	product, err := s.productRepo.FindBySlug(ctx, slug)
+	product, err := s.productRepo.FindBySlugWithDetails(ctx, slug)
 	if err != nil {
 		return nil, fmt.Errorf("lấy sản phẩm thất bại: %w", err)
 	}
@@ -759,14 +759,14 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 		if ext == "" {
 			ext = ".jpg"
 		}
-		fileName := fmt.Sprintf("%s-%d%s", product.Slug, img.SortOrder, ext)
+		fileName := fmt.Sprintf("%s-%s_%d%s", product.Slug, img.ColorId, img.SortOrder, ext)
 
 		uploadFileRequest := &common.Base64UploadRequest{
 			Base64Data: img.Base64Data,
 			FileName:   fileName,
 			Folder:     "somehow_microservice/product",
 		}
-		
+
 		body, err := json.Marshal(uploadFileRequest)
 		if err != nil {
 			return nil, fmt.Errorf("marshal json thất bại: %w", err)
@@ -799,19 +799,46 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	return product, nil
 }
 
-func getMimeType(ext string) string {
-	switch ext {
-	case ".jpg", ".jpeg":
-		return "image/jpeg"
-	case ".png":
-		return "image/png"
-	case ".gif":
-		return "image/gif"
-	case ".webp":
-		return "image/webp"
-	default:
-		return "image/jpeg"
+func (s *productServiceImpl) GetProductByID(ctx context.Context, id string) (*protobuf.ProductAdminDetailsResponse, error) {
+	product, err := s.productRepo.FindByIDWithDetails(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
 	}
+	if product == nil {
+		return nil, customErr.ErrProductNotFound
+	}
+
+	cRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: product.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	uRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: product.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
 func getParentIDsFromParents(categories []*model.Category) []string {
@@ -821,6 +848,113 @@ func getParentIDsFromParents(categories []*model.Category) []string {
 	}
 
 	return parentIDs
+}
+
+func toProductAdminDetailsResponse(product *model.Product, cRes *userpb.UserResponse, uRes *userpb.UserResponse) *protobuf.ProductAdminDetailsResponse {
+	var startSalePtr, endSalePtr *string
+	if product.StartSale != nil {
+		formatted := product.StartSale.Format("2006-01-02")
+		startSalePtr = &formatted
+	}
+	if product.EndSale != nil {
+		formatted := product.EndSale.Format("2006-01-02")
+		endSalePtr = &formatted
+	}
+
+	return &protobuf.ProductAdminDetailsResponse{
+		Id:          product.ID,
+		Title:       product.Title,
+		Slug:        product.Slug,
+		Description: product.Description,
+		Price:       product.Price,
+		IsSale:      &product.IsSale,
+		SalePrice:   product.SalePrice,
+		StartSale:   startSalePtr,
+		EndSale:     endSalePtr,
+		Categories:  toBaseCategoriesResponse(product.Categories),
+		Tags:        toBaseTagsResponse(product.Tags),
+		Variants:    toBaseVariantsResponse(product.Variants),
+		Images:      toBaseImagesResponse(product.Images),
+		CreatedAt:   product.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   product.UpdatedAt.Format(time.RFC3339),
+		CreatedBy: &protobuf.BaseUserResponse{
+			Id:       cRes.Id,
+			Username: cRes.Username,
+			Profile: &protobuf.BaseProfileResponse{
+				Id:        cRes.Profile.Id,
+				FirstName: cRes.Profile.FirstName,
+				LastName:  cRes.Profile.LastName,
+			},
+		},
+		UpdatedBy: &protobuf.BaseUserResponse{
+			Id:       uRes.Id,
+			Username: uRes.Username,
+			Profile: &protobuf.BaseProfileResponse{
+				Id:        uRes.Profile.Id,
+				FirstName: uRes.Profile.FirstName,
+				LastName:  uRes.Profile.LastName,
+			},
+		},
+	}
+}
+
+func toBaseTagsResponse(tags []*model.Tag) []*protobuf.BaseTagResponse {
+	var tagResponses []*protobuf.BaseTagResponse
+	for _, t := range tags {
+		tagResponses = append(tagResponses, &protobuf.BaseTagResponse{
+			Id:   t.ID,
+			Name: t.Name,
+		})
+	}
+	return tagResponses
+}
+
+func toBaseVariantsResponse(variants []*model.Variant) []*protobuf.BaseVariantResponse {
+	var variantResponses []*protobuf.BaseVariantResponse
+	for _, v := range variants {
+		var color *protobuf.BaseColorResponse
+		if v.Color != nil {
+			color = &protobuf.BaseColorResponse{
+				Id:   v.Color.ID,
+				Name: v.Color.Name,
+			}
+		}
+
+		var size *protobuf.BaseSizeResponse
+		if v.Size != nil {
+			size = &protobuf.BaseSizeResponse{
+				Id:   v.Size.ID,
+				Name: v.Size.Name,
+			}
+		}
+
+		variantResponses = append(variantResponses, &protobuf.BaseVariantResponse{
+			Id:    v.ID,
+			Sku:   v.SKU,
+			Color: color,
+			Size:  size,
+			Inventory: &protobuf.BaseInventoryResponse{
+				Id:           v.Inventory.ID,
+				SoldQuantity: int64(v.Inventory.SoldQuantity),
+				Stock:        int64(v.Inventory.Stock),
+				IsStock:      &v.Inventory.IsStock,
+			},
+		})
+	}
+	return variantResponses
+}
+
+func toBaseImagesResponse(images []*model.Image) []*protobuf.BaseImageResponse {
+	var imageResponses []*protobuf.BaseImageResponse
+	for _, img := range images {
+		imageResponses = append(imageResponses, &protobuf.BaseImageResponse{
+			Id:          img.ID,
+			Url:         img.Url,
+			IsThumbnail: img.IsThumbnail,
+			SortOrder:   int32(img.SortOrder),
+		})
+	}
+	return imageResponses
 }
 
 func toCategoryAdminDetailsResponse(category *model.Category, productResponses []*protobuf.BaseProductResponse, cRes *userpb.UserResponse, uRes *userpb.UserResponse) *protobuf.CategoryAdminDetailsResponse {
@@ -882,15 +1016,11 @@ func toBaseProductResponse(category *model.Category) []*protobuf.BaseProductResp
 func toBaseCategoriesResponse(categories []*model.Category) []*protobuf.BaseCategoryResponse {
 	var baseCategories []*protobuf.BaseCategoryResponse
 	for _, category := range categories {
-		baseCategories = append(baseCategories, toBaseCategoryResponse(category))
+		baseCategories = append(baseCategories, &protobuf.BaseCategoryResponse{
+			Id:   category.ID,
+			Name: category.Name,
+			Slug: category.Slug,
+		})
 	}
 	return baseCategories
-}
-
-func toBaseCategoryResponse(category *model.Category) *protobuf.BaseCategoryResponse {
-	return &protobuf.BaseCategoryResponse{
-		Id:   category.ID,
-		Name: category.Name,
-		Slug: category.Slug,
-	}
 }

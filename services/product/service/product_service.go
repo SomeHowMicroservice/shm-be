@@ -45,4 +45,6 @@ type ProductService interface {
 	GetAllTags(ctx context.Context) ([]*model.Tag, error)
 
 	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error)
+
+	GetProductByID(ctx context.Context, id string) (*protobuf.ProductAdminDetailsResponse, error)
 }

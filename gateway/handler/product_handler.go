@@ -835,3 +835,31 @@ func (h *ProductHandler) UpdateTag(c *gin.Context) {
 
 	common.JSON(c, http.StatusOK, "Cập nhật tag sản phẩm thành công", nil)
 }
+
+func (h *ProductHandler) ProductAdminDetails(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	productID := c.Param("id")
+
+	res, err := h.productClient.GetProductById(ctx, &productpb.GetProductByIdRequest{
+		Id: productID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy chi tiết sản phẩm thành công", gin.H{
+		"product": res,
+	})
+}

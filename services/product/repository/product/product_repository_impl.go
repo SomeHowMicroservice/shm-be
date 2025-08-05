@@ -33,16 +33,12 @@ func (r *productRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (
 	return count > 0, nil
 }
 
-func (r *productRepositoryImpl) FindBySlug(ctx context.Context, slug string) (*model.Product, error) {
-	var product model.Product
-	if err := r.db.WithContext(ctx).Preload("Categories").Preload("Variants").Preload("Variants.Color").Preload("Variants.Size").Preload("Variants.Inventory").Preload("Images").Preload("Images.Color").Where("slug = ?", slug).First(&product).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
+func (r *productRepositoryImpl) FindBySlugWithDetails(ctx context.Context, slug string) (*model.Product, error) {
+	return r.findBySlugBase(ctx, slug, "Categories", "Tags", "Variants", "Variants.Color", "Variants.Size", "Variants.Inventory", "Images", "Images.Color")
+}
 
-	return &product, nil
+func (r *productRepositoryImpl) FindByIDWithDetails(ctx context.Context, id string) (*model.Product, error) {
+	return r.findByIDBase(ctx, id, "Categories", "Tags", "Variants", "Variants.Color", "Variants.Size", "Variants.Inventory", "Images", "Images.Color")
 }
 
 func (r *productRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
@@ -73,4 +69,40 @@ func (r *productRepositoryImpl) FindAllByCategorySlug(ctx context.Context, categ
 	}
 
 	return products, nil
+}
+
+func (r *productRepositoryImpl) findByIDBase(ctx context.Context, id string, preloads ...string) (*model.Product, error) {
+	var product model.Product
+	query := r.db.WithContext(ctx)
+
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
+
+	if err := query.Where("id = ?", id).First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &product, nil
+}
+
+func (r *productRepositoryImpl) findBySlugBase(ctx context.Context, slug string, preloads ...string) (*model.Product, error) {
+	var product model.Product
+	query := r.db.WithContext(ctx)
+
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
+
+	if err := query.Where("slug = ?", slug).First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &product, nil
 }
