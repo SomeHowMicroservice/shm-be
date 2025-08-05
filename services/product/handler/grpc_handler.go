@@ -312,6 +312,41 @@ func (h *GRPCHandler) GetProductById(ctx context.Context, req *protobuf.GetProdu
 	return convertedProduct, nil
 }
 
+func (h *GRPCHandler) GetAllProductsAdmin(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) (*protobuf.ProductsAdminResponse, error) {
+	products, err := h.svc.GetAllProductsAdmin(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return toProductsAdminResponse(products), nil
+}
+
+func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {
+	var productResponses []*protobuf.ProductAdminResponse
+	for _, pro := range products {
+		productResponses = append(productResponses, toProductAdminResponse(pro))
+	}
+
+	return &protobuf.ProductsAdminResponse{
+		Products: productResponses,
+	}
+}
+
+func toProductAdminResponse(product *model.Product) *protobuf.ProductAdminResponse {
+	categories := toBaseCategoriesResponse(product.Categories)
+	thumbnail := &protobuf.SimpleImageResponse{
+		Id:   product.Images[0].ID,
+		Url:  product.Images[0].Url,
+	}
+	return &protobuf.ProductAdminResponse{
+		Id:         product.ID,
+		Title:      product.Title,
+		Price:      product.Price,
+		Categories: categories,
+		Thumbnail:  thumbnail,
+	}
+}
+
 func toProductsPublicResponse(products []*model.Product) *protobuf.ProductsPublicResponse {
 	var productResponses []*protobuf.ProductPublicResponse
 	for _, pro := range products {

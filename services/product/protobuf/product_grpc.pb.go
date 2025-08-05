@@ -39,6 +39,7 @@ const (
 	ProductService_CreateProduct_FullMethodName         = "/product.ProductService/CreateProduct"
 	ProductService_GetCategoriesNoChild_FullMethodName  = "/product.ProductService/GetCategoriesNoChild"
 	ProductService_GetProductById_FullMethodName        = "/product.ProductService/GetProductById"
+	ProductService_GetAllProductsAdmin_FullMethodName   = "/product.ProductService/GetAllProductsAdmin"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -65,6 +66,7 @@ type ProductServiceClient interface {
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetCategoriesNoChild(ctx context.Context, in *GetCategoriesNoChildRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
 	GetProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
+	GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error)
 }
 
 type productServiceClient struct {
@@ -275,6 +277,16 @@ func (c *productServiceClient) GetProductById(ctx context.Context, in *GetProduc
 	return out, nil
 }
 
+func (c *productServiceClient) GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProductsAdminResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetAllProductsAdmin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -299,6 +311,7 @@ type ProductServiceServer interface {
 	CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error)
 	GetCategoriesNoChild(context.Context, *GetCategoriesNoChildRequest) (*BaseCategoriesResponse, error)
 	GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
+	GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsAdminResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -368,6 +381,9 @@ func (UnimplementedProductServiceServer) GetCategoriesNoChild(context.Context, *
 }
 func (UnimplementedProductServiceServer) GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductById not implemented")
+}
+func (UnimplementedProductServiceServer) GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllProductsAdmin not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -750,6 +766,24 @@ func _ProductService_GetProductById_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetAllProductsAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllProductsAdminRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetAllProductsAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetAllProductsAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetAllProductsAdmin(ctx, req.(*GetAllProductsAdminRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -836,6 +870,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProductById",
 			Handler:    _ProductService_GetProductById_Handler,
+		},
+		{
+			MethodName: "GetAllProductsAdmin",
+			Handler:    _ProductService_GetAllProductsAdmin_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

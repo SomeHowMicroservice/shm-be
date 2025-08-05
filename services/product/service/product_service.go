@@ -47,4 +47,6 @@ type ProductService interface {
 	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error)
 
 	GetProductByID(ctx context.Context, id string) (*protobuf.ProductAdminDetailsResponse, error)
+
+	GetAllProductsAdmin(ctx context.Context) ([]*model.Product, error)
 }

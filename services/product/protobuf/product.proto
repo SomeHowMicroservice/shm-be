@@ -43,6 +43,27 @@ service ProductService {
   rpc GetCategoriesNoChild(GetCategoriesNoChildRequest) returns (BaseCategoriesResponse);
 
   rpc GetProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
+
+  rpc GetAllProductsAdmin(GetAllProductsAdminRequest) returns (ProductsAdminResponse);
+}
+
+message GetAllProductsAdminRequest {}
+
+message ProductsAdminResponse {
+  repeated ProductAdminResponse products = 1;
+}
+
+message SimpleImageResponse {
+  string id = 1;
+  string url = 2;
+}
+
+message ProductAdminResponse {
+  string id = 1;
+  string title = 2;
+  float price = 3;
+  repeated BaseCategoryResponse categories = 4;
+  SimpleImageResponse thumbnail = 5;
 }
 
 message GetProductByIdRequest {

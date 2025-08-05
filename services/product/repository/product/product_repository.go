@@ -20,4 +20,6 @@ type ProductRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Product, error)
 
 	FindAllByCategorySlug(ctx context.Context, categorySlug string) ([]*model.Product, error)
+
+	FindAllWithCategoriesAndThumbnail(ctx context.Context) ([]*model.Product, error)
 }

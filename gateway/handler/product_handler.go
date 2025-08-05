@@ -863,3 +863,27 @@ func (h *ProductHandler) ProductAdminDetails(c *gin.Context) {
 		"product": res,
 	})
 }
+
+func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetAllProductsAdmin(ctx, &productpb.GetAllProductsAdminRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả sản phẩm thành công", gin.H{
+		"products": res.Products,
+	})
+}

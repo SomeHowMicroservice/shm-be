@@ -71,6 +71,15 @@ func (r *productRepositoryImpl) FindAllByCategorySlug(ctx context.Context, categ
 	return products, nil
 }
 
+func (r *productRepositoryImpl) FindAllWithCategoriesAndThumbnail(ctx context.Context) ([]*model.Product, error) {
+	var products []*model.Product
+	if err := r.db.WithContext(ctx).Preload("Categories").Preload("Images", "is_thumbnail = ?", true).Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
 func (r *productRepositoryImpl) findByIDBase(ctx context.Context, id string, preloads ...string) (*model.Product, error) {
 	var product model.Product
 	query := r.db.WithContext(ctx)

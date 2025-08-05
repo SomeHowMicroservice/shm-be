@@ -841,6 +841,15 @@ func (s *productServiceImpl) GetProductByID(ctx context.Context, id string) (*pr
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
+func(s *productServiceImpl) GetAllProductsAdmin(ctx context.Context) ([]*model.Product, error) {
+	products, err := s.productRepo.FindAllWithCategoriesAndThumbnail(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy tất cả sản phẩm thất bại: %w", err)
+	}
+	
+	return products, nil
+}
+
 func getParentIDsFromParents(categories []*model.Category) []string {
 	var parentIDs []string
 	for _, cat := range categories {
