@@ -10,8 +10,9 @@ type Product struct {
 	Price       float32    `gorm:"type:decimal(10,2);not null" json:"price"`
 	IsSale      bool       `gorm:"type:boolean;not null" json:"is_sale"`
 	SalePrice   *float32   `gorm:"type:decimal(10,2)" json:"sale_price"`
-	StartSale   *time.Time `json:"start_sale"`
-	EndSale     *time.Time `json:"end_sale"`
+	StartSale   *time.Time `gorm:"type:date" json:"start_sale"`
+	EndSale     *time.Time `gorm:"type:date" json:"end_sale"`
+	IsDeleted   bool       `gorm:"type:boolean;default:false" json:"is_deleted"`
 	CreatedAt   time.Time  `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time  `gorm:"autoUpdateTime" json:"updated_at"`
 	CreatedByID string     `gorm:"type:char(36);not null" json:"created_by_id"`

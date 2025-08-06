@@ -139,7 +139,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	}
 
 	if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Lỗi parse form: " + err.Error()})
+		common.JSON(c, http.StatusBadRequest, "Không thể parse form", nil)
 		return
 	}
 
@@ -319,7 +319,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 
 		images = append(images, &productpb.CreateImageRequest{
 			ColorId:     img.ColorID,
-			Base64Data:  base64Data, 
+			Base64Data:  base64Data,
 			FileName:    img.File.Filename,
 			IsThumbnail: img.IsThumbnail,
 			SortOrder:   int32(img.SortOrder),
@@ -360,6 +360,27 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		"product_id": res.Id,
 	})
 }
+
+// func (h *ProductHandler) UpdateProduct(c *gin.Context) {
+// 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+// 	defer cancel()
+
+// 	userAny, exists := c.Get("user")
+// 	if !exists {
+// 		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+// 		return
+// 	}
+
+// 	user, ok := userAny.(*userpb.UserPublicResponse)
+// 	if !ok {
+// 		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+// 		return
+// 	}
+
+// 	productID := c.Param("id")
+
+
+// }
 
 func (h *ProductHandler) ProductDetails(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)

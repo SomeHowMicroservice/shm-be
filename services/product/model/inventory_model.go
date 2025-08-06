@@ -9,6 +9,7 @@ type Inventory struct {
 	SoldQuantity int       `gorm:"type:int" json:"sold_quantity"`
 	Stock        int       `gorm:"type:int" json:"stock"`
 	IsStock      bool      `gorm:"type:boolean;default:true" json:"is_stock"`
+	IsDeleted    bool      `gorm:"type:boolean;default:false" json:"is_deleted"`
 	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	UpdatedByID  string    `gorm:"type:char(36);not null" json:"updated_by_id"`
 
