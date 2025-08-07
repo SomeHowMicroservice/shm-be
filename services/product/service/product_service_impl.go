@@ -19,6 +19,7 @@ import (
 	categoryRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/category"
 	colorRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/color"
 	imageRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/image"
+	inventoryRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/inventory"
 	productRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/product"
 	sizeRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/size"
 	tagRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/tag"
@@ -28,22 +29,24 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 type productServiceImpl struct {
-	cfg          *config.Config
-	userClient   userpb.UserServiceClient
-	mqChannel    *amqp091.Channel
-	categoryRepo categoryRepo.CategoryRepository
-	productRepo  productRepo.ProductRepository
-	tagRepo      tagRepo.TagRepository
-	colorRepo    colorRepo.ColorRepository
-	sizeRepo     sizeRepo.SizeRepository
-	variantRepo  variantRepo.VariantRepository
-	imageRepo    imageRepo.ImageRepository
+	cfg           *config.Config
+	userClient    userpb.UserServiceClient
+	mqChannel     *amqp091.Channel
+	categoryRepo  categoryRepo.CategoryRepository
+	productRepo   productRepo.ProductRepository
+	tagRepo       tagRepo.TagRepository
+	colorRepo     colorRepo.ColorRepository
+	sizeRepo      sizeRepo.SizeRepository
+	variantRepo   variantRepo.VariantRepository
+	inventoryRepo inventoryRepo.InventoryRepository
+	imageRepo     imageRepo.ImageRepository
 }
 
-func NewProductService(cfg *config.Config, userClient userpb.UserServiceClient, mqChannel *amqp091.Channel, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, imageRepo imageRepo.ImageRepository) ProductService {
+func NewProductService(cfg *config.Config, userClient userpb.UserServiceClient, mqChannel *amqp091.Channel, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, inventoryRepo inventoryRepo.InventoryRepository, imageRepo imageRepo.ImageRepository) ProductService {
 	return &productServiceImpl{
 		cfg,
 		userClient,
@@ -54,6 +57,7 @@ func NewProductService(cfg *config.Config, userClient userpb.UserServiceClient, 
 		colorRepo,
 		sizeRepo,
 		variantRepo,
+		inventoryRepo,
 		imageRepo,
 	}
 }
@@ -309,7 +313,7 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 		}
 	}
 
-	parentIDs := getParentIDsFromParents(category.Parents)
+	parentIDs := getIDsFromCategories(category.Parents)
 
 	if !slices.Equal(parentIDs, req.ParentIds) {
 		parents, err := s.categoryRepo.FindAllByIDIn(ctx, req.ParentIds)
@@ -733,6 +737,14 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 
 	variants := make([]*model.Variant, 0, len(req.Variants))
 	for _, v := range req.Variants {
+		exists, err := s.variantRepo.ExistsBySKU(ctx, v.Sku)
+		if err != nil {
+			return nil, fmt.Errorf("kiểm tra mã SKU biến thể thất bại: %w", err)
+		}
+		if exists {
+			return nil, customErr.ErrSKUAlreadyExists
+		}
+
 		variant := &model.Variant{
 			ID:        uuid.NewString(),
 			ProductID: product.ID,
@@ -764,7 +776,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 		uploadFileRequest := &common.Base64UploadRequest{
 			Base64Data: img.Base64Data,
 			FileName:   fileName,
-			Folder:     "somehow_microservice/product",
+			Folder:     s.cfg.ImageKit.Folder,
 		}
 
 		body, err := json.Marshal(uploadFileRequest)
@@ -776,7 +788,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 			return nil, fmt.Errorf("publish upload image msg thất bại: %w", err)
 		}
 
-		imageUrl := fmt.Sprintf("%s/%s/%s", s.cfg.ImageKit.URLEndpoint, "somehow_microservice/product", fileName)
+		imageUrl := fmt.Sprintf("%s/%s/%s", s.cfg.ImageKit.URLEndpoint, s.cfg.ImageKit.Folder, fileName)
 		image := &model.Image{
 			ID:          uuid.NewString(),
 			ProductID:   product.ID,
@@ -841,22 +853,381 @@ func (s *productServiceImpl) GetProductByID(ctx context.Context, id string) (*pr
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
-func(s *productServiceImpl) GetAllProductsAdmin(ctx context.Context) ([]*model.Product, error) {
+func (s *productServiceImpl) GetAllProductsAdmin(ctx context.Context) ([]*model.Product, error) {
 	products, err := s.productRepo.FindAllWithCategoriesAndThumbnail(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy tất cả sản phẩm thất bại: %w", err)
 	}
-	
+
 	return products, nil
 }
 
-func getParentIDsFromParents(categories []*model.Category) []string {
-	var parentIDs []string
-	for _, cat := range categories {
-		parentIDs = append(parentIDs, cat.ID)
+func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error) {
+	product, err := s.productRepo.FindByIDWithCategoriesAndTags(ctx, req.Id)
+	if err != nil {
+		return nil, fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
+	}
+	if product == nil {
+		return nil, customErr.ErrProductNotFound
 	}
 
-	return parentIDs
+	updateProductData := map[string]interface{}{}
+	if req.Title != nil && *req.Title != product.Title {
+		newSlug := common.GenerateSlug(*req.Title)
+		exists, err := s.productRepo.ExistsBySlug(ctx, newSlug)
+		if err != nil {
+			return nil, fmt.Errorf("kiểm tra slug thất bại: %w", err)
+		}
+		if exists {
+			return nil, customErr.ErrSlugAlreadyExists
+		}
+
+		updateProductData["title"] = req.Title
+		updateProductData["slug"] = newSlug
+	}
+
+	if req.Description != nil && *req.Description != product.Description {
+		updateProductData["description"] = req.Description
+	}
+
+	if req.Price != nil && *req.Price != product.Price {
+		updateProductData["price"] = req.Price
+	}
+
+	if req.IsSale != nil && *req.IsSale != product.IsSale {
+		if !*req.IsSale {
+			updateProductData["sale_price"] = nil
+			updateProductData["start_sale"] = nil
+			updateProductData["end_sale"] = nil
+		}
+		updateProductData["is_sale"] = req.IsSale
+	}
+
+	if req.SalePrice != nil && product.SalePrice != req.SalePrice {
+		updateProductData["sale_price"] = req.SalePrice
+	}
+
+	if req.StartSale != nil {
+		parsedStartSale, err := common.ParseDate(*req.StartSale)
+		if err != nil {
+			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian bắt đầu giảm giá thất bại: %w", err)
+		}
+
+		if product.StartSale == nil || !parsedStartSale.Equal(*product.StartSale) {
+			updateProductData["start_sale"] = parsedStartSale
+		}
+	}
+
+	if req.EndSale != nil {
+		parsedEndSale, err := common.ParseDate(*req.EndSale)
+		if err != nil {
+			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian kết thúc giảm giá thất bại: %w", err)
+		}
+
+		if product.EndSale == nil || !parsedEndSale.Equal(*product.EndSale) {
+			updateProductData["end_sale"] = parsedEndSale
+		}
+	}
+
+	if req.UserId != product.UpdatedByID {
+		updateProductData["update_by_id"] = req.UserId
+	}
+
+	if len(updateProductData) > 0 {
+		if err = s.productRepo.Update(ctx, product.ID, updateProductData); err != nil {
+			if errors.Is(err, customErr.ErrProductNotFound) {
+				return nil, err
+			}
+			return nil, fmt.Errorf("cập nhật sản phẩm thất bại: %w", err)
+		}
+	}
+
+	if len(req.CategoryIds) > 0 {
+		categoryIDs := getIDsFromCategories(product.Categories)
+		if !slices.Equal(req.CategoryIds, categoryIDs) {
+			categories, err := s.categoryRepo.FindAllByIDInWithChildren(ctx, req.CategoryIds)
+			if err != nil {
+				return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+			}
+			if len(categories) != len(req.CategoryIds) {
+				return nil, customErr.ErrHasCategoryNotFound
+			}
+
+			for _, c := range categories {
+				if len(c.Children) > 0 {
+					return nil, fmt.Errorf("danh mục %s có danh mục con, không thể được gán cho sản phẩm", c.Name)
+				}
+			}
+
+			if err = s.productRepo.UpdateCategories(ctx, product, categories); err != nil {
+				return nil, fmt.Errorf("cập nhật danh sách danh mục sản phẩm thất bại: %w", err)
+			}
+		}
+	}
+
+	if len(req.TagIds) > 0 {
+		tagIDs := getIDsFromTags(product.Tags)
+		if !slices.Equal(tagIDs, req.TagIds) {
+			tags, err := s.tagRepo.FindAllByIDIn(ctx, req.TagIds)
+			if err != nil {
+				return nil, fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
+			}
+
+			if len(tags) != len(req.TagIds) {
+				return nil, customErr.ErrHasTagNotFound
+			}
+
+			if err = s.productRepo.UpdateTags(ctx, product, tags); err != nil {
+				return nil, fmt.Errorf("cập nhật tag sản phẩm thất bại: %w", err)
+			}
+		}
+	}
+
+	if len(req.DeleteImageIds) > 0 {
+		images, err := s.imageRepo.FindAllByIDIn(ctx, req.DeleteImageIds)
+		if err != nil {
+			return nil, fmt.Errorf("tìm kiếm danh sách hình ảnh thất bại: %w", err)
+		}
+		if len(images) != len(req.DeleteImageIds) {
+			return nil, customErr.ErrHasImageNotFound
+		}
+
+		if err = s.imageRepo.UpdateIsDeletedByIDIn(ctx, req.DeleteImageIds); err != nil {
+			if errors.Is(err, customErr.ErrHasImageNotFound) {
+				return nil, err
+			}
+			return nil, fmt.Errorf("xóa mềm danh sách hình ảnh thất bại: %w", err)
+		}
+	}
+
+	if len(req.UpdateImages) > 0 {
+		for _, image := range req.UpdateImages {
+			updateData := map[string]interface{}{}
+
+			if image.IsThumbnail != nil {
+				updateData["is_thumbnail"] = image.IsThumbnail
+			}
+
+			if image.SortOrder != nil {
+				updateData["sort_order"] = image.SortOrder
+			}
+
+			if len(updateData) > 0 {
+				if err = s.imageRepo.Update(ctx, image.Id, updateData); err != nil {
+					if errors.Is(err, customErr.ErrImageNotFound) {
+						return nil, err
+					}
+					return nil, fmt.Errorf("cập nhật ảnh %s thất bại: %w", image.Id, err)
+				}
+			}
+		}
+	}
+
+	if len(req.NewImages) > 0 {
+		newImages := make([]*model.Image, 0, len(req.NewImages))
+
+		for _, img := range req.NewImages {
+			ext := strings.ToLower(filepath.Ext(img.FileName))
+			if ext == "" {
+				ext = ".jpg"
+			}
+			fileName := fmt.Sprintf("%s-%s_%d%s", product.Slug, img.ColorId, img.SortOrder, ext)
+
+			uploadFileRequest := &common.Base64UploadRequest{
+				Base64Data: img.Base64Data,
+				FileName:   fileName,
+				Folder:     s.cfg.ImageKit.Folder,
+			}
+
+			body, err := json.Marshal(uploadFileRequest)
+			if err != nil {
+				return nil, fmt.Errorf("marshal json thất bại: %w", err)
+			}
+
+			if err = mq.PublishMessage(s.mqChannel, "", "image.upload", body); err != nil {
+				return nil, fmt.Errorf("publish upload image msg thất bại: %w", err)
+			}
+
+			imageUrl := fmt.Sprintf("%s/%s/%s", s.cfg.ImageKit.URLEndpoint, s.cfg.ImageKit.Folder, fileName)
+			image := &model.Image{
+				ID:          uuid.NewString(),
+				ProductID:   product.ID,
+				ColorID:     img.ColorId,
+				Url:         imageUrl,
+				IsThumbnail: img.IsThumbnail,
+				SortOrder:   int(img.SortOrder),
+				CreatedByID: req.UserId,
+				UpdatedByID: req.UserId,
+			}
+
+			newImages = append(newImages, image)
+		}
+
+		if err = s.imageRepo.CreateAll(ctx, newImages); err != nil {
+			return nil, fmt.Errorf("tạo ảnh sản phẩm thất bại: %w", err)
+		}
+	}
+
+	if len(req.DeleteVariantIds) > 0 {
+		variants, err := s.variantRepo.FindAllByIDIn(ctx, req.DeleteVariantIds)
+		if err != nil {
+			return nil, fmt.Errorf("tìm kiếm danh sách biến thể thất bại: %w", err)
+		}
+		if len(variants) != len(req.DeleteVariantIds) {
+			return nil, customErr.ErrHasVariantNotFound
+		}
+
+		if err = s.variantRepo.UpdateIsDeletedByIDIn(ctx, req.DeleteVariantIds); err != nil {
+			if errors.Is(err, customErr.ErrHasVariantNotFound) {
+				return nil, err
+			}
+			return nil, fmt.Errorf("xóa mềm biến thể sản phẩm thất bại: %w", err)
+		}
+	}
+
+	if len(req.UpdateVariants) > 0 {
+		for _, variant := range req.UpdateVariants {
+			updateData := map[string]interface{}{}
+
+			if variant.Sku != nil {
+				updateData["sku"] = variant.Sku
+			}
+
+			if variant.ColorId != nil {
+				updateData["color_id"] = variant.ColorId
+			}
+
+			if variant.SizeId != nil {
+				updateData["size_id"] = variant.SizeId
+			}
+
+			if len(updateData) > 0 {
+				if err = s.variantRepo.Update(ctx, variant.Id, updateData); err != nil {
+					if errors.Is(err, customErr.ErrVariantNotFound) {
+						return nil, err
+					}
+					return nil, fmt.Errorf("cập nhật biến thể sản phẩm %s thất bại: %w", variant.Id, err)
+				}
+			}
+
+			if variant.Quantity != nil {
+				updateData1 := map[string]interface{}{
+					"quantity":      int(*variant.Quantity),
+					"updated_by_id": req.UserId,
+				}
+				if err = s.inventoryRepo.UpdateByVariantID(ctx, variant.Id, updateData1); err != nil {
+					if errors.Is(err, customErr.ErrInventoryNotFound) {
+						return nil, err
+					}
+					return nil, fmt.Errorf("cập nhật số lượng biến thể %s thất bại: %w", variant.Id, err)
+				}
+
+				updateData2 := map[string]interface{}{
+					"stock":    gorm.Expr("quantity - sold_quantity"),
+					"is_stock": gorm.Expr("CASE WHEN (quantity - sold_quantity) <= 5 THEN false ELSE true END"),
+				}
+				if err = s.inventoryRepo.UpdateByVariantID(ctx, variant.Id, updateData2); err != nil {
+					if errors.Is(err, customErr.ErrInventoryNotFound) {
+						return nil, err
+					}
+					return nil, fmt.Errorf("cập nhật tồn kho biến thể %s thất bại: %w", variant.Id, err)
+				}
+			}
+		}
+	}
+
+	if len(req.NewVariants) > 0 {
+		newVariants := make([]*model.Variant, 0, len(req.NewVariants))
+
+		for _, v := range req.NewVariants {
+			exists, err := s.variantRepo.ExistsBySKU(ctx, v.Sku)
+			if err != nil {
+				return nil, fmt.Errorf("kiểm tra mã SKU biến thể thất bại: %w", err)
+			}
+			if exists {
+				return nil, customErr.ErrSKUAlreadyExists
+			}
+
+			variant := &model.Variant{
+				ID:        uuid.NewString(),
+				ProductID: product.ID,
+				SKU:       v.Sku,
+				ColorID:   v.ColorId,
+				SizeID:    v.SizeId,
+				Inventory: &model.Inventory{
+					ID:          uuid.NewString(),
+					Quantity:    int(v.Quantity),
+					UpdatedByID: req.UserId,
+				},
+				CreatedByID: req.UserId,
+				UpdatedByID: req.UserId,
+			}
+			variant.Inventory.SetStock()
+			newVariants = append(newVariants, variant)
+		}
+
+		if err := s.variantRepo.CreateAll(ctx, newVariants); err != nil {
+			return nil, fmt.Errorf("tạo variant mới thất bại: %w", err)
+		}
+	}
+
+	product, err = s.productRepo.FindByIDWithDetails(ctx, product.ID)
+	if err != nil {
+		return nil, fmt.Errorf("lấy thông tin sản phẩm sau cập nhật thất bại: %w", err)
+	}
+	if product == nil {
+		return nil, customErr.ErrProductNotFound
+	}
+
+	cRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: product.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	uRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: product.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	return toProductAdminDetailsResponse(product, cRes, uRes), nil
+}
+
+func getIDsFromTags(tags []*model.Tag) []string {
+	var tagIDs []string
+	for _, tag := range tags {
+		tagIDs = append(tagIDs, tag.ID)
+	}
+
+	return tagIDs
+}
+
+func getIDsFromCategories(categories []*model.Category) []string {
+	var categoryIDs []string
+	for _, cat := range categories {
+		categoryIDs = append(categoryIDs, cat.ID)
+	}
+
+	return categoryIDs
 }
 
 func toProductAdminDetailsResponse(product *model.Product, cRes *userpb.UserResponse, uRes *userpb.UserResponse) *protobuf.ProductAdminDetailsResponse {

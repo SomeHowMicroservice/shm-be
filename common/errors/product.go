@@ -28,4 +28,14 @@ var (
 	ErrTagAlreadyExists = errors.New("tag sản phẩm đã tồn tại")
 
 	ErrTagNotFound = errors.New("không tìm thấy tag sản phẩm")
+
+	ErrHasImageNotFound = errors.New("có ảnh sản phẩm không tìm thấy")
+
+	ErrImageNotFound = errors.New("không tìm thấy hình ảnh sản phẩm")
+
+	ErrHasVariantNotFound = errors.New("có biến thể sản phẩm không tìm thấy")
+
+	ErrVariantNotFound = errors.New("không tìm thấy biến thể sản phẩm")
+
+	ErrInventoryNotFound = errors.New("không tìm thấy tồn kho biến thể")
 )

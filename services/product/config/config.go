@@ -31,6 +31,7 @@ type Config struct {
 		PublicKey   string `mapstructure:"public_key"`
 		PrivateKey  string `mapstructure:"private_key"`
 		URLEndpoint string `mapstructure:"url_endpoint"`
+		Folder      string `mapstructure:"folder"`
 	} `mapstructure:"imagekit"`
 }
 

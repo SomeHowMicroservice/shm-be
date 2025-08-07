@@ -49,7 +49,7 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 		admin.POST("/products", productHandler.CreateProduct)
 		admin.GET("/products", productHandler.GetAllProductsAdmin)
 		admin.GET("/products/:id", productHandler.ProductAdminDetails)
-		// admin.PATCH("/products/:id", productHandler.UpdateProduct)
+		admin.PATCH("/products/:id", productHandler.UpdateProduct)
 		admin.POST("/colors", productHandler.CreateColor)
 		admin.GET("/colors", productHandler.GetAllColorsAdmin)
 		admin.POST("/sizes", productHandler.CreateSize)

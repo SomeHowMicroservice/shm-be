@@ -45,6 +45,42 @@ service ProductService {
   rpc GetProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
 
   rpc GetAllProductsAdmin(GetAllProductsAdminRequest) returns (ProductsAdminResponse);
+
+  rpc UpdateProduct(UpdateProductRequest) returns (ProductAdminDetailsResponse);
+}
+
+message UpdateProductRequest {
+  string id = 1;
+  optional string title = 2;
+  optional string description = 3;
+  optional float price = 4;
+  optional bool is_sale = 5;
+  optional float sale_price = 6;
+  optional string start_sale = 7;
+  optional string end_sale = 8;
+  repeated string category_ids = 9;
+  repeated string tag_ids = 10;
+  repeated UpdateImageRequest update_images = 11;
+  repeated CreateImageRequest new_images = 12;
+  repeated string delete_image_ids = 13;
+  repeated UpdateVariantRequest update_variants = 14;
+  repeated CreateVariantRequest new_variants = 15;
+  repeated string delete_variant_ids = 16;
+  string user_id = 17;
+}
+
+message UpdateImageRequest {
+  string id = 1;
+  optional bool is_thumbnail = 2;
+  optional int32 sort_order = 3;
+}
+
+message UpdateVariantRequest {
+  string id = 1;
+  optional string sku = 2;
+  optional string color_id = 3;
+  optional string size_id = 4;
+  optional int64 quantity = 5;
 }
 
 message GetAllProductsAdminRequest {}

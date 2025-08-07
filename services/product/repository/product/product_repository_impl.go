@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"gorm.io/gorm"
 )
@@ -51,15 +52,7 @@ func (r *productRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool
 }
 
 func (r *productRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Product, error) {
-	var product model.Product
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&product).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return &product, nil
+	return r.findByIDBase(ctx, id)
 }
 
 func (r *productRepositoryImpl) FindAllByCategorySlug(ctx context.Context, categorySlug string) ([]*model.Product, error) {
@@ -78,6 +71,38 @@ func (r *productRepositoryImpl) FindAllWithCategoriesAndThumbnail(ctx context.Co
 	}
 
 	return products, nil
+}
+
+func (r *productRepositoryImpl) UpdateCategories(ctx context.Context, product *model.Product, categories []*model.Category) error {
+	if err := r.db.WithContext(ctx).Model(product).Association("Categories").Replace(categories); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *productRepositoryImpl) FindByIDWithCategoriesAndTags(ctx context.Context, id string) (*model.Product, error) {
+	return r.findByIDBase(ctx, id, "Categories", "Tags")
+}
+
+func (r *productRepositoryImpl) UpdateTags(ctx context.Context, product *model.Product, tags []*model.Tag) error {
+	if err := r.db.WithContext(ctx).Model(product).Association("Tags").Replace(tags); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *productRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
+	result := r.db.WithContext(ctx).Model(&model.Product{}).Where("id = ?", id).Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrProductNotFound
+	}
+
+	return nil
 }
 
 func (r *productRepositoryImpl) findByIDBase(ctx context.Context, id string, preloads ...string) (*model.Product, error) {

@@ -17,17 +17,6 @@ type UpdateCategoryRequest struct {
 	ParentIDs []string `json:"parent_ids" binding:"omitempty,dive,uuid4"`
 }
 
-type CreateProductRequest struct {
-	Title       string     `json:"title" binding:"required,min=2"`
-	Description string     `json:"description" binding:"required"`
-	Price       float32    `json:"price"`
-	IsSale      *bool      `json:"is_sale" binding:"required"`
-	SalePrice   *float32   `json:"sale_price" binding:"omitempty"`
-	StartSale   *time.Time `json:"start_sale" binding:"omitempty"`
-	EndSale     *time.Time `json:"end_sale" binding:"omitempty"`
-	CategoryIDs []string   `json:"category_ids" binding:"required,dive,uuid4"`
-}
-
 type CreateColorRequest struct {
 	Name string `json:"name" binding:"required,max=20"`
 }
@@ -45,18 +34,18 @@ type UpdateTagRequest struct {
 }
 
 type CreateImageForm struct {
-	ColorID     string                `form:"color_id" binding:"required,uuid4"`
-	IsThumbnail bool                  `form:"is_thumbnail" binding:"required"`
-	SortOrder   int                   `form:"sort_order" binding:"required"`
-	File        *multipart.FileHeader `form:"file" binding:"required"`
+	ColorID     string                `form:"color_id" validate:"required,uuid4"`
+	IsThumbnail *bool                  `form:"is_thumbnail" validate:"required"`
+	SortOrder   int                   `form:"sort_order" validate:"required,gt=0"`
+	File        *multipart.FileHeader `form:"file" validate:"required"`
 }
 
 type CreateProductForm struct {
 	Title       string              `form:"title" validate:"required,min=2"`
-	Description string              `form:"description" validate:"required"`
-	Price       float32             `form:"price" validate:"required"`
+	Description string              `form:"description" validate:"required,min=1"`
+	Price       float32             `form:"price" validate:"required,gt=0"`
 	IsSale      *bool               `form:"is_sale" validate:"required"`
-	SalePrice   *float32            `form:"sale_price" validate:"omitempty"`
+	SalePrice   *float32            `form:"sale_price" validate:"omitempty,gt=0"`
 	StartSale   *time.Time          `form:"start_sale" validate:"omitempty"`
 	EndSale     *time.Time          `form:"end_sale" validate:"omitempty"`
 	CategoryIDs []string            `form:"category_ids" validate:"required,dive,uuid4"`
@@ -69,5 +58,37 @@ type CreateVariantForm struct {
 	SKU      string `form:"sku" validate:"required,max=50"`
 	ColorID  string `form:"color_id" validate:"required,uuid4"`
 	SizeID   string `form:"size_id" validate:"required,uuid4"`
-	Quantity int    `form:"quantity" validate:"required"`
+	Quantity int    `form:"quantity" validate:"required,min=1"`
+}
+
+type UpdateProductForm struct {
+	Title            *string             `form:"title" validate:"omitempty,min=2"`
+	Description      *string             `form:"description" validate:"omitempty,min=1"`
+	Price            *float32            `form:"price" validate:"omitempty,gt=0"`
+	IsSale           *bool               `form:"is_sale" validate:"omitempty"`
+	SalePrice        *float32            `form:"sale_price" validate:"omitempty,gt=0"`
+	StartSale        *time.Time          `form:"start_sale" validate:"omitempty"`
+	EndSale          *time.Time          `form:"end_sale" validate:"omitempty"`
+	CategoryIDs      []string            `form:"category_ids" validate:"omitempty,dive,uuid4"`
+	TagIDs           []string            `form:"tag_ids" validate:"omitempty,dive,uuid4"`
+	DeleteImageIDs   []string            `form:"delete_image_ids" validate:"omitempty,dive,uuid4"`
+	UpdateImages     []UpdateImageForm   `form:"update_images" validate:"omitempty,dive"`
+	NewImages        []CreateImageForm   `form:"new_images" validate:"omitempty,dive"`
+	DeleteVariantIDs []string            `form:"delete_variant_ids" validate:"omitempty,dive,uuid4"`
+	UpdateVariants   []UpdateVariantForm `form:"update_variants" validate:"omitempty,dive"`
+	NewVariants      []CreateVariantForm `form:"new_variants" validate:"omitempty,dive"`
+}
+
+type UpdateVariantForm struct {
+	ID       string `form:"id" validate:"required,uuid4"`
+	SKU      string `form:"sku" validate:"omitempty,max=50"`
+	ColorID  string `form:"color_id" validate:"omitempty,uuid4"`
+	SizeID   string `form:"size_id" validate:"omitempty,uuid4"`
+	Quantity *int   `form:"quantity" validate:"omitempty,min=1"`
+}
+
+type UpdateImageForm struct {
+	ID          string `form:"id" validate:"required,uuid4"`
+	IsThumbnail *bool  `form:"is_thumbnail" validate:"omitempty"`
+	SortOrder   *int   `form:"sort_order" validate:"omitempty,min=1"`
 }

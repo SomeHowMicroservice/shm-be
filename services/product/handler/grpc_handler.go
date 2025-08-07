@@ -321,6 +321,22 @@ func (h *GRPCHandler) GetAllProductsAdmin(ctx context.Context, req *protobuf.Get
 	return toProductsAdminResponse(products), nil
 }
 
+func (h *GRPCHandler) UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error) {
+	convertedProduct, err := h.svc.UpdateProduct(ctx, req)
+	if err != nil {
+		switch err {
+		case customErr.ErrSlugAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		case customErr.ErrHasCategoryNotFound, customErr.ErrHasTagNotFound, customErr.ErrHasImageNotFound, customErr.ErrHasVariantNotFound, customErr.ErrProductNotFound, customErr.ErrVariantNotFound, customErr.ErrImageNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedProduct, nil
+}
+
 func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {
 	var productResponses []*protobuf.ProductAdminResponse
 	for _, pro := range products {
@@ -335,8 +351,8 @@ func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminR
 func toProductAdminResponse(product *model.Product) *protobuf.ProductAdminResponse {
 	categories := toBaseCategoriesResponse(product.Categories)
 	thumbnail := &protobuf.SimpleImageResponse{
-		Id:   product.Images[0].ID,
-		Url:  product.Images[0].Url,
+		Id:  product.Images[0].ID,
+		Url: product.Images[0].Url,
 	}
 	return &protobuf.ProductAdminResponse{
 		Id:         product.ID,
