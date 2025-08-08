@@ -1079,11 +1079,11 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	}
 
 	if len(req.DeleteVariantIds) > 0 {
-		variants, err := s.variantRepo.FindAllByID(ctx, req.DeleteImageIds)
+		variants, err := s.variantRepo.FindAllByID(ctx, req.DeleteVariantIds)
 		if err != nil {
 			return nil, fmt.Errorf("lấy danh sách danh mục sản phẩm thất bại: %w", err)
 		}
-		if len(variants) != len(req.DeleteImageIds) {
+		if len(variants) != len(req.DeleteVariantIds) {
 			return nil, customErr.ErrHasVariantNotFound
 		}
 
