@@ -30,4 +30,8 @@ type ProductRepository interface {
 	UpdateTags(ctx context.Context, product *model.Product, tags []*model.Tag) error
 
 	Update(ctx context.Context, id string, updateData map[string]interface{}) error
+
+	FindAllByID(ctx context.Context, ids []string) ([]*model.Product, error)
+
+	UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error
 }

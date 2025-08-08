@@ -32,4 +32,8 @@ type CategoryRepository interface {
 	UpdateParents(ctx context.Context, category *model.Category, parents []*model.Category) error
 
 	FindAllWithChildren(ctx context.Context) ([]*model.Category, error)
+
+	DeleteAllByID(ctx context.Context, ids []string) error
+
+	Delete(ctx context.Context, id string) error
 }

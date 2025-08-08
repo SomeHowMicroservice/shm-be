@@ -19,29 +19,32 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProductService_CreateCategory_FullMethodName        = "/product.ProductService/CreateCategory"
-	ProductService_GetCategoryTree_FullMethodName       = "/product.ProductService/GetCategoryTree"
-	ProductService_GetProductBySlug_FullMethodName      = "/product.ProductService/GetProductBySlug"
-	ProductService_CreateColor_FullMethodName           = "/product.ProductService/CreateColor"
-	ProductService_CreateSize_FullMethodName            = "/product.ProductService/CreateSize"
-	ProductService_GetProductsByCategory_FullMethodName = "/product.ProductService/GetProductsByCategory"
-	ProductService_CreateTag_FullMethodName             = "/product.ProductService/CreateTag"
-	ProductService_GetAllCategoriesAdmin_FullMethodName = "/product.ProductService/GetAllCategoriesAdmin"
-	ProductService_GetCategoryById_FullMethodName       = "/product.ProductService/GetCategoryById"
-	ProductService_UpdateCategory_FullMethodName        = "/product.ProductService/UpdateCategory"
-	ProductService_GetAllColorsAdmin_FullMethodName     = "/product.ProductService/GetAllColorsAdmin"
-	ProductService_GetAllSizesAdmin_FullMethodName      = "/product.ProductService/GetAllSizesAdmin"
-	ProductService_GetAllTagsAdmin_FullMethodName       = "/product.ProductService/GetAllTagsAdmin"
-	ProductService_UpdateTag_FullMethodName             = "/product.ProductService/UpdateTag"
-	ProductService_GetAllColors_FullMethodName          = "/product.ProductService/GetAllColors"
-	ProductService_GetAllSizes_FullMethodName           = "/product.ProductService/GetAllSizes"
-	ProductService_GetAllTags_FullMethodName            = "/product.ProductService/GetAllTags"
-	ProductService_CreateProduct_FullMethodName         = "/product.ProductService/CreateProduct"
-	ProductService_GetCategoriesNoChild_FullMethodName  = "/product.ProductService/GetCategoriesNoChild"
-	ProductService_GetProductById_FullMethodName        = "/product.ProductService/GetProductById"
-	ProductService_GetAllProductsAdmin_FullMethodName   = "/product.ProductService/GetAllProductsAdmin"
-	ProductService_UpdateProduct_FullMethodName         = "/product.ProductService/UpdateProduct"
-	ProductService_DeleteProduct_FullMethodName         = "/product.ProductService/DeleteProduct"
+	ProductService_CreateCategory_FullMethodName              = "/product.ProductService/CreateCategory"
+	ProductService_GetCategoryTree_FullMethodName             = "/product.ProductService/GetCategoryTree"
+	ProductService_GetProductBySlug_FullMethodName            = "/product.ProductService/GetProductBySlug"
+	ProductService_CreateColor_FullMethodName                 = "/product.ProductService/CreateColor"
+	ProductService_CreateSize_FullMethodName                  = "/product.ProductService/CreateSize"
+	ProductService_GetProductsByCategory_FullMethodName       = "/product.ProductService/GetProductsByCategory"
+	ProductService_CreateTag_FullMethodName                   = "/product.ProductService/CreateTag"
+	ProductService_GetAllCategoriesAdmin_FullMethodName       = "/product.ProductService/GetAllCategoriesAdmin"
+	ProductService_GetCategoryById_FullMethodName             = "/product.ProductService/GetCategoryById"
+	ProductService_UpdateCategory_FullMethodName              = "/product.ProductService/UpdateCategory"
+	ProductService_GetAllColorsAdmin_FullMethodName           = "/product.ProductService/GetAllColorsAdmin"
+	ProductService_GetAllSizesAdmin_FullMethodName            = "/product.ProductService/GetAllSizesAdmin"
+	ProductService_GetAllTagsAdmin_FullMethodName             = "/product.ProductService/GetAllTagsAdmin"
+	ProductService_UpdateTag_FullMethodName                   = "/product.ProductService/UpdateTag"
+	ProductService_GetAllColors_FullMethodName                = "/product.ProductService/GetAllColors"
+	ProductService_GetAllSizes_FullMethodName                 = "/product.ProductService/GetAllSizes"
+	ProductService_GetAllTags_FullMethodName                  = "/product.ProductService/GetAllTags"
+	ProductService_CreateProduct_FullMethodName               = "/product.ProductService/CreateProduct"
+	ProductService_GetCategoriesNoChild_FullMethodName        = "/product.ProductService/GetCategoriesNoChild"
+	ProductService_GetProductById_FullMethodName              = "/product.ProductService/GetProductById"
+	ProductService_GetAllProductsAdmin_FullMethodName         = "/product.ProductService/GetAllProductsAdmin"
+	ProductService_UpdateProduct_FullMethodName               = "/product.ProductService/UpdateProduct"
+	ProductService_DeleteProduct_FullMethodName               = "/product.ProductService/DeleteProduct"
+	ProductService_DeleteProducts_FullMethodName              = "/product.ProductService/DeleteProducts"
+	ProductService_PermanentlyDeleteCategory_FullMethodName   = "/product.ProductService/PermanentlyDeleteCategory"
+	ProductService_PermanentlyDeleteCategories_FullMethodName = "/product.ProductService/PermanentlyDeleteCategories"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -70,7 +73,10 @@ type ProductServiceClient interface {
 	GetProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 	GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error)
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
-	DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	DeleteProduct(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	DeleteProducts(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteCategory(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteCategories(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 }
 
 type productServiceClient struct {
@@ -301,10 +307,40 @@ func (c *productServiceClient) UpdateProduct(ctx context.Context, in *UpdateProd
 	return out, nil
 }
 
-func (c *productServiceClient) DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+func (c *productServiceClient) DeleteProduct(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeletedResponse)
 	err := c.cc.Invoke(ctx, ProductService_DeleteProduct_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) DeleteProducts(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_DeleteProducts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteCategory(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteCategory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteCategories(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteCategories_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +373,10 @@ type ProductServiceServer interface {
 	GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
 	GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsAdminResponse, error)
 	UpdateProduct(context.Context, *UpdateProductRequest) (*ProductAdminDetailsResponse, error)
-	DeleteProduct(context.Context, *DeleteProductRequest) (*DeletedResponse, error)
+	DeleteProduct(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
+	DeleteProducts(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
+	PermanentlyDeleteCategory(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
+	PermanentlyDeleteCategories(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -414,8 +453,17 @@ func (UnimplementedProductServiceServer) GetAllProductsAdmin(context.Context, *G
 func (UnimplementedProductServiceServer) UpdateProduct(context.Context, *UpdateProductRequest) (*ProductAdminDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProduct not implemented")
 }
-func (UnimplementedProductServiceServer) DeleteProduct(context.Context, *DeleteProductRequest) (*DeletedResponse, error) {
+func (UnimplementedProductServiceServer) DeleteProduct(context.Context, *DeleteOneRequest) (*DeletedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProduct not implemented")
+}
+func (UnimplementedProductServiceServer) DeleteProducts(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteProducts not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteCategory(context.Context, *DeleteOneRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteCategory not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteCategories(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteCategories not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -835,7 +883,7 @@ func _ProductService_UpdateProduct_Handler(srv interface{}, ctx context.Context,
 }
 
 func _ProductService_DeleteProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteProductRequest)
+	in := new(DeleteOneRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -847,7 +895,61 @@ func _ProductService_DeleteProduct_Handler(srv interface{}, ctx context.Context,
 		FullMethod: ProductService_DeleteProduct_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).DeleteProduct(ctx, req.(*DeleteProductRequest))
+		return srv.(ProductServiceServer).DeleteProduct(ctx, req.(*DeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_DeleteProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).DeleteProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_DeleteProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).DeleteProducts(ctx, req.(*DeleteManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteCategory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteCategory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteCategory(ctx, req.(*DeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteCategories(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteCategories_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteCategories(ctx, req.(*DeleteManyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -950,6 +1052,18 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProduct",
 			Handler:    _ProductService_DeleteProduct_Handler,
+		},
+		{
+			MethodName: "DeleteProducts",
+			Handler:    _ProductService_DeleteProducts_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteCategory",
+			Handler:    _ProductService_PermanentlyDeleteCategory_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteCategories",
+			Handler:    _ProductService_PermanentlyDeleteCategories_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

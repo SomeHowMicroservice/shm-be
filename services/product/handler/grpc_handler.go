@@ -338,12 +338,57 @@ func (h *GRPCHandler) UpdateProduct(ctx context.Context, req *protobuf.UpdatePro
 	return convertedProduct, nil
 }
 
-func (h *GRPCHandler) DeleteProduct(ctx context.Context, req *protobuf.DeleteProductRequest) (*protobuf.DeletedResponse, error) {
+func (h *GRPCHandler) DeleteProduct(ctx context.Context, req *protobuf.DeleteOneRequest) (*protobuf.DeletedResponse, error) {
 	if err := h.svc.DeleteProduct(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) DeleteProducts(ctx context.Context, req *protobuf.DeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.DeleteProducts(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteCategory(ctx, req); err != nil {
 		switch err {
 		case customErr.ErrBinnedProduct:
 			return nil, status.Error(codes.FailedPrecondition, err.Error())
 		case customErr.ErrProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteCategories(ctx context.Context, req *protobuf.DeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteCategories(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasCategoryNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())

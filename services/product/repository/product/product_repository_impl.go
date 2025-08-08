@@ -105,6 +105,23 @@ func (r *productRepositoryImpl) Update(ctx context.Context, id string, updateDat
 	return nil
 }
 
+func (r *productRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Product, error) {
+	var products []*model.Product
+	if err := r.db.WithContext(ctx).Scopes(notDeleted).Where("id IN ?", ids).Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
+func (r *productRepositoryImpl) UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error {
+	if err := r.db.WithContext(ctx).Model(&model.Product{}).Where("id IN ?", ids).Updates(updateData).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *productRepositoryImpl) findByIDBase(ctx context.Context, id string, preloads ...string) (*model.Product, error) {
 	var product model.Product
 	query := r.db.WithContext(ctx)

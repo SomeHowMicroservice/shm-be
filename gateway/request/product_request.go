@@ -35,7 +35,7 @@ type UpdateTagRequest struct {
 
 type CreateImageForm struct {
 	ColorID     string                `form:"color_id" validate:"required,uuid4"`
-	IsThumbnail *bool                  `form:"is_thumbnail" validate:"required"`
+	IsThumbnail *bool                 `form:"is_thumbnail" validate:"required"`
 	SortOrder   int                   `form:"sort_order" validate:"required,gt=0"`
 	File        *multipart.FileHeader `form:"file" validate:"required"`
 }
@@ -91,4 +91,12 @@ type UpdateImageForm struct {
 	ID          string `form:"id" validate:"required,uuid4"`
 	IsThumbnail *bool  `form:"is_thumbnail" validate:"omitempty"`
 	SortOrder   *int   `form:"sort_order" validate:"omitempty,min=1"`
+}
+
+type DeleteProductsRequest struct {
+	IDs []string `json:"ids" binding:"required,dive,uuid4"`
+}
+
+type DeleteCategoriesRequest struct {
+	IDs []string `json:"ids" binding:"required,dive,uuid4"`
 }

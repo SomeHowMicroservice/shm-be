@@ -48,11 +48,22 @@ service ProductService {
 
   rpc UpdateProduct(UpdateProductRequest) returns (ProductAdminDetailsResponse);
 
-  rpc DeleteProduct(DeleteProductRequest) returns (DeletedResponse);
+  rpc DeleteProduct(DeleteOneRequest) returns (DeletedResponse);
+
+  rpc DeleteProducts(DeleteManyRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteCategory(DeleteOneRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteCategories(DeleteManyRequest) returns (DeletedResponse);
 }
 
-message DeleteProductRequest {
+message DeleteOneRequest {
   string id = 1;
+  string user_id = 2;
+}
+
+message DeleteManyRequest {
+  repeated string ids = 1;
   string user_id = 2;
 }
 

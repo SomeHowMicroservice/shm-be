@@ -96,6 +96,26 @@ func (r *categoryRepositoryImpl) FindAllWithChildren(ctx context.Context) ([]*mo
 	return r.findAllBase(ctx, "Children")
 }
 
+func (r *categoryRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Category{}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *categoryRepositoryImpl) Delete(ctx context.Context, id string) error {
+	result := r.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Category{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrCategoryNotFound
+	}
+
+	return nil
+}
+
 func (r *categoryRepositoryImpl) findByIDBase(ctx context.Context, id string, preloads ...common.Preload) (*model.Category, error) {
 	var category model.Category
 	query := r.db.WithContext(ctx)

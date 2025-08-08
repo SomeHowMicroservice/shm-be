@@ -12,7 +12,7 @@ type ProductService interface {
 
 	GetCategoryTree(ctx context.Context) ([]*model.Category, error)
 
-	GetCategoriesNoChild(ctx context.Context) ([]*model.Category, error) 
+	GetCategoriesNoChild(ctx context.Context) ([]*model.Category, error)
 
 	GetProductBySlug(ctx context.Context, slug string) (*model.Product, error)
 
@@ -52,5 +52,11 @@ type ProductService interface {
 
 	UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error)
 
-	DeleteProduct(ctx context.Context, req *protobuf.DeleteProductRequest) error
+	DeleteProduct(ctx context.Context, req *protobuf.DeleteOneRequest) error
+
+	DeleteProducts(ctx context.Context, req *protobuf.DeleteManyRequest) error
+
+	PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) error
+
+	PermanentlyDeleteCategories(ctx context.Context, req *protobuf.DeleteManyRequest) error
 }

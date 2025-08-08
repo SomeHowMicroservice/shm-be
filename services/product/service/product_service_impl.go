@@ -1219,7 +1219,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
-func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *protobuf.DeleteProductRequest) error {
+func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *protobuf.DeleteOneRequest) error {
 	product, err := s.productRepo.FindByID(ctx, req.Id)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
@@ -1228,12 +1228,8 @@ func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *protobuf.De
 		return customErr.ErrProductNotFound
 	}
 
-	if product.IsDeleted {
-		return customErr.ErrBinnedProduct
-	}
-
 	updateData := map[string]interface{}{
-		"is_deleted": true,
+		"is_deleted":    true,
 		"updated_by_id": req.UserId,
 	}
 	if err = s.productRepo.Update(ctx, req.Id, updateData); err != nil {
@@ -1241,6 +1237,61 @@ func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *protobuf.De
 			return err
 		}
 		return fmt.Errorf("chuyển sản phẩm vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) DeleteProducts(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+	products, err := s.productRepo.FindAllByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
+	}
+	if len(products) != len(req.Ids) {
+		return customErr.ErrHasProductNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.productRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
+		return fmt.Errorf("chuyển danh sách sản phẩm vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+	category, err := s.categoryRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+	}
+	if category == nil {
+		return customErr.ErrCategoryNotFound
+	}
+
+	if err = s.categoryRepo.Delete(ctx, req.Id); err != nil {
+		if errors.Is(err, customErr.ErrCategoryNotFound) {
+			return err
+		}
+		return fmt.Errorf("xóa danh mục sản phẩm thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteCategories(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+	categories, err := s.categoryRepo.FindAllByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+	}
+	if len(categories) != len(req.Ids) {
+		return customErr.ErrHasCategoryNotFound
+	}
+
+	if err = s.categoryRepo.DeleteAllByID(ctx, req.Ids); err != nil {
+		return fmt.Errorf("xóa danh sách danh mục sản phẩm thất bại: %w", err)
 	}
 
 	return nil
