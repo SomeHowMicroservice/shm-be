@@ -1042,7 +1042,20 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 			}
 			fileName := fmt.Sprintf("%s-%s_%d%s", product.Slug, img.ColorId, img.SortOrder, ext)
 
+			imageUrl := fmt.Sprintf("%s/%s/%s", s.cfg.ImageKit.URLEndpoint, s.cfg.ImageKit.Folder, fileName)
+			image := &model.Image{
+				ID:          uuid.NewString(),
+				ProductID:   product.ID,
+				ColorID:     img.ColorId,
+				Url:         imageUrl,
+				IsThumbnail: img.IsThumbnail,
+				SortOrder:   int(img.SortOrder),
+				CreatedByID: req.UserId,
+				UpdatedByID: req.UserId,
+			}
+
 			uploadFileRequest := &common.Base64UploadRequest{
+				ImageID:    image.ID,
 				Base64Data: img.Base64Data,
 				FileName:   fileName,
 				Folder:     s.cfg.ImageKit.Folder,
@@ -1055,18 +1068,6 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 
 			if err = mq.PublishMessage(s.mqChannel, "", "image.upload", body); err != nil {
 				return nil, fmt.Errorf("publish upload image msg thất bại: %w", err)
-			}
-
-			imageUrl := fmt.Sprintf("%s/%s/%s", s.cfg.ImageKit.URLEndpoint, s.cfg.ImageKit.Folder, fileName)
-			image := &model.Image{
-				ID:          uuid.NewString(),
-				ProductID:   product.ID,
-				ColorID:     img.ColorId,
-				Url:         imageUrl,
-				IsThumbnail: img.IsThumbnail,
-				SortOrder:   int(img.SortOrder),
-				CreatedByID: req.UserId,
-				UpdatedByID: req.UserId,
 			}
 
 			newImages = append(newImages, image)
