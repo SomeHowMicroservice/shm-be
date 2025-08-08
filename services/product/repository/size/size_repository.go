@@ -14,4 +14,8 @@ type SizeRepository interface {
 	ExistsBySlug(ctx context.Context, slug string) (bool, error)
 
 	ExistsByID(ctx context.Context, id string) (bool, error)
+
+	FindByID(ctx context.Context, id string) (*model.Size, error)
+
+	Update(ctx context.Context, id string, updateData map[string]interface{}) error
 }

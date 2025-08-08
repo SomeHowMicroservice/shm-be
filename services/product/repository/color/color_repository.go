@@ -14,4 +14,8 @@ type ColorRepository interface {
 	ExistsByID(ctx context.Context, id string) (bool, error)
 
 	FindAll(ctx context.Context) ([]*model.Color, error)
+
+	FindByID(ctx context.Context, id string) (*model.Color, error)
+
+	Update(ctx context.Context, id string, updateData map[string]interface{}) error
 }

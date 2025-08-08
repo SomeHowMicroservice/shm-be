@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"errors"
 
+	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"gorm.io/gorm"
 )
@@ -32,6 +34,18 @@ func (r *sizeRepositoryImpl) FindAll(ctx context.Context) ([]*model.Size, error)
 	return sizes, nil
 }
 
+func (r *sizeRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Size, error) {
+	var size model.Size
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&size).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &size, nil
+}
+
 func (r *sizeRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
 	var count int64
 	if err := r.db.WithContext(ctx).Model(&model.Size{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
@@ -48,4 +62,16 @@ func (r *sizeRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, e
 	}
 
 	return count > 0, nil
+}
+
+func (r *sizeRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
+	result := r.db.WithContext(ctx).Model(&model.Size{}).Where("id = ?", id).Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrSizeNotFound
+	}
+
+	return nil
 }

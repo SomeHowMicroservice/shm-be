@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"errors"
 
+	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"gorm.io/gorm"
 )
@@ -48,4 +50,28 @@ func (r *colorRepositoryImpl) FindAll(ctx context.Context) ([]*model.Color, erro
 	}
 
 	return colors, nil
+}
+
+func (r *colorRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Color, error) {
+	var color model.Color
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&color).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &color, nil
+}
+
+func (r *colorRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
+	result := r.db.WithContext(ctx).Model(&model.Color{}).Where("id = ?", id).Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrColorNotFound
+	}
+
+	return nil
 }

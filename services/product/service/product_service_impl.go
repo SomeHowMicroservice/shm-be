@@ -621,9 +621,11 @@ func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.Update
 		if exists {
 			return customErr.ErrTagAlreadyExists
 		}
+
 		updateData["name"] = req.Name
 		updateData["slug"] = slug
 	}
+
 	if tag.UpdatedByID != req.UserId {
 		updateData["updated_by_id"] = req.UserId
 	}
@@ -634,6 +636,86 @@ func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.Update
 				return err
 			}
 			return fmt.Errorf("cập nhật tag sản phẩm thất bại: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) UpdateColor(ctx context.Context, req *protobuf.UpdateColorRequest) error {
+	color, err := s.colorRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if color == nil {
+		return customErr.ErrColorNotFound
+	}
+
+	updateData := map[string]interface{}{}
+	if color.Name != req.Name {
+		slug := common.GenerateSlug(req.Name)
+		exists, err := s.colorRepo.ExistsBySlug(ctx, slug)
+		if err != nil {
+			return fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
+		}
+		if exists {
+			return customErr.ErrColorAlreadyExists
+		}
+
+		updateData["name"] = req.Name
+		updateData["slug"] = slug
+	}
+
+	if color.UpdatedByID != req.UserId {
+		updateData["updated_by_id"] = req.UserId
+	}
+
+	if len(updateData) > 0 {
+		if err = s.colorRepo.Update(ctx, color.ID, updateData); err != nil {
+			if errors.Is(err, customErr.ErrColorNotFound) {
+				return err
+			}
+			return fmt.Errorf("cập nhật màu sắc sản phẩm thất bại: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) UpdateSize(ctx context.Context, req *protobuf.UpdateSizeRequest) error {
+	size, err := s.sizeRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if size == nil {
+		return customErr.ErrSizeNotFound
+	}
+
+	updateData := map[string]interface{}{}
+	if size.Name != req.Name {
+		slug := common.GenerateSlug(req.Name)
+		exists, err := s.sizeRepo.ExistsBySlug(ctx, slug)
+		if err != nil {
+			return fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
+		}
+		if exists {
+			return customErr.ErrSizeAlreadyExists
+		}
+
+		updateData["name"] = req.Name
+		updateData["slug"] = slug
+	}
+
+	if size.UpdatedByID != req.UserId {
+		updateData["updated_by_id"] = req.UserId
+	}
+
+	if len(updateData) > 0 {
+		if err = s.sizeRepo.Update(ctx, size.ID, updateData); err != nil {
+			if errors.Is(err, customErr.ErrSizeNotFound) {
+				return err
+			}
+			return fmt.Errorf("cập nhật kích cỡ sản phẩm thất bại: %w", err)
 		}
 	}
 
@@ -902,7 +984,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 
 		updateProductData["title"] = req.Title
 		updateProductData["slug"] = newSlug
-	}
+	} 
 
 	if req.Description != nil && *req.Description != product.Description {
 		updateProductData["description"] = req.Description

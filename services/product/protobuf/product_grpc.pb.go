@@ -46,6 +46,8 @@ const (
 	ProductService_PermanentlyDeleteCategory_FullMethodName   = "/product.ProductService/PermanentlyDeleteCategory"
 	ProductService_PermanentlyDeleteCategories_FullMethodName = "/product.ProductService/PermanentlyDeleteCategories"
 	ProductService_GetCategoriesNoProduct_FullMethodName      = "/product.ProductService/GetCategoriesNoProduct"
+	ProductService_UpdateColor_FullMethodName                 = "/product.ProductService/UpdateColor"
+	ProductService_UpdateSize_FullMethodName                  = "/product.ProductService/UpdateSize"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -79,6 +81,8 @@ type ProductServiceClient interface {
 	PermanentlyDeleteCategory(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	PermanentlyDeleteCategories(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	GetCategoriesNoProduct(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
+	UpdateColor(ctx context.Context, in *UpdateColorRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
+	UpdateSize(ctx context.Context, in *UpdateSizeRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
 }
 
 type productServiceClient struct {
@@ -359,6 +363,26 @@ func (c *productServiceClient) GetCategoriesNoProduct(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *productServiceClient) UpdateColor(ctx context.Context, in *UpdateColorRequest, opts ...grpc.CallOption) (*UpdatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatedResponse)
+	err := c.cc.Invoke(ctx, ProductService_UpdateColor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) UpdateSize(ctx context.Context, in *UpdateSizeRequest, opts ...grpc.CallOption) (*UpdatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatedResponse)
+	err := c.cc.Invoke(ctx, ProductService_UpdateSize_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -390,6 +414,8 @@ type ProductServiceServer interface {
 	PermanentlyDeleteCategory(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
 	PermanentlyDeleteCategories(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
 	GetCategoriesNoProduct(context.Context, *GetManyRequest) (*BaseCategoriesResponse, error)
+	UpdateColor(context.Context, *UpdateColorRequest) (*UpdatedResponse, error)
+	UpdateSize(context.Context, *UpdateSizeRequest) (*UpdatedResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -480,6 +506,12 @@ func (UnimplementedProductServiceServer) PermanentlyDeleteCategories(context.Con
 }
 func (UnimplementedProductServiceServer) GetCategoriesNoProduct(context.Context, *GetManyRequest) (*BaseCategoriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCategoriesNoProduct not implemented")
+}
+func (UnimplementedProductServiceServer) UpdateColor(context.Context, *UpdateColorRequest) (*UpdatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateColor not implemented")
+}
+func (UnimplementedProductServiceServer) UpdateSize(context.Context, *UpdateSizeRequest) (*UpdatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSize not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -988,6 +1020,42 @@ func _ProductService_GetCategoriesNoProduct_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_UpdateColor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateColorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).UpdateColor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_UpdateColor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).UpdateColor(ctx, req.(*UpdateColorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_UpdateSize_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSizeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).UpdateSize(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_UpdateSize_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).UpdateSize(ctx, req.(*UpdateSizeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1102,6 +1170,14 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCategoriesNoProduct",
 			Handler:    _ProductService_GetCategoriesNoProduct_Handler,
+		},
+		{
+			MethodName: "UpdateColor",
+			Handler:    _ProductService_UpdateColor_Handler,
+		},
+		{
+			MethodName: "UpdateSize",
+			Handler:    _ProductService_UpdateSize_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

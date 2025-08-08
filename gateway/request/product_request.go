@@ -33,6 +33,14 @@ type UpdateTagRequest struct {
 	Name string `json:"name" binding:"required,max=50"`
 }
 
+type UpdateColorRequest struct {
+	Name string `json:"name" binding:"required,max=20"`
+}
+
+type UpdateSizeRequest struct {
+	Name string `json:"name" binding:"required,max=20"`
+}
+
 type CreateImageForm struct {
 	ColorID     string                `form:"color_id" validate:"required,uuid4"`
 	IsThumbnail *bool                 `form:"is_thumbnail" validate:"required"`

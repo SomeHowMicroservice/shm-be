@@ -61,4 +61,8 @@ type ProductService interface {
 	PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) error
 
 	PermanentlyDeleteCategories(ctx context.Context, req *protobuf.DeleteManyRequest) error
+
+	UpdateColor(ctx context.Context, req *protobuf.UpdateColorRequest) error
+
+	UpdateSize(ctx context.Context, req *protobuf.UpdateSizeRequest) error
 }

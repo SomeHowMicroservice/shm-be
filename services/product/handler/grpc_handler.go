@@ -411,6 +411,40 @@ func (h *GRPCHandler) PermanentlyDeleteCategories(ctx context.Context, req *prot
 	}, nil
 }
 
+func (h *GRPCHandler) UpdateColor(ctx context.Context, req *protobuf.UpdateColorRequest) (*protobuf.UpdatedResponse, error) {
+	if err := h.svc.UpdateColor(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrColorNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case customErr.ErrColorAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.UpdatedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) UpdateSize(ctx context.Context, req *protobuf.UpdateSizeRequest) (*protobuf.UpdatedResponse, error) {
+	if err := h.svc.UpdateSize(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrSizeNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case customErr.ErrSizeAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.UpdatedResponse{
+		Success: true,
+	}, nil
+}
+
 func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {
 	var productResponses []*protobuf.ProductAdminResponse
 	for _, pro := range products {

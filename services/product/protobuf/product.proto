@@ -57,6 +57,22 @@ service ProductService {
   rpc PermanentlyDeleteCategories(DeleteManyRequest) returns (DeletedResponse);
 
   rpc GetCategoriesNoProduct(GetManyRequest) returns (BaseCategoriesResponse);
+
+  rpc UpdateColor(UpdateColorRequest) returns (UpdatedResponse);
+
+  rpc UpdateSize(UpdateSizeRequest) returns (UpdatedResponse);
+}
+
+message UpdateSizeRequest {
+  string id = 1;
+  string name = 2;
+  string user_id = 3;
+}
+
+message UpdateColorRequest {
+  string id = 1;
+  string name = 2;
+  string user_id = 3;
 }
 
 message GetManyRequest {}
