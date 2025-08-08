@@ -6,7 +6,7 @@ option go_package = "github.com/SomeHowMicroservice/shm-be/services/product/prot
 service ProductService {
   rpc CreateCategory(CreateCategoryRequest) returns (CreatedResponse);
 
-  rpc GetCategoryTree(GetCategoryTreeRequest) returns (CategoryTreeResponse);
+  rpc GetCategoryTree(GetManyRequest) returns (CategoryTreeResponse);
 
   rpc GetProductBySlug(GetProductBySlugRequest) returns (ProductPublicResponse);
 
@@ -18,33 +18,33 @@ service ProductService {
 
   rpc CreateTag(CreateTagRequest) returns (CreatedResponse);
 
-  rpc GetAllCategoriesAdmin(GetAllCategoriesRequest) returns (BaseCategoriesResponse);
+  rpc GetAllCategoriesAdmin(GetManyRequest) returns (BaseCategoriesResponse);
 
   rpc GetCategoryById(GetCategoryByIdRequest) returns (CategoryAdminDetailsResponse);
 
   rpc UpdateCategory(UpdateCategoryRequest) returns (CategoryAdminDetailsResponse);
 
-  rpc GetAllColorsAdmin(GetAllColorsRequest) returns (ColorsAdminResponse);
+  rpc GetAllColorsAdmin(GetManyRequest) returns (ColorsAdminResponse);
 
-  rpc GetAllSizesAdmin(GetAllSizesRequest) returns (SizesAdminResponse);
+  rpc GetAllSizesAdmin(GetManyRequest) returns (SizesAdminResponse);
 
-  rpc GetAllTagsAdmin(GetAllTagsRequest) returns (TagsAdminResponse);
+  rpc GetAllTagsAdmin(GetManyRequest) returns (TagsAdminResponse);
 
   rpc UpdateTag(UpdateTagRequest) returns (UpdatedResponse);
 
-  rpc GetAllColors(GetAllColorsRequest) returns (ColorsPublicResponse);
+  rpc GetAllColors(GetManyRequest) returns (ColorsPublicResponse);
 
-  rpc GetAllSizes(GetAllSizesRequest) returns (SizesPublicResponse);
+  rpc GetAllSizes(GetManyRequest) returns (SizesPublicResponse);
 
-  rpc GetAllTags(GetAllTagsRequest) returns (TagsPublicResponse);
+  rpc GetAllTags(GetManyRequest) returns (TagsPublicResponse);
 
   rpc CreateProduct(CreateProductRequest) returns (CreatedResponse);
 
-  rpc GetCategoriesNoChild(GetCategoriesNoChildRequest) returns (BaseCategoriesResponse);
+  rpc GetCategoriesNoChild(GetManyRequest) returns (BaseCategoriesResponse);
 
   rpc GetProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
 
-  rpc GetAllProductsAdmin(GetAllProductsAdminRequest) returns (ProductsAdminResponse);
+  rpc GetAllProductsAdmin(GetManyRequest) returns (ProductsAdminResponse);
 
   rpc UpdateProduct(UpdateProductRequest) returns (ProductAdminDetailsResponse);
 
@@ -55,7 +55,11 @@ service ProductService {
   rpc PermanentlyDeleteCategory(DeleteOneRequest) returns (DeletedResponse);
 
   rpc PermanentlyDeleteCategories(DeleteManyRequest) returns (DeletedResponse);
+
+  rpc GetCategoriesNoProduct(GetManyRequest) returns (BaseCategoriesResponse);
 }
+
+message GetManyRequest {}
 
 message DeleteOneRequest {
   string id = 1;
@@ -105,8 +109,6 @@ message UpdateVariantRequest {
   optional int64 quantity = 5;
 }
 
-message GetAllProductsAdminRequest {}
-
 message ProductsAdminResponse {
   repeated ProductAdminResponse products = 1;
 }
@@ -151,8 +153,6 @@ message ProductAdminDetailsResponse {
 message BaseCategoriesResponse {
   repeated BaseCategoryResponse categories = 1;
 }
-
-message GetCategoriesNoChildRequest {}
 
 message CreateProductRequest {
   string title = 1;
@@ -211,8 +211,6 @@ message UpdateTagRequest {
   string user_id = 3;
 }
 
-message GetAllTagsRequest {}
-
 message TagsAdminResponse {
   repeated TagAdminResponse tags = 1;
 }
@@ -226,8 +224,6 @@ message TagAdminResponse {
   BaseUserResponse updated_by = 6;
 }
 
-message GetAllSizesRequest {}
-
 message SizesAdminResponse {
   repeated SizeAdminResponse sizes = 1;
 }
@@ -240,8 +236,6 @@ message SizeAdminResponse {
   BaseUserResponse created_by = 5;
   BaseUserResponse updated_by = 6;
 }
-
-message GetAllColorsRequest {}
 
 message ColorsAdminResponse {
   repeated ColorAdminResponse colors = 1;
@@ -286,8 +280,6 @@ message BaseProductResponse {
 message GetCategoryByIdRequest {
   string id = 1;
 }
-
-message GetAllCategoriesRequest {}
 
 message BaseProfileResponse {
   string id = 1;
@@ -363,7 +355,7 @@ message BaseImageResponse {
   BaseColorResponse color = 2;
   string url = 3;
   int32 sort_order = 4;
-  bool is_thumbnail = 5;
+  optional bool is_thumbnail = 5;
 }
 
 message BaseColorResponse {
@@ -411,8 +403,6 @@ message CategoryPublicResponse {
   string slug = 3;
   repeated CategoryPublicResponse children = 4;
 }
-
-message GetCategoryTreeRequest {}
 
 message CategoryTreeResponse {
   repeated CategoryPublicResponse categories = 1;

@@ -23,6 +23,7 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 		category.GET("/tree", productHandler.GetCategoryTree)
 		category.GET("/:slug/products", productHandler.GetProductsByCategory)
 		category.GET("/no-child", productHandler.GetCategoriesNoChild)
+		category.GET("/no-product", productHandler.GetCategoriesNoProduct)
 	}
 
 	color := rg.Group("/colors")

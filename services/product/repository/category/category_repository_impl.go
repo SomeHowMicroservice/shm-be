@@ -60,6 +60,10 @@ func (r *categoryRepositoryImpl) FindAllWithParentsAndChildren(ctx context.Conte
 	return r.findAllBase(ctx, "Parents", "Children")
 }
 
+func (r *categoryRepositoryImpl) FindAllWithProducts(ctx context.Context) ([]*model.Category, error) {
+	return r.findAllBase(ctx, "Products")
+}
+
 func (r *categoryRepositoryImpl) FindAll(ctx context.Context) ([]*model.Category, error) {
 	return r.findAllBase(ctx)
 }

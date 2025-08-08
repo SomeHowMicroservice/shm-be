@@ -14,6 +14,8 @@ type ProductService interface {
 
 	GetCategoriesNoChild(ctx context.Context) ([]*model.Category, error)
 
+	GetCategoriesNoProduct(ctx context.Context) ([]*model.Category, error)
+
 	GetProductBySlug(ctx context.Context, slug string) (*model.Product, error)
 
 	CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error)

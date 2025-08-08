@@ -88,7 +88,7 @@ func (h *ProductHandler) GetCategoryTree(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetCategoryTree(ctx, &productpb.GetCategoryTreeRequest{})
+	res, err := h.productClient.GetCategoryTree(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
@@ -107,7 +107,7 @@ func (h *ProductHandler) GetCategoriesNoChild(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetCategoriesNoChild(ctx, &productpb.GetCategoriesNoChildRequest{})
+	res, err := h.productClient.GetCategoriesNoChild(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
@@ -933,7 +933,7 @@ func (h *ProductHandler) GetAllCategoriesAdmin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllCategoriesAdmin(ctx, &productpb.GetAllCategoriesRequest{})
+	res, err := h.productClient.GetAllCategoriesAdmin(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -949,6 +949,25 @@ func (h *ProductHandler) GetAllCategoriesAdmin(c *gin.Context) {
 	}
 
 	common.JSON(c, http.StatusOK, "Lấy tất cả danh mục sản phẩm thành công", gin.H{
+		"categories": res.Categories,
+	})
+}
+
+func (h *ProductHandler) GetCategoriesNoProduct(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetCategoriesNoProduct(ctx, &productpb.GetManyRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy danh sách danh mục sản phẩm thành công", gin.H{
 		"categories": res.Categories,
 	})
 }
@@ -1036,7 +1055,7 @@ func (h *ProductHandler) GetAllColorsAdmin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllColorsAdmin(ctx, &productpb.GetAllColorsRequest{})
+	res, err := h.productClient.GetAllColorsAdmin(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -1060,7 +1079,7 @@ func (h *ProductHandler) GetAllColors(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllColors(ctx, &productpb.GetAllColorsRequest{})
+	res, err := h.productClient.GetAllColors(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
@@ -1079,7 +1098,7 @@ func (h *ProductHandler) GetAllSizesAdmin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllSizesAdmin(ctx, &productpb.GetAllSizesRequest{})
+	res, err := h.productClient.GetAllSizesAdmin(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -1103,7 +1122,7 @@ func (h *ProductHandler) GetAllSizes(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllSizes(ctx, &productpb.GetAllSizesRequest{})
+	res, err := h.productClient.GetAllSizes(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
@@ -1122,7 +1141,7 @@ func (h *ProductHandler) GetAllTagsAdmin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllTagsAdmin(ctx, &productpb.GetAllTagsRequest{})
+	res, err := h.productClient.GetAllTagsAdmin(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -1146,7 +1165,7 @@ func (h *ProductHandler) GetAllTags(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllTags(ctx, &productpb.GetAllTagsRequest{})
+	res, err := h.productClient.GetAllTags(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
@@ -1242,7 +1261,7 @@ func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllProductsAdmin(ctx, &productpb.GetAllProductsAdminRequest{})
+	res, err := h.productClient.GetAllProductsAdmin(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {

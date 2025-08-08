@@ -131,6 +131,22 @@ func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Cate
 	return roots, nil
 }
 
+func (s *productServiceImpl) GetCategoriesNoProduct(ctx context.Context) ([]*model.Category, error) {
+	categories, err := s.categoryRepo.FindAllWithProducts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy danh sách danh mục sản phẩm thất bại: %w", err)
+	}
+
+	var noProductCategories []*model.Category
+	for _, cat := range categories {
+		if len(cat.Products) == 0 {
+			noProductCategories = append(noProductCategories, cat)
+		}
+	}
+
+	return noProductCategories, nil
+}
+
 func (s *productServiceImpl) GetProductBySlug(ctx context.Context, slug string) (*model.Product, error) {
 	product, err := s.productRepo.FindBySlugWithDetails(ctx, slug)
 	if err != nil {
@@ -1417,7 +1433,7 @@ func toBaseImagesResponse(images []*model.Image) []*protobuf.BaseImageResponse {
 		imageResponses = append(imageResponses, &protobuf.BaseImageResponse{
 			Id:          img.ID,
 			Url:         img.Url,
-			IsThumbnail: img.IsThumbnail,
+			IsThumbnail: &img.IsThumbnail,
 			SortOrder:   int32(img.SortOrder),
 		})
 	}
@@ -1463,7 +1479,7 @@ func toBaseProductResponse(category *model.Category) []*protobuf.BaseProductResp
 				thumb = &protobuf.BaseImageResponse{
 					Id:          img.ID,
 					Url:         img.Url,
-					IsThumbnail: img.IsThumbnail,
+					IsThumbnail: &img.IsThumbnail,
 				}
 				break
 			}

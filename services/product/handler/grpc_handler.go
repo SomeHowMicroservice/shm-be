@@ -40,13 +40,24 @@ func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCa
 	}, nil
 }
 
-func (h *GRPCHandler) GetCategoryTree(ctx context.Context, req *protobuf.GetCategoryTreeRequest) (*protobuf.CategoryTreeResponse, error) {
+func (h *GRPCHandler) GetCategoryTree(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.CategoryTreeResponse, error) {
 	categoryTree, err := h.svc.GetCategoryTree(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return toCategoryTreeResponse(categoryTree), nil
+}
+
+func (h *GRPCHandler) GetCategoriesNoProduct(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.BaseCategoriesResponse, error) {
+	categories, err := h.svc.GetCategoriesNoProduct(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &protobuf.BaseCategoriesResponse{
+		Categories: toBaseCategoriesResponse(categories),
+	}, nil
 }
 
 func (h *GRPCHandler) GetProductBySlug(ctx context.Context, req *protobuf.GetProductBySlugRequest) (*protobuf.ProductPublicResponse, error) {
@@ -125,7 +136,7 @@ func (h *GRPCHandler) CreateTag(ctx context.Context, req *protobuf.CreateTagRequ
 	}, nil
 }
 
-func (h *GRPCHandler) GetAllCategoriesAdmin(ctx context.Context, req *protobuf.GetAllCategoriesRequest) (*protobuf.BaseCategoriesResponse, error) {
+func (h *GRPCHandler) GetAllCategoriesAdmin(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.BaseCategoriesResponse, error) {
 	categories, err := h.svc.GetAllCategories(ctx)
 	if err != nil {
 		switch err {
@@ -169,7 +180,7 @@ func (h *GRPCHandler) UpdateCategory(ctx context.Context, req *protobuf.UpdateCa
 	return convertedCategory, nil
 }
 
-func (h *GRPCHandler) GetAllColorsAdmin(ctx context.Context, req *protobuf.GetAllColorsRequest) (*protobuf.ColorsAdminResponse, error) {
+func (h *GRPCHandler) GetAllColorsAdmin(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.ColorsAdminResponse, error) {
 	convertedColors, err := h.svc.GetAllColorsAdmin(ctx)
 	if err != nil {
 		switch err {
@@ -183,7 +194,7 @@ func (h *GRPCHandler) GetAllColorsAdmin(ctx context.Context, req *protobuf.GetAl
 	return convertedColors, nil
 }
 
-func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetAllColorsRequest) (*protobuf.ColorsPublicResponse, error) {
+func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.ColorsPublicResponse, error) {
 	colors, err := h.svc.GetAllColors(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -192,7 +203,7 @@ func (h *GRPCHandler) GetAllColors(ctx context.Context, req *protobuf.GetAllColo
 	return toColorsPublicResponse(colors), nil
 }
 
-func (h *GRPCHandler) GetAllSizesAdmin(ctx context.Context, req *protobuf.GetAllSizesRequest) (*protobuf.SizesAdminResponse, error) {
+func (h *GRPCHandler) GetAllSizesAdmin(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.SizesAdminResponse, error) {
 	convertedSizes, err := h.svc.GetAllSizesAdmin(ctx)
 	if err != nil {
 		switch err {
@@ -206,7 +217,7 @@ func (h *GRPCHandler) GetAllSizesAdmin(ctx context.Context, req *protobuf.GetAll
 	return convertedSizes, nil
 }
 
-func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetAllSizesRequest) (*protobuf.SizesPublicResponse, error) {
+func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.SizesPublicResponse, error) {
 	sizes, err := h.svc.GetAllSizes(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -215,7 +226,7 @@ func (h *GRPCHandler) GetAllSizes(ctx context.Context, req *protobuf.GetAllSizes
 	return toSizesPublicResponse(sizes), nil
 }
 
-func (h *GRPCHandler) GetAllTagsAdmin(ctx context.Context, req *protobuf.GetAllTagsRequest) (*protobuf.TagsAdminResponse, error) {
+func (h *GRPCHandler) GetAllTagsAdmin(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.TagsAdminResponse, error) {
 	convertedTags, err := h.svc.GetAllTagsAdmin(ctx)
 	if err != nil {
 		switch err {
@@ -229,7 +240,7 @@ func (h *GRPCHandler) GetAllTagsAdmin(ctx context.Context, req *protobuf.GetAllT
 	return convertedTags, nil
 }
 
-func (h *GRPCHandler) GetAllTags(ctx context.Context, req *protobuf.GetAllTagsRequest) (*protobuf.TagsPublicResponse, error) {
+func (h *GRPCHandler) GetAllTags(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.TagsPublicResponse, error) {
 	tags, err := h.svc.GetAllTags(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -283,7 +294,7 @@ func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreatePro
 	}, nil
 }
 
-func (h *GRPCHandler) GetCategoriesNoChild(ctx context.Context, req *protobuf.GetCategoriesNoChildRequest) (*protobuf.BaseCategoriesResponse, error) {
+func (h *GRPCHandler) GetCategoriesNoChild(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.BaseCategoriesResponse, error) {
 	categories, err := h.svc.GetCategoriesNoChild(ctx)
 	if err != nil {
 		switch err {
@@ -313,7 +324,7 @@ func (h *GRPCHandler) GetProductById(ctx context.Context, req *protobuf.GetProdu
 	return convertedProduct, nil
 }
 
-func (h *GRPCHandler) GetAllProductsAdmin(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) (*protobuf.ProductsAdminResponse, error) {
+func (h *GRPCHandler) GetAllProductsAdmin(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.ProductsAdminResponse, error) {
 	products, err := h.svc.GetAllProductsAdmin(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -583,6 +594,6 @@ func toBaseImageResponse(image *model.Image) *protobuf.BaseImageResponse {
 		},
 		Url:         image.Url,
 		SortOrder:   int32(image.SortOrder),
-		IsThumbnail: image.IsThumbnail,
+		IsThumbnail: &image.IsThumbnail,
 	}
 }
