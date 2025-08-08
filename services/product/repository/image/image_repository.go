@@ -11,11 +11,11 @@ type ImageRepository interface {
 
 	CreateAll(ctx context.Context, images []*model.Image) error
 
-	UpdateIsDeletedByIDIn(ctx context.Context, ids []string) error
-
 	FindAllByID(ctx context.Context, ids []string) ([]*model.Image, error)
 
 	Update(ctx context.Context, id string, updateData map[string]interface{}) error
 
 	DeleteAllByID(ctx context.Context, ids []string) error
+
+	UpdateFileID(ctx context.Context, id string, fileID string) error
 }

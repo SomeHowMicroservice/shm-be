@@ -10,9 +10,10 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/product/imagekit"
 	"github.com/SomeHowMicroservice/shm-be/services/product/initialization"
 	"github.com/SomeHowMicroservice/shm-be/services/product/mq"
+	imageRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/image"
 )
 
-func startUploadImageConsumer(mqc *initialization.MQConnection, imagekit imagekit.ImageKitService) {
+func startUploadImageConsumer(mqc *initialization.MQConnection, imagekit imagekit.ImageKitService, imageRepo imageRepo.ImageRepository) {
 	if err := mq.ConsumeMessage(mqc.Chann, "image.upload", func(body []byte) error {
 		var imageMsg common.Base64UploadRequest
 		if err := json.Unmarshal(body, &imageMsg); err != nil {
@@ -24,8 +25,14 @@ func startUploadImageConsumer(mqc *initialization.MQConnection, imagekit imageki
 		if err != nil {
 			return err
 		}
-
 		log.Printf("Tải lên hình ảnh thành công: %s", res.URL)
+
+		fileID := res.FileID
+		if err = imageRepo.UpdateFileID(ctx, imageMsg.ImageID, fileID); err != nil {
+			return err
+		}
+		log.Printf("Cập nhật FileID ảnh thành công: %s", fileID)
+		
 		return nil
 	}); err != nil {
 		log.Printf("Lỗi khởi tạo upload image consumer: %v", err)

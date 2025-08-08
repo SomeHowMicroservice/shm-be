@@ -3,6 +3,7 @@ package common
 import "gorm.io/gorm"
 
 type Base64UploadRequest struct {
+	ImageID    string `json:"image_id"`
 	Base64Data string `json:"base64_data"`
 	FileName   string `json:"file_name"`
 	Folder     string `json:"folder"`

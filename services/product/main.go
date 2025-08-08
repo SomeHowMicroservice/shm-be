@@ -42,7 +42,7 @@ func main() {
 	protobuf.RegisterProductServiceServer(grpcServer, productContainer.GRPCHandler)
 
 	imagekit := imagekit.NewImageKitService(cfg)
-	go startUploadImageConsumer(mqc, imagekit)
+	go startUploadImageConsumer(mqc, imagekit, productContainer.ImageRepo)
 	go startDeleteImageConsumer(mqc, imagekit)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))

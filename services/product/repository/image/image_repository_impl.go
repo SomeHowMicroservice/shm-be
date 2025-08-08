@@ -32,18 +32,6 @@ func (r *imageRepositoryImpl) CreateAll(ctx context.Context, images []*model.Ima
 	return nil
 }
 
-func (r *imageRepositoryImpl) UpdateIsDeletedByIDIn(ctx context.Context, ids []string) error {
-	result := r.db.WithContext(ctx).Model(&model.Image{}).Where("id IN ?", ids).Update("is_deleted", true)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return customErr.ErrHasImageNotFound
-	}
-
-	return nil
-}
-
 func (r *imageRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Image, error) {
 	var images []*model.Image
 	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&images).Error; err != nil {
@@ -68,6 +56,18 @@ func (r *imageRepositoryImpl) Update(ctx context.Context, id string, updateData 
 func (r *imageRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
 	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Image{}).Error; err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (r *imageRepositoryImpl) UpdateFileID(ctx context.Context, id string, fileID string) error {
+	result := r.db.WithContext(ctx).Model(&model.Image{}).Where("id = ?", id).Update("file_id", fileID)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrImageNotFound
 	}
 
 	return nil

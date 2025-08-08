@@ -20,6 +20,7 @@ import (
 
 type Container struct {
 	GRPCHandler *handler.GRPCHandler
+	ImageRepo imageRepo.ImageRepository
 }
 
 func NewContainer(cfg *config.Config, db *gorm.DB, mqChannel *amqp091.Channel, grpcServer *grpc.Server, userClient userpb.UserServiceClient) *Container {
@@ -33,5 +34,5 @@ func NewContainer(cfg *config.Config, db *gorm.DB, mqChannel *amqp091.Channel, g
 	imageRepo := imageRepo.NewImageRepository(db)
 	svc := service.NewProductService(cfg, userClient, mqChannel, categoryRepo, productRepo, tagRepo, colorRepo, sizeRepo, variantRepo, inventoryRepo, imageRepo)
 	hdl := handler.NewGRPCHandler(grpcServer, svc)
-	return &Container{hdl}
+	return &Container{hdl, imageRepo}
 }
