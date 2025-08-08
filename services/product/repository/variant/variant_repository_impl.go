@@ -41,25 +41,13 @@ func (r *variantRepositoryImpl) ExistsBySKU(ctx context.Context, sku string) (bo
 	return count > 0, nil
 }
 
-func (r *variantRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Variant, error) {
+func (r *variantRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Variant, error) {
 	var variants []*model.Variant
 	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&variants).Error; err != nil {
 		return nil, err
 	}
 
 	return variants, nil
-}
-
-func (r *variantRepositoryImpl) UpdateIsDeletedByIDIn(ctx context.Context, ids []string) error {
-	result := r.db.WithContext(ctx).Model(&model.Variant{}).Where("id IN ?", ids).Update("is_deleted", true)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return customErr.ErrHasVariantNotFound
-	}
-
-	return nil
 }
 
 func (r *variantRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
@@ -69,6 +57,14 @@ func (r *variantRepositoryImpl) Update(ctx context.Context, id string, updateDat
 	}
 	if result.RowsAffected == 0 {
 		return customErr.ErrVariantNotFound
+	}
+
+	return nil
+}
+
+func (r *variantRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Variant{}).Error; err != nil {
+		return err
 	}
 
 	return nil

@@ -13,9 +13,9 @@ type VariantRepository interface {
 
 	ExistsBySKU(ctx context.Context, sku string) (bool, error)
 
-	FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Variant, error)
-
-	UpdateIsDeletedByIDIn(ctx context.Context, ids []string) error
+	FindAllByID(ctx context.Context, ids []string) ([]*model.Variant, error)
 
 	Update(ctx context.Context, id string, updateData map[string]interface{}) error
+
+	DeleteAllByID(ctx context.Context, ids []string) error
 }

@@ -11,9 +11,9 @@ type CategoryRepository interface {
 
 	FindByID(ctx context.Context, id string) (*model.Category, error)
 
-	FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error)
+	FindAllByID(ctx context.Context, ids []string) ([]*model.Category, error)
 
-	FindAllByIDInWithChildren(ctx context.Context, ids []string) ([]*model.Category, error)
+	FindAllByIDWithChildren(ctx context.Context, ids []string) ([]*model.Category, error)
 
 	ExistsByID(ctx context.Context, id string) (bool, error)
 

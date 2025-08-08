@@ -406,7 +406,7 @@ func (s *userServiceImpl) DeleteAddress(ctx context.Context, req *protobuf.Delet
 }
 
 func (s *userServiceImpl) GetUsersByIDs(ctx context.Context, ids []string) ([]*model.User, error) {
-	users, err := s.userRepo.FindAllByIDIn(ctx, ids)
+	users, err := s.userRepo.FindAllByID(ctx, ids)
 	if err != nil {
 		return nil, fmt.Errorf("lấy dữ liệu người dùng thất bại: %w", err)
 	}

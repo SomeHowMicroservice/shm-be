@@ -44,7 +44,7 @@ func (r *imageRepositoryImpl) UpdateIsDeletedByIDIn(ctx context.Context, ids []s
 	return nil
 }
 
-func (r *imageRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Image, error) {
+func (r *imageRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Image, error) {
 	var images []*model.Image
 	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&images).Error; err != nil {
 		return nil, err
@@ -60,6 +60,14 @@ func (r *imageRepositoryImpl) Update(ctx context.Context, id string, updateData 
 	}
 	if result.RowsAffected == 0 {
 		return customErr.ErrImageNotFound
+	}
+
+	return nil
+}
+
+func (r *imageRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Image{}).Error; err != nil {
+		return err
 	}
 
 	return nil

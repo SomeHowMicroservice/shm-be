@@ -13,7 +13,9 @@ type ImageRepository interface {
 
 	UpdateIsDeletedByIDIn(ctx context.Context, ids []string) error
 
-	FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Image, error)
+	FindAllByID(ctx context.Context, ids []string) ([]*model.Image, error)
 
 	Update(ctx context.Context, id string, updateData map[string]interface{}) error
+
+	DeleteAllByID(ctx context.Context, ids []string) error
 }

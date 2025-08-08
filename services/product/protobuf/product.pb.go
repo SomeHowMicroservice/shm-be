@@ -3088,9 +3088,10 @@ func (x *BaseSizeResponse) GetName() string {
 type BaseInventoryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	SoldQuantity  int64                  `protobuf:"varint,2,opt,name=sold_quantity,json=soldQuantity,proto3" json:"sold_quantity,omitempty"`
-	Stock         int64                  `protobuf:"varint,3,opt,name=stock,proto3" json:"stock,omitempty"`
-	IsStock       *bool                  `protobuf:"varint,4,opt,name=is_stock,json=isStock,proto3,oneof" json:"is_stock,omitempty"`
+	Quantity      int64                  `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	SoldQuantity  *int64                 `protobuf:"varint,3,opt,name=sold_quantity,json=soldQuantity,proto3,oneof" json:"sold_quantity,omitempty"`
+	Stock         int64                  `protobuf:"varint,4,opt,name=stock,proto3" json:"stock,omitempty"`
+	IsStock       *bool                  `protobuf:"varint,5,opt,name=is_stock,json=isStock,proto3,oneof" json:"is_stock,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3132,9 +3133,16 @@ func (x *BaseInventoryResponse) GetId() string {
 	return ""
 }
 
-func (x *BaseInventoryResponse) GetSoldQuantity() int64 {
+func (x *BaseInventoryResponse) GetQuantity() int64 {
 	if x != nil {
-		return x.SoldQuantity
+		return x.Quantity
+	}
+	return 0
+}
+
+func (x *BaseInventoryResponse) GetSoldQuantity() int64 {
+	if x != nil && x.SoldQuantity != nil {
+		return *x.SoldQuantity
 	}
 	return 0
 }
@@ -3803,12 +3811,14 @@ const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"6\n" +
 	"\x10BaseSizeResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\x8f\x01\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\xc2\x01\n" +
 	"\x15BaseInventoryResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
-	"\rsold_quantity\x18\x02 \x01(\x03R\fsoldQuantity\x12\x14\n" +
-	"\x05stock\x18\x03 \x01(\x03R\x05stock\x12\x1e\n" +
-	"\bis_stock\x18\x04 \x01(\bH\x00R\aisStock\x88\x01\x01B\v\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bquantity\x18\x02 \x01(\x03R\bquantity\x12(\n" +
+	"\rsold_quantity\x18\x03 \x01(\x03H\x00R\fsoldQuantity\x88\x01\x01\x12\x14\n" +
+	"\x05stock\x18\x04 \x01(\x03R\x05stock\x12\x1e\n" +
+	"\bis_stock\x18\x05 \x01(\bH\x01R\aisStock\x88\x01\x01B\x10\n" +
+	"\x0e_sold_quantityB\v\n" +
 	"\t_is_stock\"\xd6\x01\n" +
 	"\x13BaseVariantResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +

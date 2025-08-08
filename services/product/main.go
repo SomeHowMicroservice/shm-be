@@ -43,6 +43,7 @@ func main() {
 
 	imagekit := imagekit.NewImageKitService(cfg)
 	go startUploadImageConsumer(mqc, imagekit)
+	go startDeleteImageConsumer(mqc, imagekit)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {

@@ -26,12 +26,12 @@ func (r *categoryRepositoryImpl) Create(ctx context.Context, category *model.Cat
 	return nil
 }
 
-func (r *categoryRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Category, error) {
-	return r.findAllByIDInBase(ctx, ids)
+func (r *categoryRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Category, error) {
+	return r.findAllByIDBase(ctx, ids)
 }
 
-func (r *categoryRepositoryImpl) FindAllByIDInWithChildren(ctx context.Context, ids []string) ([]*model.Category, error) {
-	return r.findAllByIDInBase(ctx, ids, "Children")
+func (r *categoryRepositoryImpl) FindAllByIDWithChildren(ctx context.Context, ids []string) ([]*model.Category, error) {
+	return r.findAllByIDBase(ctx, ids, "Children")
 }
 
 func (r *categoryRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
@@ -133,7 +133,7 @@ func (r *categoryRepositoryImpl) findAllBase(ctx context.Context, preloads ...st
 	return categories, nil
 }
 
-func (r *categoryRepositoryImpl) findAllByIDInBase(ctx context.Context, ids []string, preloads ...string) ([]*model.Category, error) {
+func (r *categoryRepositoryImpl) findAllByIDBase(ctx context.Context, ids []string, preloads ...string) ([]*model.Category, error) {
 	var categories []*model.Category
 	query := r.db.WithContext(ctx)
 

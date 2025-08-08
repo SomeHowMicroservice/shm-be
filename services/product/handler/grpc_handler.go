@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 type GRPCHandler struct {
@@ -504,7 +505,7 @@ func toBaseVariantResponse(variant *model.Variant) *protobuf.BaseVariantResponse
 		},
 		Inventory: &protobuf.BaseInventoryResponse{
 			Id:           variant.Inventory.ID,
-			SoldQuantity: int64(variant.Inventory.SoldQuantity),
+			SoldQuantity: proto.Int64(int64(variant.Inventory.SoldQuantity)),
 			Stock:        int64(variant.Inventory.Stock),
 			IsStock:      &variant.Inventory.IsStock,
 		},

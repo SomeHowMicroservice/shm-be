@@ -66,7 +66,7 @@ func (r *tagRepositoryImpl) Update(ctx context.Context, id string, updateData ma
 	return nil
 }
 
-func (r *tagRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.Tag, error) {
+func (r *tagRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Tag, error) {
 	var tags []*model.Tag
 	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&tags).Error; err != nil {
 		return nil, err

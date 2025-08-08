@@ -29,6 +29,7 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm"
 )
 
@@ -78,7 +79,7 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 
 	var parents []*model.Category
 	if len(req.ParentIds) > 0 {
-		parents, err = s.categoryRepo.FindAllByIDIn(ctx, req.ParentIds)
+		parents, err = s.categoryRepo.FindAllByID(ctx, req.ParentIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
 		}
@@ -316,7 +317,7 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 	parentIDs := getIDsFromCategories(category.Parents)
 
 	if !slices.Equal(parentIDs, req.ParentIds) {
-		parents, err := s.categoryRepo.FindAllByIDIn(ctx, req.ParentIds)
+		parents, err := s.categoryRepo.FindAllByID(ctx, req.ParentIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
 		}
@@ -678,7 +679,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 
 	var categories []*model.Category
 	if len(req.CategoryIds) > 0 {
-		categories, err = s.categoryRepo.FindAllByIDInWithChildren(ctx, req.CategoryIds)
+		categories, err = s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 		}
@@ -695,7 +696,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 
 	var tags []*model.Tag
 	if len(req.TagIds) > 0 {
-		tags, err = s.tagRepo.FindAllByIDIn(ctx, req.TagIds)
+		tags, err = s.tagRepo.FindAllByID(ctx, req.TagIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
 		}
@@ -945,7 +946,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	if len(req.CategoryIds) > 0 {
 		categoryIDs := getIDsFromCategories(product.Categories)
 		if !slices.Equal(req.CategoryIds, categoryIDs) {
-			categories, err := s.categoryRepo.FindAllByIDInWithChildren(ctx, req.CategoryIds)
+			categories, err := s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
 			if err != nil {
 				return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 			}
@@ -968,7 +969,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	if len(req.TagIds) > 0 {
 		tagIDs := getIDsFromTags(product.Tags)
 		if !slices.Equal(tagIDs, req.TagIds) {
-			tags, err := s.tagRepo.FindAllByIDIn(ctx, req.TagIds)
+			tags, err := s.tagRepo.FindAllByID(ctx, req.TagIds)
 			if err != nil {
 				return nil, fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
 			}
@@ -984,7 +985,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	}
 
 	if len(req.DeleteImageIds) > 0 {
-		images, err := s.imageRepo.FindAllByIDIn(ctx, req.DeleteImageIds)
+		images, err := s.imageRepo.FindAllByID(ctx, req.DeleteImageIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh sách hình ảnh thất bại: %w", err)
 		}
@@ -997,6 +998,13 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 				return nil, err
 			}
 			return nil, fmt.Errorf("xóa mềm danh sách hình ảnh thất bại: %w", err)
+		}
+
+		for _, image := range images {
+			body := []byte(image.FileID)
+			if err := mq.PublishMessage(s.mqChannel, "", "image.delete", body); err != nil {
+				return nil, fmt.Errorf("publish delete image msg thất bại: %w", err)
+			}
 		}
 	}
 
@@ -1069,19 +1077,16 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	}
 
 	if len(req.DeleteVariantIds) > 0 {
-		variants, err := s.variantRepo.FindAllByIDIn(ctx, req.DeleteVariantIds)
+		variants, err := s.variantRepo.FindAllByID(ctx, req.DeleteImageIds)
 		if err != nil {
-			return nil, fmt.Errorf("tìm kiếm danh sách biến thể thất bại: %w", err)
+			return nil, fmt.Errorf("lấy danh sách danh mục sản phẩm thất bại: %w", err)
 		}
-		if len(variants) != len(req.DeleteVariantIds) {
+		if len(variants) != len(req.DeleteImageIds) {
 			return nil, customErr.ErrHasVariantNotFound
 		}
 
-		if err = s.variantRepo.UpdateIsDeletedByIDIn(ctx, req.DeleteVariantIds); err != nil {
-			if errors.Is(err, customErr.ErrHasVariantNotFound) {
-				return nil, err
-			}
-			return nil, fmt.Errorf("xóa mềm biến thể sản phẩm thất bại: %w", err)
+		if err = s.variantRepo.DeleteAllByID(ctx, req.DeleteVariantIds); err != nil {
+			return nil, fmt.Errorf("xóa các biến thể sản phẩm thất bại: %w", err)
 		}
 	}
 
@@ -1315,12 +1320,14 @@ func toBaseVariantsResponse(variants []*model.Variant) []*protobuf.BaseVariantRe
 			Size:  size,
 			Inventory: &protobuf.BaseInventoryResponse{
 				Id:           v.Inventory.ID,
-				SoldQuantity: int64(v.Inventory.SoldQuantity),
+				Quantity:     int64(v.Inventory.Quantity),
+				SoldQuantity: proto.Int64(int64(v.Inventory.SoldQuantity)),
 				Stock:        int64(v.Inventory.Stock),
 				IsStock:      &v.Inventory.IsStock,
 			},
 		})
 	}
+
 	return variantResponses
 }
 

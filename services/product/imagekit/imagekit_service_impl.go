@@ -50,6 +50,14 @@ func (s *imageKitServiceImpl) UploadFromBase64(ctx context.Context, req *common.
 	}, nil
 }
 
+func (s *imageKitServiceImpl) DeleteFile(ctx context.Context, fileID string) error {
+	if _, err := s.client.Media.DeleteFile(ctx, fileID); err != nil {
+		return fmt.Errorf("xóa file thất bại: %w", err)
+	}
+
+	return nil
+}
+
 func boolPtr(b bool) *bool {
 	return &b
 }

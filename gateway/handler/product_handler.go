@@ -506,9 +506,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		req.NewImages = append(req.NewImages, newImage)
 		j++
 	}
-
-	fmt.Println(req.NewImages)
-
+	
 	req.UpdateVariants = []request.UpdateVariantForm{}
 	k := 0
 	for {

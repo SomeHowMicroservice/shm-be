@@ -87,7 +87,7 @@ func (r *userRepositoryImpl) UpdatePassword(ctx context.Context, id, password st
 	return nil
 }
 
-func (r *userRepositoryImpl) FindAllByIDIn(ctx context.Context, ids []string) ([]*model.User, error) {
+func (r *userRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.User, error) {
 	var users []*model.User
 	if err := r.db.WithContext(ctx).Preload("Profile").Where("id IN ?", ids).Find(&users).Error; err != nil {
 		return nil, err

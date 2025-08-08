@@ -8,7 +8,6 @@ type Variant struct {
 	ProductID   string    `gorm:"type:char(36);not null" json:"-"`
 	ColorID     string    `gorm:"type:char(36);not null" json:"-"`
 	SizeID      string    `gorm:"type:char(36);not null" json:"-"`
-	IsDeleted   bool      `gorm:"type:boolean;default:false" json:"is_deleted"`
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	CreatedByID string    `gorm:"type:char(36);not null" json:"created_by_id"`
