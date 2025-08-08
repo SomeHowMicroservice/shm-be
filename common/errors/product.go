@@ -38,4 +38,6 @@ var (
 	ErrVariantNotFound = errors.New("không tìm thấy biến thể sản phẩm")
 
 	ErrInventoryNotFound = errors.New("không tìm thấy tồn kho biến thể")
+
+	ErrBinnedProduct = errors.New("sản phẩm đang nằm trong thùng rác")
 )

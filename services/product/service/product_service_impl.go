@@ -1219,6 +1219,33 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
+func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *protobuf.DeleteProductRequest) error {
+	product, err := s.productRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
+	}
+	if product == nil {
+		return customErr.ErrProductNotFound
+	}
+
+	if product.IsDeleted {
+		return customErr.ErrBinnedProduct
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted": true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.productRepo.Update(ctx, req.Id, updateData); err != nil {
+		if errors.Is(err, customErr.ErrProductNotFound) {
+			return err
+		}
+		return fmt.Errorf("chuyển sản phẩm vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
 func getIDsFromTags(tags []*model.Tag) []string {
 	var tagIDs []string
 	for _, tag := range tags {

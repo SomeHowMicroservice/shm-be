@@ -57,7 +57,7 @@ func (r *productRepositoryImpl) FindByID(ctx context.Context, id string) (*model
 
 func (r *productRepositoryImpl) FindAllByCategorySlug(ctx context.Context, categorySlug string) ([]*model.Product, error) {
 	var products []*model.Product
-	if err := r.db.WithContext(ctx).Joins("JOIN product_categories pc ON pc.product_id = products.id").Joins("JOIN categories c ON c.id = pc.category_id").Where("c.slug = ?", categorySlug).Preload("Categories").Preload("Variants").Preload("Variants.Color").Preload("Variants.Size").Preload("Variants.Inventory").Preload("Images").Preload("Images.Color").Find(&products).Error; err != nil {
+	if err := r.db.WithContext(ctx).Joins("JOIN product_categories pc ON pc.product_id = products.id").Joins("JOIN categories c ON c.id = pc.category_id").Where("c.slug = ? AND products.is_deleted = false", categorySlug).Preload("Categories").Preload("Variants").Preload("Variants.Color").Preload("Variants.Size").Preload("Variants.Inventory").Preload("Images").Preload("Images.Color").Find(&products).Error; err != nil {
 		return nil, err
 	}
 
@@ -113,7 +113,7 @@ func (r *productRepositoryImpl) findByIDBase(ctx context.Context, id string, pre
 		query = query.Preload(preload)
 	}
 
-	if err := query.Where("id = ?", id).First(&product).Error; err != nil {
+	if err := query.Scopes(notDeleted).Where("id = ?", id).First(&product).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -131,7 +131,7 @@ func (r *productRepositoryImpl) findBySlugBase(ctx context.Context, slug string,
 		query = query.Preload(preload)
 	}
 
-	if err := query.Where("slug = ?", slug).First(&product).Error; err != nil {
+	if err := query.Scopes(notDeleted).Where("slug = ?", slug).First(&product).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -139,4 +139,8 @@ func (r *productRepositoryImpl) findBySlugBase(ctx context.Context, slug string,
 	}
 
 	return &product, nil
+}
+
+func notDeleted(db *gorm.DB) *gorm.DB {
+	return db.Where("is_deleted = false")
 }

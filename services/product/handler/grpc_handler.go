@@ -326,7 +326,7 @@ func (h *GRPCHandler) UpdateProduct(ctx context.Context, req *protobuf.UpdatePro
 	convertedProduct, err := h.svc.UpdateProduct(ctx, req)
 	if err != nil {
 		switch err {
-		case customErr.ErrSlugAlreadyExists:
+		case customErr.ErrSlugAlreadyExists, customErr.ErrSKUAlreadyExists:
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		case customErr.ErrHasCategoryNotFound, customErr.ErrHasTagNotFound, customErr.ErrHasImageNotFound, customErr.ErrHasVariantNotFound, customErr.ErrProductNotFound, customErr.ErrVariantNotFound, customErr.ErrImageNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -336,6 +336,23 @@ func (h *GRPCHandler) UpdateProduct(ctx context.Context, req *protobuf.UpdatePro
 	}
 
 	return convertedProduct, nil
+}
+
+func (h *GRPCHandler) DeleteProduct(ctx context.Context, req *protobuf.DeleteProductRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.DeleteProduct(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrBinnedProduct:
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		case customErr.ErrProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
 }
 
 func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {

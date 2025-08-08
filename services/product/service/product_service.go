@@ -51,4 +51,6 @@ type ProductService interface {
 	GetAllProductsAdmin(ctx context.Context) ([]*model.Product, error)
 
 	UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error)
+
+	DeleteProduct(ctx context.Context, req *protobuf.DeleteProductRequest) error
 }
