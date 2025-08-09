@@ -77,4 +77,8 @@ type ProductService interface {
 	GetDeletedProducts(ctx context.Context) ([]*model.Product, error)
 
 	GetDeletedProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error)
+
+	GetDeletedColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
+
+	GetDeletedSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error)
 }

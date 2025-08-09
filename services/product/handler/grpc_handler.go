@@ -526,6 +526,34 @@ func (h *GRPCHandler) GetDeletedProductById(ctx context.Context, req *protobuf.G
 	return convertedProduct, nil
 }
 
+func (h *GRPCHandler) GetDeletedColors(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.ColorsAdminResponse, error) {
+	convertedColors, err := h.svc.GetDeletedColors(ctx)
+	if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedColors, nil
+}
+
+func (h *GRPCHandler) GetDeletedSizes(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.SizesAdminResponse, error) {
+	convertedSizes, err := h.svc.GetDeletedSizes(ctx)
+	if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedSizes, nil
+}
+
 func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {
 	var productResponses []*protobuf.ProductAdminResponse
 	for _, pro := range products {

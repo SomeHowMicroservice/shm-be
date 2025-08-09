@@ -1742,3 +1742,51 @@ func (h *ProductHandler) GetDeletedProductByID(c *gin.Context) {
 		"product": res,
 	})
 }
+
+func (h *ProductHandler) GetDeletedColors(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetDeletedColors(ctx, &protobuf.GetManyRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả màu sắc đã xóa thành công", gin.H{
+		"colors": res.Colors,
+	})
+}
+
+func (h *ProductHandler) GetDeletedSizes(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetDeletedSizes(ctx, &protobuf.GetManyRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả kích cỡ đã xóa thành công", gin.H{
+		"sizes": res.Sizes,
+	})
+}

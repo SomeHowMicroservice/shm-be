@@ -27,7 +27,7 @@ func (r *sizeRepositoryImpl) Create(ctx context.Context, size *model.Size) error
 
 func (r *sizeRepositoryImpl) FindAll(ctx context.Context) ([]*model.Size, error) {
 	var sizes []*model.Size
-	if err := r.db.WithContext(ctx).Scopes(notDeleted).Find(&sizes).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("is_deleted = false").Find(&sizes).Error; err != nil {
 		return nil, err
 	}
 
@@ -36,7 +36,7 @@ func (r *sizeRepositoryImpl) FindAll(ctx context.Context) ([]*model.Size, error)
 
 func (r *sizeRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Size, error) {
 	var size model.Size
-	if err := r.db.WithContext(ctx).Scopes(notDeleted).Where("id = ?", id).First(&size).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&size).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -78,7 +78,7 @@ func (r *sizeRepositoryImpl) Update(ctx context.Context, id string, updateData m
 
 func (r *sizeRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Size, error) {
 	var size []*model.Size
-	if err := r.db.WithContext(ctx).Scopes(notDeleted).Where("id IN ?", ids).Find(&size).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id IN ? AND is_deleted = false", ids).Find(&size).Error; err != nil {
 		return nil, err
 	}
 
@@ -93,6 +93,11 @@ func (r *sizeRepositoryImpl) UpdateAllByID(ctx context.Context, ids []string, up
 	return nil
 }
 
-func notDeleted(db *gorm.DB) *gorm.DB {
-	return db.Where("is_deleted = false")
+func (r *sizeRepositoryImpl) FindAllDeleted(ctx context.Context) ([]*model.Size, error) {
+	var sizes []*model.Size
+	if err := r.db.WithContext(ctx).Where("is_deleted = true").Find(&sizes).Error; err != nil {
+		return nil, err
+	}
+
+	return sizes, nil
 }

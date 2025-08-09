@@ -1532,6 +1532,148 @@ func (s *productServiceImpl) GetDeletedProductByID(ctx context.Context, productI
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
+func (s *productServiceImpl) GetDeletedColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error) {
+	colors, err := s.colorRepo.FindAllDeleted(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy danh sách màu sắc sản phẩm thất bại: %w", err)
+	}
+
+	userIDMap := map[string]struct{}{}
+	for _, color := range colors {
+		userIDMap[color.CreatedByID] = struct{}{}
+		userIDMap[color.UpdatedByID] = struct{}{}
+	}
+
+	var userIDs []string
+	for id := range userIDMap {
+		userIDs = append(userIDs, id)
+	}
+
+	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+		Ids: userIDs,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	userMap := make(map[string]*userpb.UserPublicResponse)
+	for _, user := range userRes.Users {
+		userMap[user.Id] = user
+	}
+
+	var colorResponses []*protobuf.ColorAdminResponse
+	for _, color := range colors {
+		colorResponses = append(colorResponses, &protobuf.ColorAdminResponse{
+			Id:        color.ID,
+			Name:      color.Name,
+			CreatedAt: color.CreatedAt.Format(time.RFC3339),
+			CreatedBy: &protobuf.BaseUserResponse{
+				Id:       color.CreatedByID,
+				Username: userMap[color.CreatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[color.CreatedByID].Profile.Id,
+					FirstName: userMap[color.CreatedByID].Profile.FirstName,
+					LastName:  userMap[color.CreatedByID].Profile.LastName,
+				},
+			},
+			UpdatedAt: color.UpdatedAt.Format(time.RFC3339),
+			UpdatedBy: &protobuf.BaseUserResponse{
+				Id:       color.UpdatedByID,
+				Username: userMap[color.UpdatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[color.UpdatedByID].Profile.Id,
+					FirstName: userMap[color.UpdatedByID].Profile.FirstName,
+					LastName:  userMap[color.UpdatedByID].Profile.LastName,
+				},
+			},
+		})
+	}
+
+	return &protobuf.ColorsAdminResponse{
+		Colors: colorResponses,
+	}, nil
+}
+
+func (s *productServiceImpl) GetDeletedSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error) {
+	sizes, err := s.sizeRepo.FindAllDeleted(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy danh sách size sản phẩm thất bại: %w", err)
+	}
+
+	userIDMap := map[string]struct{}{}
+	for _, size := range sizes {
+		userIDMap[size.CreatedByID] = struct{}{}
+		userIDMap[size.UpdatedByID] = struct{}{}
+	}
+
+	var userIDs []string
+	for id := range userIDMap {
+		userIDs = append(userIDs, id)
+	}
+
+	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+		Ids: userIDs,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	userMap := make(map[string]*userpb.UserPublicResponse)
+	for _, user := range userRes.Users {
+		userMap[user.Id] = user
+	}
+
+	var sizeResponses []*protobuf.SizeAdminResponse
+	for _, size := range sizes {
+		sizeResponses = append(sizeResponses, &protobuf.SizeAdminResponse{
+			Id:        size.ID,
+			Name:      size.Name,
+			CreatedAt: size.CreatedAt.Format(time.RFC3339),
+			CreatedBy: &protobuf.BaseUserResponse{
+				Id:       size.CreatedByID,
+				Username: userMap[size.CreatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[size.CreatedByID].Profile.Id,
+					FirstName: userMap[size.CreatedByID].Profile.FirstName,
+					LastName:  userMap[size.CreatedByID].Profile.LastName,
+				},
+			},
+			UpdatedAt: size.UpdatedAt.Format(time.RFC3339),
+			UpdatedBy: &protobuf.BaseUserResponse{
+				Id:       size.UpdatedByID,
+				Username: userMap[size.UpdatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[size.UpdatedByID].Profile.Id,
+					FirstName: userMap[size.UpdatedByID].Profile.FirstName,
+					LastName:  userMap[size.UpdatedByID].Profile.LastName,
+				},
+			},
+		})
+	}
+
+	return &protobuf.SizesAdminResponse{
+		Sizes: sizeResponses,
+	}, nil
+}
+
 func getIDsFromTags(tags []*model.Tag) []string {
 	var tagIDs []string
 	for _, tag := range tags {
