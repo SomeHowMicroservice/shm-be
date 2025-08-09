@@ -34,4 +34,8 @@ type ProductRepository interface {
 	FindAllByID(ctx context.Context, ids []string) ([]*model.Product, error)
 
 	UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error
+
+	FindAllDeletedWithCategoriesAndThumbnail(ctx context.Context) ([]*model.Product, error)
+
+	FindDeletedByIDWithDetails(ctx context.Context, id string) (*model.Product, error)
 }

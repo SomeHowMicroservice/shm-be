@@ -12,6 +12,7 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/SomeHowMicroservice/shm-be/gateway/request"
+	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	productpb "github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	"github.com/go-playground/validator/v10"
 
@@ -735,7 +736,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	})
 }
 
-func (h *ProductHandler) ProductDetails(c *gin.Context) {
+func (h *ProductHandler) GetProductBySlug(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
@@ -1228,7 +1229,7 @@ func (h *ProductHandler) UpdateTag(c *gin.Context) {
 	common.JSON(c, http.StatusOK, "Cập nhật tag sản phẩm thành công", nil)
 }
 
-func (h *ProductHandler) ProductAdminDetails(c *gin.Context) {
+func (h *ProductHandler) GetProductByID(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
@@ -1263,12 +1264,7 @@ func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
 	res, err := h.productClient.GetAllProductsAdmin(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
-			switch st.Code() {
-			case codes.NotFound:
-				common.JSON(c, http.StatusNotFound, st.Message(), nil)
-			default:
-				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
-			}
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
 			return
 		}
 		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
@@ -1306,8 +1302,6 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 			switch st.Code() {
 			case codes.NotFound:
 				common.JSON(c, http.StatusNotFound, st.Message(), nil)
-			case codes.FailedPrecondition:
-				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
 			default:
 				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
 			}
@@ -1336,7 +1330,7 @@ func (h *ProductHandler) DeleteProducts(c *gin.Context) {
 		return
 	}
 
-	var req request.DeleteProductsRequest
+	var req request.DeleteManyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		message := common.HandleValidationError(err)
 		common.JSON(c, http.StatusBadRequest, message, nil)
@@ -1389,8 +1383,6 @@ func (h *ProductHandler) PermanentlyDeleteCategory(c *gin.Context) {
 			switch st.Code() {
 			case codes.NotFound:
 				common.JSON(c, http.StatusNotFound, st.Message(), nil)
-			case codes.FailedPrecondition:
-				common.JSON(c, http.StatusBadRequest, st.Message(), nil)
 			default:
 				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
 			}
@@ -1419,7 +1411,7 @@ func (h *ProductHandler) PermanentlyDeleteCategories(c *gin.Context) {
 		return
 	}
 
-	var req request.DeleteCategoriesRequest
+	var req request.DeleteManyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		message := common.HandleValidationError(err)
 		common.JSON(c, http.StatusBadRequest, message, nil)
@@ -1540,4 +1532,213 @@ func (h *ProductHandler) UpdateSize(c *gin.Context) {
 	}
 
 	common.JSON(c, http.StatusOK, "Cập nhật kích cỡ sản phẩm thành công", nil)
+}
+
+func (h *ProductHandler) DeleteColor(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	colorID := c.Param("id")
+
+	if _, err := h.productClient.DeleteColor(ctx, &productpb.DeleteOneRequest{
+		Id:     colorID,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Chuyển màu sắc vào thùng rác thành công", nil)
+}
+
+func (h *ProductHandler) DeleteSize(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	sizeID := c.Param("id")
+
+	if _, err := h.productClient.DeleteSize(ctx, &productpb.DeleteOneRequest{
+		Id:     sizeID,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Chuyển kích cỡ vào thùng rác thành công", nil)
+}
+
+func (h *ProductHandler) DeleteColors(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.DeleteManyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	if _, err := h.productClient.DeleteColors(ctx, &productpb.DeleteManyRequest{
+		Ids:    req.IDs,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Chuyển danh sách màu sắc vào thùng rác thành công", nil)
+}
+
+func (h *ProductHandler) DeleteSizes(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.DeleteManyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	if _, err := h.productClient.DeleteSizes(ctx, &productpb.DeleteManyRequest{
+		Ids:    req.IDs,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Chuyển danh sách màu sắc vào thùng rác thành công", nil)
+}
+
+func (h *ProductHandler) GetDeletedProducts(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetDeletedProducts(ctx, &protobuf.GetManyRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả sản phẩm đã xóa thành công", gin.H{
+		"products": res.Products,
+	})
+}
+
+func (h *ProductHandler) GetDeletedProductByID(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	productID := c.Param("id")
+
+	res, err := h.productClient.GetDeletedProductById(ctx, &productpb.GetProductByIdRequest{
+		Id: productID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy chi tiết sản phẩm thành công", gin.H{
+		"product": res,
+	})
 }

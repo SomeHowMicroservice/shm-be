@@ -15,7 +15,7 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 
 	product := rg.Group("/products")
 	{
-		product.GET("/:slug", productHandler.ProductDetails)
+		product.GET("/:slug", productHandler.GetProductBySlug)
 	}
 
 	category := rg.Group("/categories")
@@ -51,14 +51,20 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 		admin.DELETE("/categories/:id/permanent", productHandler.PermanentlyDeleteCategory)
 		admin.POST("/products", productHandler.CreateProduct)
 		admin.GET("/products", productHandler.GetAllProductsAdmin)
-		admin.GET("/products/:id", productHandler.ProductAdminDetails)
+		admin.GET("/products/deleted", productHandler.GetDeletedProducts)
+		admin.GET("/products/:id", productHandler.GetProductByID)
+		admin.GET("/products/:id/deleted", productHandler.GetDeletedProductByID)
 		admin.PATCH("/products/:id", productHandler.UpdateProduct)
 		admin.POST("/colors", productHandler.CreateColor)
 		admin.GET("/colors", productHandler.GetAllColorsAdmin)
 		admin.PUT("/colors/:id", productHandler.UpdateColor)
+		admin.DELETE("/colors", productHandler.DeleteColors)
+		admin.DELETE("/colors/:id", productHandler.DeleteColor)
 		admin.POST("/sizes", productHandler.CreateSize)
 		admin.GET("/sizes", productHandler.GetAllSizesAdmin)
 		admin.PUT("/sizes/:id", productHandler.UpdateSize)
+		admin.DELETE("/sizes", productHandler.DeleteSizes)
+		admin.DELETE("/sizes/:id", productHandler.DeleteSize)
 		admin.POST("/tags", productHandler.CreateTag)
 		admin.GET("/tags", productHandler.GetAllTagsAdmin)
 		admin.PUT("/tags/:id", productHandler.UpdateTag)

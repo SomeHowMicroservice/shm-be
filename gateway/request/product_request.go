@@ -101,10 +101,6 @@ type UpdateImageForm struct {
 	SortOrder   *int   `form:"sort_order" validate:"omitempty,min=1"`
 }
 
-type DeleteProductsRequest struct {
-	IDs []string `json:"ids" binding:"required,dive,uuid4"`
-}
-
-type DeleteCategoriesRequest struct {
+type DeleteManyRequest struct {
 	IDs []string `json:"ids" binding:"required,dive,uuid4"`
 }

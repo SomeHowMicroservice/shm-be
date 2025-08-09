@@ -42,6 +42,18 @@ func (r *productRepositoryImpl) FindByIDWithDetails(ctx context.Context, id stri
 	return r.findByIDBase(ctx, id, "Categories", "Tags", "Variants", "Variants.Color", "Variants.Size", "Variants.Inventory", "Images", "Images.Color")
 }
 
+func (r *productRepositoryImpl) FindDeletedByIDWithDetails(ctx context.Context, id string) (*model.Product, error) {
+	var product model.Product
+	if err := r.db.WithContext(ctx).Preload("Categories").Preload("Tags").Preload("Variants").Preload("Variants.Color").Preload("Variants.Size").Preload("Variants.Inventory").Preload("Images").Preload("Images.Color").Where("id = ? AND is_deleted = true", id).First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &product, nil
+}
+
 func (r *productRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
 	var count int64
 	if err := r.db.WithContext(ctx).Model(&model.Product{}).Where("id = ?", id).Count(&count).Error; err != nil {
@@ -120,6 +132,15 @@ func (r *productRepositoryImpl) UpdateAllByID(ctx context.Context, ids []string,
 	}
 
 	return nil
+}
+
+func (r *productRepositoryImpl) FindAllDeletedWithCategoriesAndThumbnail(ctx context.Context) ([]*model.Product, error) {
+	var products []*model.Product
+	if err := r.db.WithContext(ctx).Preload("Categories").Preload("Images", "is_thumbnail = ?", true).Where("is_deleted = true").Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	return products, nil
 }
 
 func (r *productRepositoryImpl) findByIDBase(ctx context.Context, id string, preloads ...string) (*model.Product, error) {

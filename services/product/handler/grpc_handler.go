@@ -382,8 +382,6 @@ func (h *GRPCHandler) DeleteProducts(ctx context.Context, req *protobuf.DeleteMa
 func (h *GRPCHandler) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) (*protobuf.DeletedResponse, error) {
 	if err := h.svc.PermanentlyDeleteCategory(ctx, req); err != nil {
 		switch err {
-		case customErr.ErrBinnedProduct:
-			return nil, status.Error(codes.FailedPrecondition, err.Error())
 		case customErr.ErrProductNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
@@ -443,6 +441,89 @@ func (h *GRPCHandler) UpdateSize(ctx context.Context, req *protobuf.UpdateSizeRe
 	return &protobuf.UpdatedResponse{
 		Success: true,
 	}, nil
+}
+
+func (h *GRPCHandler) DeleteColor(ctx context.Context, req *protobuf.DeleteOneRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.DeleteColor(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrColorNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) DeleteSize(ctx context.Context, req *protobuf.DeleteOneRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.DeleteSize(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrSizeNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) DeleteColors(ctx context.Context, req *protobuf.DeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.DeleteColors(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasColorNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) DeleteSizes(ctx context.Context, req *protobuf.DeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.DeleteSizes(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasSizeNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) GetDeletedProducts(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.ProductsAdminResponse, error) {
+	products, err := h.svc.GetDeletedProducts(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return toProductsAdminResponse(products), nil
+}
+
+func (h *GRPCHandler) GetDeletedProductById(ctx context.Context, req *protobuf.GetProductByIdRequest) (*protobuf.ProductAdminDetailsResponse, error) {
+	convertedProduct, err := h.svc.GetDeletedProductByID(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case customErr.ErrProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedProduct, nil
 }
 
 func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {

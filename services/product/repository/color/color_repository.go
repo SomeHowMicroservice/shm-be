@@ -18,4 +18,8 @@ type ColorRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Color, error)
 
 	Update(ctx context.Context, id string, updateData map[string]interface{}) error
+
+	FindAllByID(ctx context.Context, ids []string) ([]*model.Color, error)
+
+	UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error
 }

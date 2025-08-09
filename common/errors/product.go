@@ -39,7 +39,9 @@ var (
 
 	ErrInventoryNotFound = errors.New("không tìm thấy tồn kho biến thể")
 
-	ErrBinnedProduct = errors.New("sản phẩm đang nằm trong thùng rác")
-
 	ErrHasProductNotFound = errors.New("có sản phẩm không tìm thấy")
+
+	ErrHasColorNotFound = errors.New("có màu sắc không tìm thấy")
+
+	ErrHasSizeNotFound = errors.New("có kích cỡ không tìm thấy")
 )

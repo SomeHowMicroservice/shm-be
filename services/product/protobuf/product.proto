@@ -61,6 +61,18 @@ service ProductService {
   rpc UpdateColor(UpdateColorRequest) returns (UpdatedResponse);
 
   rpc UpdateSize(UpdateSizeRequest) returns (UpdatedResponse);
+
+  rpc DeleteColor(DeleteOneRequest) returns (DeletedResponse);
+
+  rpc DeleteSize(DeleteOneRequest) returns (DeletedResponse);
+
+  rpc DeleteColors(DeleteManyRequest) returns (DeletedResponse);
+
+  rpc DeleteSizes(DeleteManyRequest) returns (DeletedResponse);
+
+  rpc GetDeletedProducts(GetManyRequest) returns (ProductsAdminResponse);
+
+  rpc GetDeletedProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
 }
 
 message UpdateSizeRequest {

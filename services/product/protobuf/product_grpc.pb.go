@@ -48,6 +48,12 @@ const (
 	ProductService_GetCategoriesNoProduct_FullMethodName      = "/product.ProductService/GetCategoriesNoProduct"
 	ProductService_UpdateColor_FullMethodName                 = "/product.ProductService/UpdateColor"
 	ProductService_UpdateSize_FullMethodName                  = "/product.ProductService/UpdateSize"
+	ProductService_DeleteColor_FullMethodName                 = "/product.ProductService/DeleteColor"
+	ProductService_DeleteSize_FullMethodName                  = "/product.ProductService/DeleteSize"
+	ProductService_DeleteColors_FullMethodName                = "/product.ProductService/DeleteColors"
+	ProductService_DeleteSizes_FullMethodName                 = "/product.ProductService/DeleteSizes"
+	ProductService_GetDeletedProducts_FullMethodName          = "/product.ProductService/GetDeletedProducts"
+	ProductService_GetDeletedProductById_FullMethodName       = "/product.ProductService/GetDeletedProductById"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -83,6 +89,12 @@ type ProductServiceClient interface {
 	GetCategoriesNoProduct(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
 	UpdateColor(ctx context.Context, in *UpdateColorRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
 	UpdateSize(ctx context.Context, in *UpdateSizeRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
+	DeleteColor(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	DeleteSize(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	DeleteColors(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	DeleteSizes(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	GetDeletedProducts(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error)
+	GetDeletedProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 }
 
 type productServiceClient struct {
@@ -383,6 +395,66 @@ func (c *productServiceClient) UpdateSize(ctx context.Context, in *UpdateSizeReq
 	return out, nil
 }
 
+func (c *productServiceClient) DeleteColor(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_DeleteColor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) DeleteSize(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_DeleteSize_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) DeleteColors(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_DeleteColors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) DeleteSizes(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_DeleteSizes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetDeletedProducts(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProductsAdminResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetDeletedProducts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetDeletedProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProductAdminDetailsResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetDeletedProductById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -416,6 +488,12 @@ type ProductServiceServer interface {
 	GetCategoriesNoProduct(context.Context, *GetManyRequest) (*BaseCategoriesResponse, error)
 	UpdateColor(context.Context, *UpdateColorRequest) (*UpdatedResponse, error)
 	UpdateSize(context.Context, *UpdateSizeRequest) (*UpdatedResponse, error)
+	DeleteColor(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
+	DeleteSize(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
+	DeleteColors(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
+	DeleteSizes(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
+	GetDeletedProducts(context.Context, *GetManyRequest) (*ProductsAdminResponse, error)
+	GetDeletedProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -512,6 +590,24 @@ func (UnimplementedProductServiceServer) UpdateColor(context.Context, *UpdateCol
 }
 func (UnimplementedProductServiceServer) UpdateSize(context.Context, *UpdateSizeRequest) (*UpdatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSize not implemented")
+}
+func (UnimplementedProductServiceServer) DeleteColor(context.Context, *DeleteOneRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteColor not implemented")
+}
+func (UnimplementedProductServiceServer) DeleteSize(context.Context, *DeleteOneRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSize not implemented")
+}
+func (UnimplementedProductServiceServer) DeleteColors(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteColors not implemented")
+}
+func (UnimplementedProductServiceServer) DeleteSizes(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSizes not implemented")
+}
+func (UnimplementedProductServiceServer) GetDeletedProducts(context.Context, *GetManyRequest) (*ProductsAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeletedProducts not implemented")
+}
+func (UnimplementedProductServiceServer) GetDeletedProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeletedProductById not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -1056,6 +1152,114 @@ func _ProductService_UpdateSize_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_DeleteColor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).DeleteColor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_DeleteColor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).DeleteColor(ctx, req.(*DeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_DeleteSize_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).DeleteSize(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_DeleteSize_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).DeleteSize(ctx, req.(*DeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_DeleteColors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).DeleteColors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_DeleteColors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).DeleteColors(ctx, req.(*DeleteManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_DeleteSizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).DeleteSizes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_DeleteSizes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).DeleteSizes(ctx, req.(*DeleteManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_GetDeletedProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetDeletedProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetDeletedProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetDeletedProducts(ctx, req.(*GetManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_GetDeletedProductById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetDeletedProductById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetDeletedProductById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetDeletedProductById(ctx, req.(*GetProductByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1178,6 +1382,30 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSize",
 			Handler:    _ProductService_UpdateSize_Handler,
+		},
+		{
+			MethodName: "DeleteColor",
+			Handler:    _ProductService_DeleteColor_Handler,
+		},
+		{
+			MethodName: "DeleteSize",
+			Handler:    _ProductService_DeleteSize_Handler,
+		},
+		{
+			MethodName: "DeleteColors",
+			Handler:    _ProductService_DeleteColors_Handler,
+		},
+		{
+			MethodName: "DeleteSizes",
+			Handler:    _ProductService_DeleteSizes_Handler,
+		},
+		{
+			MethodName: "GetDeletedProducts",
+			Handler:    _ProductService_GetDeletedProducts_Handler,
+		},
+		{
+			MethodName: "GetDeletedProductById",
+			Handler:    _ProductService_GetDeletedProductById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

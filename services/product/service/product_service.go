@@ -16,7 +16,7 @@ type ProductService interface {
 
 	GetCategoriesNoProduct(ctx context.Context) ([]*model.Category, error)
 
-	GetProductBySlug(ctx context.Context, slug string) (*model.Product, error)
+	GetProductBySlug(ctx context.Context, productSlug string) (*model.Product, error)
 
 	CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error)
 
@@ -28,7 +28,7 @@ type ProductService interface {
 
 	GetAllCategories(ctx context.Context) ([]*model.Category, error)
 
-	GetCategoryByID(ctx context.Context, id string) (*protobuf.CategoryAdminDetailsResponse, error)
+	GetCategoryByID(ctx context.Context, categoryID string) (*protobuf.CategoryAdminDetailsResponse, error)
 
 	UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error)
 
@@ -48,7 +48,7 @@ type ProductService interface {
 
 	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error)
 
-	GetProductByID(ctx context.Context, id string) (*protobuf.ProductAdminDetailsResponse, error)
+	GetProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error)
 
 	GetAllProductsAdmin(ctx context.Context) ([]*model.Product, error)
 
@@ -65,4 +65,16 @@ type ProductService interface {
 	UpdateColor(ctx context.Context, req *protobuf.UpdateColorRequest) error
 
 	UpdateSize(ctx context.Context, req *protobuf.UpdateSizeRequest) error
+
+	DeleteColor(ctx context.Context, req *protobuf.DeleteOneRequest) error
+
+	DeleteSize(ctx context.Context, req *protobuf.DeleteOneRequest) error
+
+	DeleteColors(ctx context.Context, req *protobuf.DeleteManyRequest) error
+
+	DeleteSizes(ctx context.Context, req *protobuf.DeleteManyRequest) error
+
+	GetDeletedProducts(ctx context.Context) ([]*model.Product, error)
+
+	GetDeletedProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error)
 }

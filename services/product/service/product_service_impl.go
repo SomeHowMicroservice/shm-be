@@ -147,8 +147,8 @@ func (s *productServiceImpl) GetCategoriesNoProduct(ctx context.Context) ([]*mod
 	return noProductCategories, nil
 }
 
-func (s *productServiceImpl) GetProductBySlug(ctx context.Context, slug string) (*model.Product, error) {
-	product, err := s.productRepo.FindBySlugWithDetails(ctx, slug)
+func (s *productServiceImpl) GetProductBySlug(ctx context.Context, productSlug string) (*model.Product, error) {
+	product, err := s.productRepo.FindBySlugWithDetails(ctx, productSlug)
 	if err != nil {
 		return nil, fmt.Errorf("lấy sản phẩm thất bại: %w", err)
 	}
@@ -257,8 +257,8 @@ func (s *productServiceImpl) GetAllCategories(ctx context.Context) ([]*model.Cat
 	return categories, nil
 }
 
-func (s *productServiceImpl) GetCategoryByID(ctx context.Context, id string) (*protobuf.CategoryAdminDetailsResponse, error) {
-	category, err := s.categoryRepo.FindByIDWithParentsAndProducts(ctx, id)
+func (s *productServiceImpl) GetCategoryByID(ctx context.Context, categoryID string) (*protobuf.CategoryAdminDetailsResponse, error) {
+	category, err := s.categoryRepo.FindByIDWithParentsAndProducts(ctx, categoryID)
 	if err != nil {
 		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 	}
@@ -911,8 +911,8 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	return product, nil
 }
 
-func (s *productServiceImpl) GetProductByID(ctx context.Context, id string) (*protobuf.ProductAdminDetailsResponse, error) {
-	product, err := s.productRepo.FindByIDWithDetails(ctx, id)
+func (s *productServiceImpl) GetProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error) {
+	product, err := s.productRepo.FindByIDWithDetails(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
 	}
@@ -984,7 +984,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 
 		updateProductData["title"] = req.Title
 		updateProductData["slug"] = newSlug
-	} 
+	}
 
 	if req.Description != nil && *req.Description != product.Description {
 		updateProductData["description"] = req.Description
@@ -1393,6 +1393,143 @@ func (s *productServiceImpl) PermanentlyDeleteCategories(ctx context.Context, re
 	}
 
 	return nil
+}
+
+func (s *productServiceImpl) DeleteColor(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+	color, err := s.colorRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if color == nil {
+		return customErr.ErrColorNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.colorRepo.Update(ctx, req.Id, updateData); err != nil {
+		if errors.Is(err, customErr.ErrColorNotFound) {
+			return err
+		}
+		return fmt.Errorf("chuyển màu sắc vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) DeleteSize(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+	size, err := s.sizeRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if size == nil {
+		return customErr.ErrSizeNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.sizeRepo.Update(ctx, req.Id, updateData); err != nil {
+		if errors.Is(err, customErr.ErrSizeNotFound) {
+			return err
+		}
+		return fmt.Errorf("chuyển kích cỡ vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) DeleteColors(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+	colors, err := s.colorRepo.FindAllByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if len(colors) != len(req.Ids) {
+		return customErr.ErrHasColorNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.colorRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
+		return fmt.Errorf("chuyển danh sách màu sắc vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) DeleteSizes(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+	sizes, err := s.sizeRepo.FindAllByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if len(sizes) != len(req.Ids) {
+		return customErr.ErrHasSizeNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.sizeRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
+		return fmt.Errorf("chuyển danh sách kích cỡ vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) GetDeletedProducts(ctx context.Context) ([]*model.Product, error) {
+	products, err := s.productRepo.FindAllDeletedWithCategoriesAndThumbnail(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy tất cả sản phẩm đã xóa thất bại: %w", err)
+	}
+
+	return products, nil
+}
+
+func (s *productServiceImpl) GetDeletedProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error) {
+	product, err := s.productRepo.FindDeletedByIDWithDetails(ctx, productID)
+	if err != nil {
+		return nil, fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
+	}
+	if product == nil {
+		return nil, customErr.ErrProductNotFound
+	}
+
+	cRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: product.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	uRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{
+		Id: product.CreatedByID,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
 func getIDsFromTags(tags []*model.Tag) []string {

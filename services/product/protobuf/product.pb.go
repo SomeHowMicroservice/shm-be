@@ -3909,7 +3909,7 @@ const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"\x14CategoryTreeResponse\x12?\n" +
 	"\n" +
 	"categories\x18\x01 \x03(\v2\x1f.product.CategoryPublicResponseR\n" +
-	"categories2\xd0\x11\n" +
+	"categories2\x90\x15\n" +
 	"\x0eProductService\x12J\n" +
 	"\x0eCreateCategory\x12\x1e.product.CreateCategoryRequest\x1a\x18.product.CreatedResponse\x12I\n" +
 	"\x0fGetCategoryTree\x12\x17.product.GetManyRequest\x1a\x1d.product.CategoryTreeResponse\x12T\n" +
@@ -3942,7 +3942,14 @@ const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"\x16GetCategoriesNoProduct\x12\x17.product.GetManyRequest\x1a\x1f.product.BaseCategoriesResponse\x12D\n" +
 	"\vUpdateColor\x12\x1b.product.UpdateColorRequest\x1a\x18.product.UpdatedResponse\x12B\n" +
 	"\n" +
-	"UpdateSize\x12\x1a.product.UpdateSizeRequest\x1a\x18.product.UpdatedResponseBAZ?github.com/SomeHowMicroservice/shm-be/services/product/protobufb\x06proto3"
+	"UpdateSize\x12\x1a.product.UpdateSizeRequest\x1a\x18.product.UpdatedResponse\x12B\n" +
+	"\vDeleteColor\x12\x19.product.DeleteOneRequest\x1a\x18.product.DeletedResponse\x12A\n" +
+	"\n" +
+	"DeleteSize\x12\x19.product.DeleteOneRequest\x1a\x18.product.DeletedResponse\x12D\n" +
+	"\fDeleteColors\x12\x1a.product.DeleteManyRequest\x1a\x18.product.DeletedResponse\x12C\n" +
+	"\vDeleteSizes\x12\x1a.product.DeleteManyRequest\x1a\x18.product.DeletedResponse\x12M\n" +
+	"\x12GetDeletedProducts\x12\x17.product.GetManyRequest\x1a\x1e.product.ProductsAdminResponse\x12]\n" +
+	"\x15GetDeletedProductById\x12\x1e.product.GetProductByIdRequest\x1a$.product.ProductAdminDetailsResponseBAZ?github.com/SomeHowMicroservice/shm-be/services/product/protobufb\x06proto3"
 
 var (
 	file_services_product_protobuf_product_proto_rawDescOnce sync.Once
@@ -4090,37 +4097,49 @@ var file_services_product_protobuf_product_proto_depIdxs = []int32{
 	2,  // 73: product.ProductService.GetCategoriesNoProduct:input_type -> product.GetManyRequest
 	1,  // 74: product.ProductService.UpdateColor:input_type -> product.UpdateColorRequest
 	0,  // 75: product.ProductService.UpdateSize:input_type -> product.UpdateSizeRequest
-	42, // 76: product.ProductService.CreateCategory:output_type -> product.CreatedResponse
-	53, // 77: product.ProductService.GetCategoryTree:output_type -> product.CategoryTreeResponse
-	44, // 78: product.ProductService.GetProductBySlug:output_type -> product.ProductPublicResponse
-	42, // 79: product.ProductService.CreateColor:output_type -> product.CreatedResponse
-	42, // 80: product.ProductService.CreateSize:output_type -> product.CreatedResponse
-	39, // 81: product.ProductService.GetProductsByCategory:output_type -> product.ProductsPublicResponse
-	42, // 82: product.ProductService.CreateTag:output_type -> product.CreatedResponse
-	14, // 83: product.ProductService.GetAllCategoriesAdmin:output_type -> product.BaseCategoriesResponse
-	31, // 84: product.ProductService.GetCategoryById:output_type -> product.CategoryAdminDetailsResponse
-	31, // 85: product.ProductService.UpdateCategory:output_type -> product.CategoryAdminDetailsResponse
-	28, // 86: product.ProductService.GetAllColorsAdmin:output_type -> product.ColorsAdminResponse
-	26, // 87: product.ProductService.GetAllSizesAdmin:output_type -> product.SizesAdminResponse
-	24, // 88: product.ProductService.GetAllTagsAdmin:output_type -> product.TagsAdminResponse
-	22, // 89: product.ProductService.UpdateTag:output_type -> product.UpdatedResponse
-	21, // 90: product.ProductService.GetAllColors:output_type -> product.ColorsPublicResponse
-	20, // 91: product.ProductService.GetAllSizes:output_type -> product.SizesPublicResponse
-	18, // 92: product.ProductService.GetAllTags:output_type -> product.TagsPublicResponse
-	42, // 93: product.ProductService.CreateProduct:output_type -> product.CreatedResponse
-	14, // 94: product.ProductService.GetCategoriesNoChild:output_type -> product.BaseCategoriesResponse
-	13, // 95: product.ProductService.GetProductById:output_type -> product.ProductAdminDetailsResponse
-	9,  // 96: product.ProductService.GetAllProductsAdmin:output_type -> product.ProductsAdminResponse
-	13, // 97: product.ProductService.UpdateProduct:output_type -> product.ProductAdminDetailsResponse
-	5,  // 98: product.ProductService.DeleteProduct:output_type -> product.DeletedResponse
-	5,  // 99: product.ProductService.DeleteProducts:output_type -> product.DeletedResponse
-	5,  // 100: product.ProductService.PermanentlyDeleteCategory:output_type -> product.DeletedResponse
-	5,  // 101: product.ProductService.PermanentlyDeleteCategories:output_type -> product.DeletedResponse
-	14, // 102: product.ProductService.GetCategoriesNoProduct:output_type -> product.BaseCategoriesResponse
-	22, // 103: product.ProductService.UpdateColor:output_type -> product.UpdatedResponse
-	22, // 104: product.ProductService.UpdateSize:output_type -> product.UpdatedResponse
-	76, // [76:105] is the sub-list for method output_type
-	47, // [47:76] is the sub-list for method input_type
+	3,  // 76: product.ProductService.DeleteColor:input_type -> product.DeleteOneRequest
+	3,  // 77: product.ProductService.DeleteSize:input_type -> product.DeleteOneRequest
+	4,  // 78: product.ProductService.DeleteColors:input_type -> product.DeleteManyRequest
+	4,  // 79: product.ProductService.DeleteSizes:input_type -> product.DeleteManyRequest
+	2,  // 80: product.ProductService.GetDeletedProducts:input_type -> product.GetManyRequest
+	12, // 81: product.ProductService.GetDeletedProductById:input_type -> product.GetProductByIdRequest
+	42, // 82: product.ProductService.CreateCategory:output_type -> product.CreatedResponse
+	53, // 83: product.ProductService.GetCategoryTree:output_type -> product.CategoryTreeResponse
+	44, // 84: product.ProductService.GetProductBySlug:output_type -> product.ProductPublicResponse
+	42, // 85: product.ProductService.CreateColor:output_type -> product.CreatedResponse
+	42, // 86: product.ProductService.CreateSize:output_type -> product.CreatedResponse
+	39, // 87: product.ProductService.GetProductsByCategory:output_type -> product.ProductsPublicResponse
+	42, // 88: product.ProductService.CreateTag:output_type -> product.CreatedResponse
+	14, // 89: product.ProductService.GetAllCategoriesAdmin:output_type -> product.BaseCategoriesResponse
+	31, // 90: product.ProductService.GetCategoryById:output_type -> product.CategoryAdminDetailsResponse
+	31, // 91: product.ProductService.UpdateCategory:output_type -> product.CategoryAdminDetailsResponse
+	28, // 92: product.ProductService.GetAllColorsAdmin:output_type -> product.ColorsAdminResponse
+	26, // 93: product.ProductService.GetAllSizesAdmin:output_type -> product.SizesAdminResponse
+	24, // 94: product.ProductService.GetAllTagsAdmin:output_type -> product.TagsAdminResponse
+	22, // 95: product.ProductService.UpdateTag:output_type -> product.UpdatedResponse
+	21, // 96: product.ProductService.GetAllColors:output_type -> product.ColorsPublicResponse
+	20, // 97: product.ProductService.GetAllSizes:output_type -> product.SizesPublicResponse
+	18, // 98: product.ProductService.GetAllTags:output_type -> product.TagsPublicResponse
+	42, // 99: product.ProductService.CreateProduct:output_type -> product.CreatedResponse
+	14, // 100: product.ProductService.GetCategoriesNoChild:output_type -> product.BaseCategoriesResponse
+	13, // 101: product.ProductService.GetProductById:output_type -> product.ProductAdminDetailsResponse
+	9,  // 102: product.ProductService.GetAllProductsAdmin:output_type -> product.ProductsAdminResponse
+	13, // 103: product.ProductService.UpdateProduct:output_type -> product.ProductAdminDetailsResponse
+	5,  // 104: product.ProductService.DeleteProduct:output_type -> product.DeletedResponse
+	5,  // 105: product.ProductService.DeleteProducts:output_type -> product.DeletedResponse
+	5,  // 106: product.ProductService.PermanentlyDeleteCategory:output_type -> product.DeletedResponse
+	5,  // 107: product.ProductService.PermanentlyDeleteCategories:output_type -> product.DeletedResponse
+	14, // 108: product.ProductService.GetCategoriesNoProduct:output_type -> product.BaseCategoriesResponse
+	22, // 109: product.ProductService.UpdateColor:output_type -> product.UpdatedResponse
+	22, // 110: product.ProductService.UpdateSize:output_type -> product.UpdatedResponse
+	5,  // 111: product.ProductService.DeleteColor:output_type -> product.DeletedResponse
+	5,  // 112: product.ProductService.DeleteSize:output_type -> product.DeletedResponse
+	5,  // 113: product.ProductService.DeleteColors:output_type -> product.DeletedResponse
+	5,  // 114: product.ProductService.DeleteSizes:output_type -> product.DeletedResponse
+	9,  // 115: product.ProductService.GetDeletedProducts:output_type -> product.ProductsAdminResponse
+	13, // 116: product.ProductService.GetDeletedProductById:output_type -> product.ProductAdminDetailsResponse
+	82, // [82:117] is the sub-list for method output_type
+	47, // [47:82] is the sub-list for method input_type
 	47, // [47:47] is the sub-list for extension type_name
 	47, // [47:47] is the sub-list for extension extendee
 	0,  // [0:47] is the sub-list for field type_name
