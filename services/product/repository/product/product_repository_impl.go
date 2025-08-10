@@ -78,7 +78,7 @@ func (r *productRepositoryImpl) FindAllByCategorySlug(ctx context.Context, categ
 
 func (r *productRepositoryImpl) FindAllWithCategoriesAndThumbnail(ctx context.Context) ([]*model.Product, error) {
 	var products []*model.Product
-	if err := r.db.WithContext(ctx).Preload("Categories").Preload("Images", "is_thumbnail = ?", true).Find(&products).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Categories").Preload("Images", "is_thumbnail = ?", true).Scopes(notDeleted).Find(&products).Error; err != nil {
 		return nil, err
 	}
 
