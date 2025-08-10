@@ -24,4 +24,8 @@ type SizeRepository interface {
 	UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error
 
 	FindAllDeleted(ctx context.Context) ([]*model.Size, error)
+
+	FindDeletedByID(ctx context.Context, id string) (*model.Size, error)
+
+	FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Size, error)
 }

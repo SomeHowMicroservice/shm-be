@@ -1788,6 +1788,178 @@ func (s *productServiceImpl) DeleteTags(ctx context.Context, req *protobuf.Delet
 	return nil
 }
 
+func (s *productServiceImpl) RestoreProduct(ctx context.Context, req *protobuf.RestoreOneRequest) error {
+	product, err := s.productRepo.FindDeletedByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
+	}
+	if product == nil {
+		return customErr.ErrProductNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    false,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.productRepo.Update(ctx, req.Id, updateData); err != nil {
+		if errors.Is(err, customErr.ErrProductNotFound) {
+			return err
+		}
+		return fmt.Errorf("khôi phục sản phẩm thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) RestoreProducts(ctx context.Context, req *protobuf.RestoreManyRequest) error {
+	products, err := s.productRepo.FindAllDeletedByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
+	}
+	if len(products) != len(req.Ids) {
+		return customErr.ErrHasProductNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.productRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
+		return fmt.Errorf("khôi phục danh sách sản phẩm thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) RestoreColor(ctx context.Context, req *protobuf.RestoreOneRequest) error {
+	color, err := s.colorRepo.FindDeletedByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if color == nil {
+		return customErr.ErrColorNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    false,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.colorRepo.Update(ctx, req.Id, updateData); err != nil {
+		if errors.Is(err, customErr.ErrColorNotFound) {
+			return err
+		}
+		return fmt.Errorf("khôi phục màu sắc thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) RestoreColors(ctx context.Context, req *protobuf.RestoreManyRequest) error {
+	colors, err := s.colorRepo.FindAllDeletedByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if len(colors) != len(req.Ids) {
+		return customErr.ErrHasColorNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.colorRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
+		return fmt.Errorf("khôi phục danh sách màu sắc thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) RestoreSize(ctx context.Context, req *protobuf.RestoreOneRequest) error {
+	size, err := s.sizeRepo.FindDeletedByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
+	}
+	if size == nil {
+		return customErr.ErrSizeNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    false,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.sizeRepo.Update(ctx, req.Id, updateData); err != nil {
+		if errors.Is(err, customErr.ErrSizeNotFound) {
+			return err
+		}
+		return fmt.Errorf("khôi phục kích cỡ thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) RestoreSizes(ctx context.Context, req *protobuf.RestoreManyRequest) error {
+	sizes, err := s.sizeRepo.FindAllDeletedByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
+	}
+	if len(sizes) != len(req.Ids) {
+		return customErr.ErrHasSizeNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.sizeRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
+		return fmt.Errorf("khôi phục danh sách kích cỡ thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) RestoreTag(ctx context.Context, req *protobuf.RestoreOneRequest) error {
+	tag, err := s.tagRepo.FindDeletedByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
+	}
+	if tag == nil {
+		return customErr.ErrTagNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    false,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.tagRepo.Update(ctx, req.Id, updateData); err != nil {
+		if errors.Is(err, customErr.ErrSizeNotFound) {
+			return err
+		}
+		return fmt.Errorf("khôi phục tag thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) RestoreTags(ctx context.Context, req *protobuf.RestoreManyRequest) error {
+	tags, err := s.tagRepo.FindAllDeletedByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
+	}
+	if len(tags) != len(req.Ids) {
+		return customErr.ErrHasTagNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.tagRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
+		return fmt.Errorf("khôi phục danh sách tag thất bại: %w", err)
+	}
+
+	return nil
+}
+
 func getIDsFromTags(tags []*model.Tag) []string {
 	var tagIDs []string
 	for _, tag := range tags {

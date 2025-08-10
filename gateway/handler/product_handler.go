@@ -1895,3 +1895,327 @@ func (h *ProductHandler) DeleteTags(c *gin.Context) {
 
 	common.JSON(c, http.StatusOK, "Chuyển danh sách thẻ vào thùng rác thành công", nil)
 }
+
+func (h *ProductHandler) RestoreProduct(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	productID := c.Param("id")
+
+	if _, err := h.productClient.RestoreProduct(ctx, &productpb.RestoreOneRequest{
+		Id:     productID,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Khôi phục sản phẩm thành công", nil)
+}
+
+func (h *ProductHandler) RestoreProducts(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.RestoreManyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	if _, err := h.productClient.RestoreProducts(ctx, &productpb.RestoreManyRequest{
+		Ids:    req.IDs,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Khôi phục danh sách sản phẩm thành công", nil)
+}
+
+func (h *ProductHandler) RestoreColor(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	colorID := c.Param("id")
+
+	if _, err := h.productClient.RestoreColor(ctx, &productpb.RestoreOneRequest{
+		Id:     colorID,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Khôi phục màu sắc thành công", nil)
+}
+
+func (h *ProductHandler) RestoreColors(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.RestoreManyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	if _, err := h.productClient.RestoreColors(ctx, &productpb.RestoreManyRequest{
+		Ids:    req.IDs,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Khôi phục danh sách màu sắc thành công", nil)
+}
+
+func (h *ProductHandler) RestoreSize(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	sizeID := c.Param("id")
+
+	if _, err := h.productClient.RestoreSize(ctx, &productpb.RestoreOneRequest{
+		Id:     sizeID,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Khôi phục kích cỡ thành công", nil)
+}
+
+func (h *ProductHandler) RestoreSizes(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.RestoreManyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	if _, err := h.productClient.RestoreSizes(ctx, &productpb.RestoreManyRequest{
+		Ids:    req.IDs,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Khôi phục danh sách kích cỡ thành công", nil)
+}
+
+func (h *ProductHandler) RestoreTag(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	tagID := c.Param("id")
+
+	if _, err := h.productClient.RestoreTag(ctx, &productpb.RestoreOneRequest{
+		Id:     tagID,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Khôi phục tag thành công", nil)
+}
+
+func (h *ProductHandler) RestoreTags(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.RestoreManyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	if _, err := h.productClient.RestoreTags(ctx, &productpb.RestoreManyRequest{
+		Ids:    req.IDs,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Khôi phục danh sách tag thành công", nil)
+}

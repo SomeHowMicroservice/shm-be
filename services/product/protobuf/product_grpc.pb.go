@@ -59,6 +59,14 @@ const (
 	ProductService_GetDeletedTags_FullMethodName              = "/product.ProductService/GetDeletedTags"
 	ProductService_DeleteTag_FullMethodName                   = "/product.ProductService/DeleteTag"
 	ProductService_DeleteTags_FullMethodName                  = "/product.ProductService/DeleteTags"
+	ProductService_RestoreProduct_FullMethodName              = "/product.ProductService/RestoreProduct"
+	ProductService_RestoreProducts_FullMethodName             = "/product.ProductService/RestoreProducts"
+	ProductService_RestoreColor_FullMethodName                = "/product.ProductService/RestoreColor"
+	ProductService_RestoreColors_FullMethodName               = "/product.ProductService/RestoreColors"
+	ProductService_RestoreSize_FullMethodName                 = "/product.ProductService/RestoreSize"
+	ProductService_RestoreSizes_FullMethodName                = "/product.ProductService/RestoreSizes"
+	ProductService_RestoreTag_FullMethodName                  = "/product.ProductService/RestoreTag"
+	ProductService_RestoreTags_FullMethodName                 = "/product.ProductService/RestoreTags"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -105,6 +113,14 @@ type ProductServiceClient interface {
 	GetDeletedTags(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error)
 	DeleteTag(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	DeleteTags(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	RestoreProduct(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	RestoreProducts(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	RestoreColor(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	RestoreColors(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	RestoreSize(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	RestoreSizes(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	RestoreTag(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	RestoreTags(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
 }
 
 type productServiceClient struct {
@@ -515,6 +531,86 @@ func (c *productServiceClient) DeleteTags(ctx context.Context, in *DeleteManyReq
 	return out, nil
 }
 
+func (c *productServiceClient) RestoreProduct(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoredResponse)
+	err := c.cc.Invoke(ctx, ProductService_RestoreProduct_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) RestoreProducts(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoredResponse)
+	err := c.cc.Invoke(ctx, ProductService_RestoreProducts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) RestoreColor(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoredResponse)
+	err := c.cc.Invoke(ctx, ProductService_RestoreColor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) RestoreColors(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoredResponse)
+	err := c.cc.Invoke(ctx, ProductService_RestoreColors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) RestoreSize(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoredResponse)
+	err := c.cc.Invoke(ctx, ProductService_RestoreSize_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) RestoreSizes(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoredResponse)
+	err := c.cc.Invoke(ctx, ProductService_RestoreSizes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) RestoreTag(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoredResponse)
+	err := c.cc.Invoke(ctx, ProductService_RestoreTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) RestoreTags(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoredResponse)
+	err := c.cc.Invoke(ctx, ProductService_RestoreTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -559,6 +655,14 @@ type ProductServiceServer interface {
 	GetDeletedTags(context.Context, *GetManyRequest) (*TagsAdminResponse, error)
 	DeleteTag(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
 	DeleteTags(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
+	RestoreProduct(context.Context, *RestoreOneRequest) (*RestoredResponse, error)
+	RestoreProducts(context.Context, *RestoreManyRequest) (*RestoredResponse, error)
+	RestoreColor(context.Context, *RestoreOneRequest) (*RestoredResponse, error)
+	RestoreColors(context.Context, *RestoreManyRequest) (*RestoredResponse, error)
+	RestoreSize(context.Context, *RestoreOneRequest) (*RestoredResponse, error)
+	RestoreSizes(context.Context, *RestoreManyRequest) (*RestoredResponse, error)
+	RestoreTag(context.Context, *RestoreOneRequest) (*RestoredResponse, error)
+	RestoreTags(context.Context, *RestoreManyRequest) (*RestoredResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -688,6 +792,30 @@ func (UnimplementedProductServiceServer) DeleteTag(context.Context, *DeleteOneRe
 }
 func (UnimplementedProductServiceServer) DeleteTags(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTags not implemented")
+}
+func (UnimplementedProductServiceServer) RestoreProduct(context.Context, *RestoreOneRequest) (*RestoredResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestoreProduct not implemented")
+}
+func (UnimplementedProductServiceServer) RestoreProducts(context.Context, *RestoreManyRequest) (*RestoredResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestoreProducts not implemented")
+}
+func (UnimplementedProductServiceServer) RestoreColor(context.Context, *RestoreOneRequest) (*RestoredResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestoreColor not implemented")
+}
+func (UnimplementedProductServiceServer) RestoreColors(context.Context, *RestoreManyRequest) (*RestoredResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestoreColors not implemented")
+}
+func (UnimplementedProductServiceServer) RestoreSize(context.Context, *RestoreOneRequest) (*RestoredResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestoreSize not implemented")
+}
+func (UnimplementedProductServiceServer) RestoreSizes(context.Context, *RestoreManyRequest) (*RestoredResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestoreSizes not implemented")
+}
+func (UnimplementedProductServiceServer) RestoreTag(context.Context, *RestoreOneRequest) (*RestoredResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestoreTag not implemented")
+}
+func (UnimplementedProductServiceServer) RestoreTags(context.Context, *RestoreManyRequest) (*RestoredResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestoreTags not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -1430,6 +1558,150 @@ func _ProductService_DeleteTags_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_RestoreProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).RestoreProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_RestoreProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).RestoreProduct(ctx, req.(*RestoreOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_RestoreProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).RestoreProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_RestoreProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).RestoreProducts(ctx, req.(*RestoreManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_RestoreColor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).RestoreColor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_RestoreColor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).RestoreColor(ctx, req.(*RestoreOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_RestoreColors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).RestoreColors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_RestoreColors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).RestoreColors(ctx, req.(*RestoreManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_RestoreSize_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).RestoreSize(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_RestoreSize_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).RestoreSize(ctx, req.(*RestoreOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_RestoreSizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).RestoreSizes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_RestoreSizes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).RestoreSizes(ctx, req.(*RestoreManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_RestoreTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).RestoreTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_RestoreTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).RestoreTag(ctx, req.(*RestoreOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_RestoreTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).RestoreTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_RestoreTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).RestoreTags(ctx, req.(*RestoreManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1596,6 +1868,38 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteTags",
 			Handler:    _ProductService_DeleteTags_Handler,
+		},
+		{
+			MethodName: "RestoreProduct",
+			Handler:    _ProductService_RestoreProduct_Handler,
+		},
+		{
+			MethodName: "RestoreProducts",
+			Handler:    _ProductService_RestoreProducts_Handler,
+		},
+		{
+			MethodName: "RestoreColor",
+			Handler:    _ProductService_RestoreColor_Handler,
+		},
+		{
+			MethodName: "RestoreColors",
+			Handler:    _ProductService_RestoreColors_Handler,
+		},
+		{
+			MethodName: "RestoreSize",
+			Handler:    _ProductService_RestoreSize_Handler,
+		},
+		{
+			MethodName: "RestoreSizes",
+			Handler:    _ProductService_RestoreSizes_Handler,
+		},
+		{
+			MethodName: "RestoreTag",
+			Handler:    _ProductService_RestoreTag_Handler,
+		},
+		{
+			MethodName: "RestoreTags",
+			Handler:    _ProductService_RestoreTags_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

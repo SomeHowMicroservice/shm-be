@@ -85,12 +85,33 @@ func (r *sizeRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*
 	return size, nil
 }
 
+func (r *sizeRepositoryImpl) FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Size, error) {
+	var size []*model.Size
+	if err := r.db.WithContext(ctx).Where("id IN ? AND is_deleted = true", ids).Find(&size).Error; err != nil {
+		return nil, err
+	}
+
+	return size, nil
+}
+
 func (r *sizeRepositoryImpl) UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error {
 	if err := r.db.WithContext(ctx).Model(&model.Size{}).Where("id IN ?", ids).Updates(updateData).Error; err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (r *sizeRepositoryImpl) FindDeletedByID(ctx context.Context, id string) (*model.Size, error) {
+	var size model.Size
+	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = true", id).First(&size).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &size, nil
 }
 
 func (r *sizeRepositoryImpl) FindAllDeleted(ctx context.Context) ([]*model.Size, error) {

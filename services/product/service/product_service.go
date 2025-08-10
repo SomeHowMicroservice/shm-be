@@ -87,4 +87,20 @@ type ProductService interface {
 	DeleteTag(ctx context.Context, req *protobuf.DeleteOneRequest) error
 
 	DeleteTags(ctx context.Context, req *protobuf.DeleteManyRequest) error
+
+	RestoreProduct(ctx context.Context, req *protobuf.RestoreOneRequest) error
+
+	RestoreProducts(ctx context.Context, req *protobuf.RestoreManyRequest) error
+
+	RestoreColor(ctx context.Context, req *protobuf.RestoreOneRequest) error
+
+	RestoreColors(ctx context.Context, req *protobuf.RestoreManyRequest) error
+
+	RestoreSize(ctx context.Context, req *protobuf.RestoreOneRequest) error
+
+	RestoreSizes(ctx context.Context, req *protobuf.RestoreManyRequest) error
+
+	RestoreTag(ctx context.Context, req *protobuf.RestoreOneRequest) error
+
+	RestoreTags(ctx context.Context, req *protobuf.RestoreManyRequest) error
 }

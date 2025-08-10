@@ -104,3 +104,7 @@ type UpdateImageForm struct {
 type DeleteManyRequest struct {
 	IDs []string `json:"ids" binding:"required,dive,uuid4"`
 }
+
+type RestoreManyRequest struct {
+	IDs []string `json:"ids" binding:"required,dive,uuid4"`
+}

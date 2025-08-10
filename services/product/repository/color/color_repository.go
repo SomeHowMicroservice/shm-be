@@ -24,4 +24,8 @@ type ColorRepository interface {
 	FindAllByID(ctx context.Context, ids []string) ([]*model.Color, error)
 
 	UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error
+
+	FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Color, error)
+
+	FindDeletedByID(ctx context.Context, id string) (*model.Color, error)
 }

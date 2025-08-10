@@ -91,3 +91,24 @@ func (r *tagRepositoryImpl) FindAllDeleted(ctx context.Context) ([]*model.Tag, e
 
 	return tags, nil
 }
+
+func (r *tagRepositoryImpl) FindDeletedByID(ctx context.Context, id string) (*model.Tag, error) {
+	var tag model.Tag
+	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = true", id).First(&tag).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &tag, nil
+}
+
+func (r *tagRepositoryImpl) FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Tag, error) {
+	var tags []*model.Tag
+	if err := r.db.WithContext(ctx).Where("id IN ? AND is_deleted = true", ids).Find(&tags).Error; err != nil {
+		return nil, err
+	}
+
+	return tags, nil
+}

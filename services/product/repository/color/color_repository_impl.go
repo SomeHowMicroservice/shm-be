@@ -61,6 +61,27 @@ func (r *colorRepositoryImpl) FindAllDeleted(ctx context.Context) ([]*model.Colo
 	return colors, nil
 }
 
+func (r *colorRepositoryImpl) FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Color, error) {
+	var colors []*model.Color
+	if err := r.db.WithContext(ctx).Where("id IN ? AND is_deleted = true", ids).Find(&colors).Error; err != nil {
+		return nil, err
+	}
+
+	return colors, nil
+}
+
+func (r *colorRepositoryImpl) FindDeletedByID(ctx context.Context, id string) (*model.Color, error) {
+	var color model.Color
+	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = true", id).First(&color).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &color, nil
+}
+
 func (r *colorRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Color, error) {
 	var color model.Color
 	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&color).Error; err != nil {

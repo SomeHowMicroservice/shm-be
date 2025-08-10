@@ -38,4 +38,8 @@ type ProductRepository interface {
 	FindAllDeletedWithCategoriesAndThumbnail(ctx context.Context) ([]*model.Product, error)
 
 	FindDeletedByIDWithDetails(ctx context.Context, id string) (*model.Product, error)
+
+	FindDeletedByID(ctx context.Context, id string) (*model.Product, error)
+
+	FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Product, error)
 }

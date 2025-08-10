@@ -83,6 +83,36 @@ service ProductService {
   rpc DeleteTag(DeleteOneRequest) returns (DeletedResponse);
 
   rpc DeleteTags(DeleteManyRequest) returns (DeletedResponse);
+
+  rpc RestoreProduct(RestoreOneRequest) returns (RestoredResponse);
+
+  rpc RestoreProducts(RestoreManyRequest) returns (RestoredResponse);
+
+  rpc RestoreColor(RestoreOneRequest) returns (RestoredResponse);
+
+  rpc RestoreColors(RestoreManyRequest) returns (RestoredResponse);
+
+  rpc RestoreSize(RestoreOneRequest) returns (RestoredResponse);
+
+  rpc RestoreSizes(RestoreManyRequest) returns (RestoredResponse);
+
+  rpc RestoreTag(RestoreOneRequest) returns (RestoredResponse);
+
+  rpc RestoreTags(RestoreManyRequest) returns (RestoredResponse);
+}
+
+message RestoreManyRequest {
+  repeated string ids = 1;
+  string user_id = 2;
+}
+
+message RestoreOneRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message RestoredResponse {
+  bool success = 1;
 }
 
 message UpdateSizeRequest {

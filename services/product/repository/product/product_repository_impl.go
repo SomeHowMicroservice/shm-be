@@ -85,6 +85,27 @@ func (r *productRepositoryImpl) FindAllWithCategoriesAndThumbnail(ctx context.Co
 	return products, nil
 }
 
+func (r *productRepositoryImpl) FindDeletedByID(ctx context.Context, id string) (*model.Product, error) {
+	var product model.Product
+	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = true", id).First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &product, nil
+}
+
+func (r *productRepositoryImpl) FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Product, error) {
+	var products []*model.Product
+	if err := r.db.WithContext(ctx).Where("id IN ? AND is_deleted = true", ids).Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
 func (r *productRepositoryImpl) UpdateCategories(ctx context.Context, product *model.Product, categories []*model.Category) error {
 	if err := r.db.WithContext(ctx).Model(product).Association("Categories").Replace(categories); err != nil {
 		return err

@@ -598,6 +598,127 @@ func (h *GRPCHandler) DeleteTags(ctx context.Context, req *protobuf.DeleteManyRe
 	}, nil
 }
 
+func (h *GRPCHandler) RestoreProduct(ctx context.Context, req *protobuf.RestoreOneRequest) (*protobuf.RestoredResponse, error) {
+	if err := h.svc.RestoreProduct(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.RestoredResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) RestoreProducts(ctx context.Context, req *protobuf.RestoreManyRequest) (*protobuf.RestoredResponse, error) {
+	if err := h.svc.RestoreProducts(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.RestoredResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) RestoreColor(ctx context.Context, req *protobuf.RestoreOneRequest) (*protobuf.RestoredResponse, error) {
+	if err := h.svc.RestoreColor(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrColorNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.RestoredResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) RestoreColors(ctx context.Context, req *protobuf.RestoreManyRequest) (*protobuf.RestoredResponse, error) {
+	if err := h.svc.RestoreColors(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasColorNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.RestoredResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) RestoreSize(ctx context.Context, req *protobuf.RestoreOneRequest) (*protobuf.RestoredResponse, error) {
+	if err := h.svc.RestoreSize(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrSizeNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.RestoredResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) RestoreSizes(ctx context.Context, req *protobuf.RestoreManyRequest) (*protobuf.RestoredResponse, error) {
+	if err := h.svc.RestoreSizes(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasSizeNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.RestoredResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) RestoreTag(ctx context.Context, req *protobuf.RestoreOneRequest) (*protobuf.RestoredResponse, error) {
+	if err := h.svc.RestoreTag(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrTagNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.RestoredResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) RestoreTags(ctx context.Context, req *protobuf.RestoreManyRequest) (*protobuf.RestoredResponse, error) {
+	if err := h.svc.RestoreTags(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasTagNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.RestoredResponse{
+		Success: true,
+	}, nil
+}
+
+
 func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {
 	var productResponses []*protobuf.ProductAdminResponse
 	for _, pro := range products {
