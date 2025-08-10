@@ -1790,3 +1790,108 @@ func (h *ProductHandler) GetDeletedSizes(c *gin.Context) {
 		"sizes": res.Sizes,
 	})
 }
+
+func (h *ProductHandler) GetDeletedTags(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.productClient.GetDeletedTags(ctx, &protobuf.GetManyRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả thẻ đã xóa thành công", gin.H{
+		"tags": res.Tags,
+	})
+}
+
+func (h *ProductHandler) DeleteTag(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	tagID := c.Param("id")
+
+	if _, err := h.productClient.DeleteTag(ctx, &productpb.DeleteOneRequest{
+		Id:     tagID,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Chuyển tag vào thùng rác thành công", nil)
+}
+
+func (h *ProductHandler) DeleteTags(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	userAny, exists := c.Get("user")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
+		return
+	}
+
+	user, ok := userAny.(*userpb.UserPublicResponse)
+	if !ok {
+		common.JSON(c, http.StatusUnauthorized, "không thể chuyển đổi thông tin người dùng", nil)
+		return
+	}
+
+	var req request.DeleteManyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	if _, err := h.productClient.DeleteTags(ctx, &productpb.DeleteManyRequest{
+		Ids:    req.IDs,
+		UserId: user.Id,
+	}); err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Chuyển danh sách thẻ vào thùng rác thành công", nil)
+}

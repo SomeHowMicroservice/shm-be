@@ -35,7 +35,7 @@ func (r *tagRepositoryImpl) Create(ctx context.Context, tag *model.Tag) error {
 
 func (r *tagRepositoryImpl) FindAll(ctx context.Context) ([]*model.Tag, error) {
 	var tags []*model.Tag
-	if err := r.db.WithContext(ctx).Find(&tags).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("is_deleted = false").Find(&tags).Error; err != nil {
 		return nil, err
 	}
 
@@ -44,7 +44,7 @@ func (r *tagRepositoryImpl) FindAll(ctx context.Context) ([]*model.Tag, error) {
 
 func (r *tagRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Tag, error) {
 	var tag model.Tag
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&tag).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&tag).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
@@ -66,9 +66,26 @@ func (r *tagRepositoryImpl) Update(ctx context.Context, id string, updateData ma
 	return nil
 }
 
+func (r *tagRepositoryImpl) UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error {
+	if err := r.db.WithContext(ctx).Model(&model.Tag{}).Where("id IN ?", ids).Updates(updateData).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *tagRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Tag, error) {
 	var tags []*model.Tag
-	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&tags).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id IN ? AND is_deleted = false", ids).Find(&tags).Error; err != nil {
+		return nil, err
+	}
+
+	return tags, nil
+}
+
+func (r *tagRepositoryImpl) FindAllDeleted(ctx context.Context) ([]*model.Tag, error) {
+	var tags []*model.Tag
+	if err := r.db.WithContext(ctx).Where("is_deleted = true").Find(&tags).Error; err != nil {
 		return nil, err
 	}
 

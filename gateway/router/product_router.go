@@ -69,7 +69,10 @@ func ProductRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb
 		admin.DELETE("/sizes/:id", productHandler.DeleteSize)
 		admin.POST("/tags", productHandler.CreateTag)
 		admin.GET("/tags", productHandler.GetAllTagsAdmin)
+		admin.GET("/tags/deleted", productHandler.GetDeletedTags)
 		admin.PUT("/tags/:id", productHandler.UpdateTag)
+		admin.DELETE("/tags", productHandler.DeleteTags)
+		admin.DELETE("/tags/:id", productHandler.DeleteTag)
 		admin.DELETE("/products/:id", productHandler.DeleteProduct)
 		admin.DELETE("/products", productHandler.DeleteProducts)
 	}

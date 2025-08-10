@@ -56,6 +56,9 @@ const (
 	ProductService_GetDeletedProductById_FullMethodName       = "/product.ProductService/GetDeletedProductById"
 	ProductService_GetDeletedColors_FullMethodName            = "/product.ProductService/GetDeletedColors"
 	ProductService_GetDeletedSizes_FullMethodName             = "/product.ProductService/GetDeletedSizes"
+	ProductService_GetDeletedTags_FullMethodName              = "/product.ProductService/GetDeletedTags"
+	ProductService_DeleteTag_FullMethodName                   = "/product.ProductService/DeleteTag"
+	ProductService_DeleteTags_FullMethodName                  = "/product.ProductService/DeleteTags"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -99,6 +102,9 @@ type ProductServiceClient interface {
 	GetDeletedProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 	GetDeletedColors(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error)
 	GetDeletedSizes(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error)
+	GetDeletedTags(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error)
+	DeleteTag(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	DeleteTags(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 }
 
 type productServiceClient struct {
@@ -479,6 +485,36 @@ func (c *productServiceClient) GetDeletedSizes(ctx context.Context, in *GetManyR
 	return out, nil
 }
 
+func (c *productServiceClient) GetDeletedTags(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*TagsAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TagsAdminResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetDeletedTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) DeleteTag(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_DeleteTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) DeleteTags(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_DeleteTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -520,6 +556,9 @@ type ProductServiceServer interface {
 	GetDeletedProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
 	GetDeletedColors(context.Context, *GetManyRequest) (*ColorsAdminResponse, error)
 	GetDeletedSizes(context.Context, *GetManyRequest) (*SizesAdminResponse, error)
+	GetDeletedTags(context.Context, *GetManyRequest) (*TagsAdminResponse, error)
+	DeleteTag(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
+	DeleteTags(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -640,6 +679,15 @@ func (UnimplementedProductServiceServer) GetDeletedColors(context.Context, *GetM
 }
 func (UnimplementedProductServiceServer) GetDeletedSizes(context.Context, *GetManyRequest) (*SizesAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDeletedSizes not implemented")
+}
+func (UnimplementedProductServiceServer) GetDeletedTags(context.Context, *GetManyRequest) (*TagsAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeletedTags not implemented")
+}
+func (UnimplementedProductServiceServer) DeleteTag(context.Context, *DeleteOneRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteTag not implemented")
+}
+func (UnimplementedProductServiceServer) DeleteTags(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteTags not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -1328,6 +1376,60 @@ func _ProductService_GetDeletedSizes_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetDeletedTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetDeletedTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetDeletedTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetDeletedTags(ctx, req.(*GetManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_DeleteTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).DeleteTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_DeleteTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).DeleteTag(ctx, req.(*DeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_DeleteTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).DeleteTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_DeleteTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).DeleteTags(ctx, req.(*DeleteManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1482,6 +1584,18 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDeletedSizes",
 			Handler:    _ProductService_GetDeletedSizes_Handler,
+		},
+		{
+			MethodName: "GetDeletedTags",
+			Handler:    _ProductService_GetDeletedTags_Handler,
+		},
+		{
+			MethodName: "DeleteTag",
+			Handler:    _ProductService_DeleteTag_Handler,
+		},
+		{
+			MethodName: "DeleteTags",
+			Handler:    _ProductService_DeleteTags_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

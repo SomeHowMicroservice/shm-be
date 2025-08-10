@@ -81,4 +81,10 @@ type ProductService interface {
 	GetDeletedColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
 
 	GetDeletedSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error)
+
+	GetDeletedTags(ctx context.Context) (*protobuf.TagsAdminResponse, error)
+
+	DeleteTag(ctx context.Context, req *protobuf.DeleteOneRequest) error
+
+	DeleteTags(ctx context.Context, req *protobuf.DeleteManyRequest) error
 }

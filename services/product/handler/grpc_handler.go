@@ -382,7 +382,7 @@ func (h *GRPCHandler) DeleteProducts(ctx context.Context, req *protobuf.DeleteMa
 func (h *GRPCHandler) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) (*protobuf.DeletedResponse, error) {
 	if err := h.svc.PermanentlyDeleteCategory(ctx, req); err != nil {
 		switch err {
-		case customErr.ErrProductNotFound:
+		case customErr.ErrCategoryNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -552,6 +552,50 @@ func (h *GRPCHandler) GetDeletedSizes(ctx context.Context, req *protobuf.GetMany
 	}
 
 	return convertedSizes, nil
+}
+
+func (h *GRPCHandler) GetDeletedTags(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.TagsAdminResponse, error) {
+	convertedTags, err := h.svc.GetDeletedTags(ctx)
+	if err != nil {
+		switch err {
+		case customErr.ErrHasUserNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return convertedTags, nil
+}
+
+func (h *GRPCHandler) DeleteTag(ctx context.Context, req *protobuf.DeleteOneRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.DeleteTag(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrTagNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) DeleteTags(ctx context.Context, req *protobuf.DeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.DeleteTags(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasTagNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
 }
 
 func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {

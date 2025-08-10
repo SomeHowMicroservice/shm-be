@@ -77,6 +77,12 @@ service ProductService {
   rpc GetDeletedColors(GetManyRequest) returns (ColorsAdminResponse);
 
   rpc GetDeletedSizes(GetManyRequest) returns (SizesAdminResponse);
+
+  rpc GetDeletedTags(GetManyRequest) returns (TagsAdminResponse);
+
+  rpc DeleteTag(DeleteOneRequest) returns (DeletedResponse);
+
+  rpc DeleteTags(DeleteManyRequest) returns (DeletedResponse);
 }
 
 message UpdateSizeRequest {

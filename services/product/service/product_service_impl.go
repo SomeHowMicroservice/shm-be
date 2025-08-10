@@ -1674,6 +1674,120 @@ func (s *productServiceImpl) GetDeletedSizes(ctx context.Context) (*protobuf.Siz
 	}, nil
 }
 
+func (s *productServiceImpl) GetDeletedTags(ctx context.Context) (*protobuf.TagsAdminResponse, error) {
+	tags, err := s.tagRepo.FindAllDeleted(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lấy danh sách tag sản phẩm thất bại: %w", err)
+	}
+
+	userIDMap := map[string]struct{}{}
+	for _, tag := range tags {
+		userIDMap[tag.CreatedByID] = struct{}{}
+		userIDMap[tag.UpdatedByID] = struct{}{}
+	}
+
+	var userIDs []string
+	for id := range userIDMap {
+		userIDs = append(userIDs, id)
+	}
+
+	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+		Ids: userIDs,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, customErr.ErrHasUserNotFound
+			default:
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
+	}
+
+	userMap := make(map[string]*userpb.UserPublicResponse)
+	for _, user := range userRes.Users {
+		userMap[user.Id] = user
+	}
+
+	var tagResponses []*protobuf.TagAdminResponse
+	for _, tag := range tags {
+		tagResponses = append(tagResponses, &protobuf.TagAdminResponse{
+			Id:        tag.ID,
+			Name:      tag.Name,
+			CreatedAt: tag.CreatedAt.Format(time.RFC3339),
+			CreatedBy: &protobuf.BaseUserResponse{
+				Id:       tag.CreatedByID,
+				Username: userMap[tag.CreatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[tag.CreatedByID].Profile.Id,
+					FirstName: userMap[tag.CreatedByID].Profile.FirstName,
+					LastName:  userMap[tag.CreatedByID].Profile.LastName,
+				},
+			},
+			UpdatedAt: tag.UpdatedAt.Format(time.RFC3339),
+			UpdatedBy: &protobuf.BaseUserResponse{
+				Id:       tag.UpdatedByID,
+				Username: userMap[tag.UpdatedByID].Username,
+				Profile: &protobuf.BaseProfileResponse{
+					Id:        userMap[tag.UpdatedByID].Profile.Id,
+					FirstName: userMap[tag.UpdatedByID].Profile.FirstName,
+					LastName:  userMap[tag.UpdatedByID].Profile.LastName,
+				},
+			},
+		})
+	}
+
+	return &protobuf.TagsAdminResponse{
+		Tags: tagResponses,
+	}, nil
+}
+
+func (s *productServiceImpl) DeleteTag(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+	tag, err := s.tagRepo.FindByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
+	}
+	if tag == nil {
+		return customErr.ErrTagNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.tagRepo.Update(ctx, req.Id, updateData); err != nil {
+		if errors.Is(err, customErr.ErrTagNotFound) {
+			return err
+		}
+		return fmt.Errorf("chuyển tag vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) DeleteTags(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+	tags, err := s.tagRepo.FindAllByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
+	}
+	if len(tags) != len(req.Ids) {
+		return customErr.ErrHasSizeNotFound
+	}
+
+	updateData := map[string]interface{}{
+		"is_deleted":    true,
+		"updated_by_id": req.UserId,
+	}
+	if err = s.tagRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
+		return fmt.Errorf("chuyển danh sách tag vào thùng rác thất bại: %w", err)
+	}
+
+	return nil
+}
+
 func getIDsFromTags(tags []*model.Tag) []string {
 	var tagIDs []string
 	for _, tag := range tags {
