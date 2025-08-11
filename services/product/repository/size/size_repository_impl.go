@@ -94,6 +94,26 @@ func (r *sizeRepositoryImpl) FindAllDeletedByID(ctx context.Context, ids []strin
 	return size, nil
 }
 
+func (r *sizeRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Size{}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *sizeRepositoryImpl) Delete(ctx context.Context, id string) error {
+	result := r.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Size{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrSizeNotFound
+	}
+
+	return nil
+}
+
 func (r *sizeRepositoryImpl) UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error {
 	if err := r.db.WithContext(ctx).Model(&model.Size{}).Where("id IN ?", ids).Updates(updateData).Error; err != nil {
 		return err

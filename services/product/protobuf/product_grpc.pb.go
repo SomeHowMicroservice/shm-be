@@ -67,6 +67,14 @@ const (
 	ProductService_RestoreSizes_FullMethodName                = "/product.ProductService/RestoreSizes"
 	ProductService_RestoreTag_FullMethodName                  = "/product.ProductService/RestoreTag"
 	ProductService_RestoreTags_FullMethodName                 = "/product.ProductService/RestoreTags"
+	ProductService_PermanentlyDeleteProduct_FullMethodName    = "/product.ProductService/PermanentlyDeleteProduct"
+	ProductService_PermanentlyDeleteProducts_FullMethodName   = "/product.ProductService/PermanentlyDeleteProducts"
+	ProductService_PermanentlyDeleteColor_FullMethodName      = "/product.ProductService/PermanentlyDeleteColor"
+	ProductService_PermanentlyDeleteColors_FullMethodName     = "/product.ProductService/PermanentlyDeleteColors"
+	ProductService_PermanentlyDeleteSize_FullMethodName       = "/product.ProductService/PermanentlyDeleteSize"
+	ProductService_PermanentlyDeleteSizes_FullMethodName      = "/product.ProductService/PermanentlyDeleteSizes"
+	ProductService_PermanentlyDeleteTag_FullMethodName        = "/product.ProductService/PermanentlyDeleteTag"
+	ProductService_PermanentlyDeleteTags_FullMethodName       = "/product.ProductService/PermanentlyDeleteTags"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -97,8 +105,8 @@ type ProductServiceClient interface {
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 	DeleteProduct(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	DeleteProducts(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
-	PermanentlyDeleteCategory(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
-	PermanentlyDeleteCategories(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteCategory(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteCategories(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	GetCategoriesNoProduct(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
 	UpdateColor(ctx context.Context, in *UpdateColorRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
 	UpdateSize(ctx context.Context, in *UpdateSizeRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
@@ -121,6 +129,14 @@ type ProductServiceClient interface {
 	RestoreSizes(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
 	RestoreTag(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
 	RestoreTags(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	PermanentlyDeleteProduct(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteProducts(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteColor(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteColors(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteSize(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteSizes(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteTag(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
+	PermanentlyDeleteTags(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 }
 
 type productServiceClient struct {
@@ -371,7 +387,7 @@ func (c *productServiceClient) DeleteProducts(ctx context.Context, in *DeleteMan
 	return out, nil
 }
 
-func (c *productServiceClient) PermanentlyDeleteCategory(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+func (c *productServiceClient) PermanentlyDeleteCategory(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeletedResponse)
 	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteCategory_FullMethodName, in, out, cOpts...)
@@ -381,7 +397,7 @@ func (c *productServiceClient) PermanentlyDeleteCategory(ctx context.Context, in
 	return out, nil
 }
 
-func (c *productServiceClient) PermanentlyDeleteCategories(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+func (c *productServiceClient) PermanentlyDeleteCategories(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeletedResponse)
 	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteCategories_FullMethodName, in, out, cOpts...)
@@ -611,6 +627,86 @@ func (c *productServiceClient) RestoreTags(ctx context.Context, in *RestoreManyR
 	return out, nil
 }
 
+func (c *productServiceClient) PermanentlyDeleteProduct(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteProduct_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteProducts(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteProducts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteColor(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteColor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteColors(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteColors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteSize(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteSize_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteSizes(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteSizes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteTag(ctx context.Context, in *PermanentlyDeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) PermanentlyDeleteTags(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletedResponse)
+	err := c.cc.Invoke(ctx, ProductService_PermanentlyDeleteTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -639,8 +735,8 @@ type ProductServiceServer interface {
 	UpdateProduct(context.Context, *UpdateProductRequest) (*ProductAdminDetailsResponse, error)
 	DeleteProduct(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
 	DeleteProducts(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
-	PermanentlyDeleteCategory(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
-	PermanentlyDeleteCategories(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
+	PermanentlyDeleteCategory(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error)
+	PermanentlyDeleteCategories(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error)
 	GetCategoriesNoProduct(context.Context, *GetManyRequest) (*BaseCategoriesResponse, error)
 	UpdateColor(context.Context, *UpdateColorRequest) (*UpdatedResponse, error)
 	UpdateSize(context.Context, *UpdateSizeRequest) (*UpdatedResponse, error)
@@ -663,6 +759,14 @@ type ProductServiceServer interface {
 	RestoreSizes(context.Context, *RestoreManyRequest) (*RestoredResponse, error)
 	RestoreTag(context.Context, *RestoreOneRequest) (*RestoredResponse, error)
 	RestoreTags(context.Context, *RestoreManyRequest) (*RestoredResponse, error)
+	PermanentlyDeleteProduct(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error)
+	PermanentlyDeleteProducts(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error)
+	PermanentlyDeleteColor(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error)
+	PermanentlyDeleteColors(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error)
+	PermanentlyDeleteSize(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error)
+	PermanentlyDeleteSizes(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error)
+	PermanentlyDeleteTag(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error)
+	PermanentlyDeleteTags(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -745,10 +849,10 @@ func (UnimplementedProductServiceServer) DeleteProduct(context.Context, *DeleteO
 func (UnimplementedProductServiceServer) DeleteProducts(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProducts not implemented")
 }
-func (UnimplementedProductServiceServer) PermanentlyDeleteCategory(context.Context, *DeleteOneRequest) (*DeletedResponse, error) {
+func (UnimplementedProductServiceServer) PermanentlyDeleteCategory(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteCategory not implemented")
 }
-func (UnimplementedProductServiceServer) PermanentlyDeleteCategories(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
+func (UnimplementedProductServiceServer) PermanentlyDeleteCategories(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteCategories not implemented")
 }
 func (UnimplementedProductServiceServer) GetCategoriesNoProduct(context.Context, *GetManyRequest) (*BaseCategoriesResponse, error) {
@@ -816,6 +920,30 @@ func (UnimplementedProductServiceServer) RestoreTag(context.Context, *RestoreOne
 }
 func (UnimplementedProductServiceServer) RestoreTags(context.Context, *RestoreManyRequest) (*RestoredResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RestoreTags not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteProduct(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteProduct not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteProducts(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteProducts not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteColor(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteColor not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteColors(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteColors not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteSize(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteSize not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteSizes(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteSizes not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteTag(context.Context, *PermanentlyDeleteOneRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteTag not implemented")
+}
+func (UnimplementedProductServiceServer) PermanentlyDeleteTags(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermanentlyDeleteTags not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -1271,7 +1399,7 @@ func _ProductService_DeleteProducts_Handler(srv interface{}, ctx context.Context
 }
 
 func _ProductService_PermanentlyDeleteCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteOneRequest)
+	in := new(PermanentlyDeleteOneRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1283,13 +1411,13 @@ func _ProductService_PermanentlyDeleteCategory_Handler(srv interface{}, ctx cont
 		FullMethod: ProductService_PermanentlyDeleteCategory_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).PermanentlyDeleteCategory(ctx, req.(*DeleteOneRequest))
+		return srv.(ProductServiceServer).PermanentlyDeleteCategory(ctx, req.(*PermanentlyDeleteOneRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ProductService_PermanentlyDeleteCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteManyRequest)
+	in := new(PermanentlyDeleteManyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1301,7 +1429,7 @@ func _ProductService_PermanentlyDeleteCategories_Handler(srv interface{}, ctx co
 		FullMethod: ProductService_PermanentlyDeleteCategories_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).PermanentlyDeleteCategories(ctx, req.(*DeleteManyRequest))
+		return srv.(ProductServiceServer).PermanentlyDeleteCategories(ctx, req.(*PermanentlyDeleteManyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1702,6 +1830,150 @@ func _ProductService_RestoreTags_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_PermanentlyDeleteProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermanentlyDeleteOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteProduct(ctx, req.(*PermanentlyDeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermanentlyDeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteProducts(ctx, req.(*PermanentlyDeleteManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteColor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermanentlyDeleteOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteColor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteColor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteColor(ctx, req.(*PermanentlyDeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteColors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermanentlyDeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteColors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteColors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteColors(ctx, req.(*PermanentlyDeleteManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteSize_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermanentlyDeleteOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteSize(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteSize_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteSize(ctx, req.(*PermanentlyDeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteSizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermanentlyDeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteSizes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteSizes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteSizes(ctx, req.(*PermanentlyDeleteManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermanentlyDeleteOneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteTag(ctx, req.(*PermanentlyDeleteOneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_PermanentlyDeleteTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermanentlyDeleteManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).PermanentlyDeleteTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_PermanentlyDeleteTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).PermanentlyDeleteTags(ctx, req.(*PermanentlyDeleteManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1900,6 +2172,38 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RestoreTags",
 			Handler:    _ProductService_RestoreTags_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteProduct",
+			Handler:    _ProductService_PermanentlyDeleteProduct_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteProducts",
+			Handler:    _ProductService_PermanentlyDeleteProducts_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteColor",
+			Handler:    _ProductService_PermanentlyDeleteColor_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteColors",
+			Handler:    _ProductService_PermanentlyDeleteColors_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteSize",
+			Handler:    _ProductService_PermanentlyDeleteSize_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteSizes",
+			Handler:    _ProductService_PermanentlyDeleteSizes_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteTag",
+			Handler:    _ProductService_PermanentlyDeleteTag_Handler,
+		},
+		{
+			MethodName: "PermanentlyDeleteTags",
+			Handler:    _ProductService_PermanentlyDeleteTags_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

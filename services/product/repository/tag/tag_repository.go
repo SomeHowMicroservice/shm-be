@@ -26,4 +26,8 @@ type TagRepository interface {
 	FindDeletedByID(ctx context.Context, id string) (*model.Tag, error)
 
 	FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Tag, error)
+
+	DeleteAllByID(ctx context.Context, ids []string) error
+
+	Delete(ctx context.Context, id string) error
 }

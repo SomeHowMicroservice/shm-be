@@ -28,4 +28,8 @@ type ColorRepository interface {
 	FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Color, error)
 
 	FindDeletedByID(ctx context.Context, id string) (*model.Color, error)
+
+	DeleteAllByID(ctx context.Context, ids []string) error
+
+	Delete(ctx context.Context, id string) error
 }

@@ -1360,7 +1360,7 @@ func (s *productServiceImpl) DeleteProducts(ctx context.Context, req *protobuf.D
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
 	category, err := s.categoryRepo.FindByID(ctx, req.Id)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
@@ -1379,7 +1379,7 @@ func (s *productServiceImpl) PermanentlyDeleteCategory(ctx context.Context, req 
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteCategories(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteCategories(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
 	categories, err := s.categoryRepo.FindAllByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
@@ -1955,6 +1955,171 @@ func (s *productServiceImpl) RestoreTags(ctx context.Context, req *protobuf.Rest
 	}
 	if err = s.tagRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
 		return fmt.Errorf("khôi phục danh sách tag thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteProduct(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+	product, err := s.productRepo.FindDeletedByIDWithImages(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
+	}
+	if product == nil {
+		return customErr.ErrProductNotFound
+	}
+
+	if err = s.productRepo.Delete(ctx, req.Id); err != nil {
+		if errors.Is(err, customErr.ErrProductNotFound) {
+			return err
+		}
+		return fmt.Errorf("xóa sản phẩm thất bại: %w", err)
+	}
+
+	for _, image := range product.Images {
+		body := []byte(image.FileID)
+		if err := mq.PublishMessage(s.mqChannel, "", "image.delete", body); err != nil {
+			return fmt.Errorf("publish delete image msg thất bại: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteProducts(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+	products, err := s.productRepo.FindAllDeletedByIDWithImages(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
+	}
+	if len(products) != len(req.Ids) {
+		return customErr.ErrHasProductNotFound
+	}
+
+	if err = s.productRepo.DeleteAllByID(ctx, req.Ids); err != nil {
+		return fmt.Errorf("xóa danh sách sản phẩm thất bại: %w", err)
+	}
+
+	imageFileIDs := []string{}
+	seen := make(map[string]bool)
+	for _, product := range products {
+		for _, image := range product.Images {
+			if !seen[image.FileID] {
+				seen[image.FileID] = true
+				imageFileIDs = append(imageFileIDs, image.FileID)
+			}
+		}
+	}
+
+	for _, fileID := range imageFileIDs {
+		body := []byte(fileID)
+		if err := mq.PublishMessage(s.mqChannel, "", "image.delete", body); err != nil {
+			return fmt.Errorf("publish delete image msg thất bại: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteColor(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+	color, err := s.colorRepo.FindDeletedByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if color == nil {
+		return customErr.ErrColorNotFound
+	}
+
+	if err = s.colorRepo.Delete(ctx, req.Id); err != nil {
+		if errors.Is(err, customErr.ErrColorNotFound) {
+			return err
+		}
+		return fmt.Errorf("xóa màu sắc thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteColors(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+	colors, err := s.colorRepo.FindAllDeletedByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
+	}
+	if len(colors) != len(req.Ids) {
+		return customErr.ErrHasColorNotFound
+	}
+
+	if err = s.colorRepo.DeleteAllByID(ctx, req.Ids); err != nil {
+		return fmt.Errorf("xóa danh sách màu sắc thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteSize(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+	size, err := s.sizeRepo.FindDeletedByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
+	}
+	if size == nil {
+		return customErr.ErrSizeNotFound
+	}
+
+	if err = s.sizeRepo.Delete(ctx, req.Id); err != nil {
+		if errors.Is(err, customErr.ErrSizeNotFound) {
+			return err
+		}
+		return fmt.Errorf("xóa kích cỡ thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteSizes(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+	sizes, err := s.sizeRepo.FindAllDeletedByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
+	}
+	if len(sizes) != len(req.Ids) {
+		return customErr.ErrHasSizeNotFound
+	}
+
+	if err = s.sizeRepo.DeleteAllByID(ctx, req.Ids); err != nil {
+		return fmt.Errorf("xóa danh sách kích cỡ thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteTag(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+	tag, err := s.tagRepo.FindDeletedByID(ctx, req.Id)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
+	}
+	if tag == nil {
+		return customErr.ErrTagNotFound
+	}
+
+	if err = s.tagRepo.Delete(ctx, req.Id); err != nil {
+		if errors.Is(err, customErr.ErrTagNotFound) {
+			return err
+		}
+		return fmt.Errorf("xóa tag thất bại: %w", err)
+	}
+
+	return nil
+}
+
+func (s *productServiceImpl) PermanentlyDeleteTags(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+	tags, err := s.tagRepo.FindAllDeletedByID(ctx, req.Ids)
+	if err != nil {
+		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
+	}
+	if len(tags) != len(req.Ids) {
+		return customErr.ErrHasTagNotFound
+	}
+
+	if err = s.tagRepo.DeleteAllByID(ctx, req.Ids); err != nil {
+		return fmt.Errorf("xóa danh sách tag thất bại: %w", err)
 	}
 
 	return nil

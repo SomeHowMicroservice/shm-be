@@ -58,9 +58,9 @@ type ProductService interface {
 
 	DeleteProducts(ctx context.Context, req *protobuf.DeleteManyRequest) error
 
-	PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) error
+	PermanentlyDeleteCategory(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
 
-	PermanentlyDeleteCategories(ctx context.Context, req *protobuf.DeleteManyRequest) error
+	PermanentlyDeleteCategories(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
 
 	UpdateColor(ctx context.Context, req *protobuf.UpdateColorRequest) error
 
@@ -103,4 +103,20 @@ type ProductService interface {
 	RestoreTag(ctx context.Context, req *protobuf.RestoreOneRequest) error
 
 	RestoreTags(ctx context.Context, req *protobuf.RestoreManyRequest) error
+
+	PermanentlyDeleteProduct(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+
+	PermanentlyDeleteProducts(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
+
+	PermanentlyDeleteColor(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+
+	PermanentlyDeleteColors(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
+
+	PermanentlyDeleteSize(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+
+	PermanentlyDeleteSizes(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
+
+	PermanentlyDeleteTag(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+
+	PermanentlyDeleteTags(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
 }

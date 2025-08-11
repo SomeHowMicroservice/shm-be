@@ -379,7 +379,7 @@ func (h *GRPCHandler) DeleteProducts(ctx context.Context, req *protobuf.DeleteMa
 	}, nil
 }
 
-func (h *GRPCHandler) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.DeleteOneRequest) (*protobuf.DeletedResponse, error) {
+func (h *GRPCHandler) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) (*protobuf.DeletedResponse, error) {
 	if err := h.svc.PermanentlyDeleteCategory(ctx, req); err != nil {
 		switch err {
 		case customErr.ErrCategoryNotFound:
@@ -394,7 +394,7 @@ func (h *GRPCHandler) PermanentlyDeleteCategory(ctx context.Context, req *protob
 	}, nil
 }
 
-func (h *GRPCHandler) PermanentlyDeleteCategories(ctx context.Context, req *protobuf.DeleteManyRequest) (*protobuf.DeletedResponse, error) {
+func (h *GRPCHandler) PermanentlyDeleteCategories(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) (*protobuf.DeletedResponse, error) {
 	if err := h.svc.PermanentlyDeleteCategories(ctx, req); err != nil {
 		switch err {
 		case customErr.ErrHasCategoryNotFound:
@@ -718,6 +718,125 @@ func (h *GRPCHandler) RestoreTags(ctx context.Context, req *protobuf.RestoreMany
 	}, nil
 }
 
+func (h *GRPCHandler) PermanentlyDeleteProduct(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteProduct(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteProducts(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteProducts(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasProductNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteColor(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteColor(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrColorNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteColors(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteColors(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasColorNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteSize(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteSize(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrSizeNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteSizes(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteSizes(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasSizeNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteTag(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteTag(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrTagNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
+
+func (h *GRPCHandler) PermanentlyDeleteTags(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) (*protobuf.DeletedResponse, error) {
+	if err := h.svc.PermanentlyDeleteTags(ctx, req); err != nil {
+		switch err {
+		case customErr.ErrHasTagNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &protobuf.DeletedResponse{
+		Success: true,
+	}, nil
+}
 
 func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {
 	var productResponses []*protobuf.ProductAdminResponse

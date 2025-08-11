@@ -112,3 +112,23 @@ func (r *tagRepositoryImpl) FindAllDeletedByID(ctx context.Context, ids []string
 
 	return tags, nil
 }
+
+func (r *tagRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Tag{}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *tagRepositoryImpl) Delete(ctx context.Context, id string) error {
+	result := r.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Tag{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrTagNotFound
+	}
+
+	return nil
+}

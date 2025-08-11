@@ -94,6 +94,26 @@ func (r *colorRepositoryImpl) FindByID(ctx context.Context, id string) (*model.C
 	return &color, nil
 }
 
+func (r *colorRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Color{}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *colorRepositoryImpl) Delete(ctx context.Context, id string) error {
+	result := r.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Color{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return customErr.ErrColorNotFound
+	}
+
+	return nil
+}
+
 func (r *colorRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
 	result := r.db.WithContext(ctx).Model(&model.Color{}).Where("id = ?", id).Updates(updateData)
 	if result.Error != nil {

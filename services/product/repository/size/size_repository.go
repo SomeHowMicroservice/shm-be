@@ -28,4 +28,8 @@ type SizeRepository interface {
 	FindDeletedByID(ctx context.Context, id string) (*model.Size, error)
 
 	FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Size, error)
+
+	DeleteAllByID(ctx context.Context, ids []string) error
+
+	Delete(ctx context.Context, id string) error
 }

@@ -52,9 +52,9 @@ service ProductService {
 
   rpc DeleteProducts(DeleteManyRequest) returns (DeletedResponse);
 
-  rpc PermanentlyDeleteCategory(DeleteOneRequest) returns (DeletedResponse);
+  rpc PermanentlyDeleteCategory(PermanentlyDeleteOneRequest) returns (DeletedResponse);
 
-  rpc PermanentlyDeleteCategories(DeleteManyRequest) returns (DeletedResponse);
+  rpc PermanentlyDeleteCategories(PermanentlyDeleteManyRequest) returns (DeletedResponse);
 
   rpc GetCategoriesNoProduct(GetManyRequest) returns (BaseCategoriesResponse);
 
@@ -99,6 +99,30 @@ service ProductService {
   rpc RestoreTag(RestoreOneRequest) returns (RestoredResponse);
 
   rpc RestoreTags(RestoreManyRequest) returns (RestoredResponse);
+
+  rpc PermanentlyDeleteProduct(PermanentlyDeleteOneRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteProducts(PermanentlyDeleteManyRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteColor(PermanentlyDeleteOneRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteColors(PermanentlyDeleteManyRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteSize(PermanentlyDeleteOneRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteSizes(PermanentlyDeleteManyRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteTag(PermanentlyDeleteOneRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteTags(PermanentlyDeleteManyRequest) returns (DeletedResponse);
+}
+
+message PermanentlyDeleteManyRequest {
+  repeated string ids = 1;
+}
+
+message PermanentlyDeleteOneRequest {
+  string id = 1;
 }
 
 message RestoreManyRequest {

@@ -9,6 +9,8 @@ import (
 type ProductRepository interface {
 	Create(ctx context.Context, product *model.Product) error
 
+	Delete(ctx context.Context, id string) error
+
 	ExistsBySlug(ctx context.Context, slug string) (bool, error)
 
 	FindBySlugWithDetails(ctx context.Context, slug string) (*model.Product, error)
@@ -42,4 +44,10 @@ type ProductRepository interface {
 	FindDeletedByID(ctx context.Context, id string) (*model.Product, error)
 
 	FindAllDeletedByID(ctx context.Context, ids []string) ([]*model.Product, error)
+
+	FindDeletedByIDWithImages(ctx context.Context, id string) (*model.Product, error)
+
+	FindAllDeletedByIDWithImages(ctx context.Context, ids []string) ([]*model.Product, error)
+
+	DeleteAllByID(ctx context.Context, ids []string) error
 }
