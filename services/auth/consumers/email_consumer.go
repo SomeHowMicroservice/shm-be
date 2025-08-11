@@ -1,4 +1,4 @@
-package main
+package consumers
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/auth/mq"
 )
 
-func startEmailConsumer(mqc *initialization.MQConnection, mailer smtp.Mailer) {
+func StartEmailConsumer(mqc *initialization.MQConnection, mailer smtp.Mailer) {
 	if err := mq.ConsumeMessage(mqc.Chann, "email.send", func(body []byte) error {
 		var emailMsg common.AuthEmailMessage
 		if err := json.Unmarshal(body, &emailMsg); err != nil {

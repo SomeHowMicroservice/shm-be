@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/SomeHowMicroservice/shm-be/services/product/config"
+	"github.com/SomeHowMicroservice/shm-be/services/product/consumers"
 	"github.com/SomeHowMicroservice/shm-be/services/product/container"
 	"github.com/SomeHowMicroservice/shm-be/services/product/imagekit"
 	"github.com/SomeHowMicroservice/shm-be/services/product/initialization"
@@ -42,8 +43,8 @@ func main() {
 	protobuf.RegisterProductServiceServer(grpcServer, productContainer.GRPCHandler)
 
 	imagekit := imagekit.NewImageKitService(cfg)
-	go startUploadImageConsumer(mqc, imagekit, productContainer.ImageRepo)
-	go startDeleteImageConsumer(mqc, imagekit)
+	go consumers.StartUploadImageConsumer(mqc, imagekit, productContainer.ImageRepo)
+	go consumers.StartDeleteImageConsumer(mqc, imagekit)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {

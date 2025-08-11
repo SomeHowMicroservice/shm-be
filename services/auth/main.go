@@ -7,6 +7,7 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/common/smtp"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/config"
+	"github.com/SomeHowMicroservice/shm-be/services/auth/consumers"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/handler"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/initialization"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
@@ -50,7 +51,7 @@ func main() {
 	}
 
 	mailer := smtp.NewMailer(mailerCfg)
-	go startEmailConsumer(mqc, mailer)
+	go consumers.StartEmailConsumer(mqc, mailer)
 	
 	svc := service.NewAuthService(cacheRepo, clients.UserClient, mailer, cfg, mqc.Chann)
 	authHandler := handler.NewGRPCHandler(grpcServer, svc)

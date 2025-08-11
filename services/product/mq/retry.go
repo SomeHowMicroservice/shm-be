@@ -4,36 +4,7 @@ import (
 	"log"
 	"math"
 	"time"
-
-	"github.com/rabbitmq/amqp091-go"
 )
-
-func ConsumeMessage(ch *amqp091.Channel, queueName string, handler func([]byte) error) error {
-	_, err := ch.QueueDeclare(queueName, true, false, false, false, nil)
-	if err != nil {
-		return err
-	}
-
-	err = ch.Qos(5, 0, false)
-	if err != nil {
-		return err
-	}
-
-	msgs, err := ch.Consume(queueName, "", true, false, false, false, nil)
-	if err != nil {
-		return err
-	}
-
-	for i := 0; i < 5; i++ {
-		go func(workerID int) {
-			for msg := range msgs {
-				processWithRetry(msg.Body, handler, workerID)
-			}
-		}(i)
-	}
-
-	return nil
-}
 
 func processWithRetry(body []byte, handler func([]byte) error, workerID int) {
 	maxAttempts := 5

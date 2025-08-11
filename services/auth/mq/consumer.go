@@ -3,13 +3,11 @@ package mq
 import "github.com/rabbitmq/amqp091-go"
 
 func ConsumeMessage(ch *amqp091.Channel, queueName string, handler func([]byte) error) error {
-	_, err := ch.QueueDeclare(queueName, true, false, false, false, nil)
-	if err != nil {
+	if _, err := ch.QueueDeclare(queueName, true, false, false, false, nil); err != nil {
 		return err
 	}
 
-	err = ch.Qos(5, 0, false)
-	if err != nil {
+	if err := ch.Qos(5, 0, false); err != nil {
 		return err
 	}
 

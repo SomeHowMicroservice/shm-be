@@ -1,4 +1,4 @@
-package main
+package consumers
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	imageRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/image"
 )
 
-func startUploadImageConsumer(mqc *initialization.MQConnection, imagekit imagekit.ImageKitService, imageRepo imageRepo.ImageRepository) {
+func StartUploadImageConsumer(mqc *initialization.MQConnection, imagekit imagekit.ImageKitService, imageRepo imageRepo.ImageRepository) {
 	if err := mq.ConsumeMessage(mqc.Chann, "image.upload", func(body []byte) error {
 		var imageMsg common.Base64UploadRequest
 		if err := json.Unmarshal(body, &imageMsg); err != nil {
@@ -36,20 +36,5 @@ func startUploadImageConsumer(mqc *initialization.MQConnection, imagekit imageki
 		return nil
 	}); err != nil {
 		log.Printf("Lỗi khởi tạo upload image consumer: %v", err)
-	}
-}
-
-func startDeleteImageConsumer(mqc *initialization.MQConnection, imagekit imagekit.ImageKitService) {
-	if err := mq.ConsumeMessage(mqc.Chann, "image.delete", func(body []byte) error {
-		fileID := string(body)
-		ctx := context.Background()
-		if err := imagekit.DeleteFile(ctx, fileID); err != nil {
-			return err
-		}
-
-		log.Printf("Xóa hình ảnh thành công: %s", fileID)
-		return nil
-	}); err != nil {
-		log.Printf("Lỗi khởi tạo delete image consumer: %v", err)
 	}
 }
