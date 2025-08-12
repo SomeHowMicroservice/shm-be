@@ -114,7 +114,7 @@ type ProductServiceClient interface {
 	DeleteSize(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	DeleteColors(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	DeleteSizes(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
-	GetDeletedProducts(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error)
+	GetDeletedProducts(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsPaginatedAdminResponse, error)
 	GetDeletedProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 	GetDeletedColors(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error)
 	GetDeletedSizes(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error)
@@ -477,9 +477,9 @@ func (c *productServiceClient) DeleteSizes(ctx context.Context, in *DeleteManyRe
 	return out, nil
 }
 
-func (c *productServiceClient) GetDeletedProducts(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error) {
+func (c *productServiceClient) GetDeletedProducts(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsPaginatedAdminResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProductsAdminResponse)
+	out := new(ProductsPaginatedAdminResponse)
 	err := c.cc.Invoke(ctx, ProductService_GetDeletedProducts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -744,7 +744,7 @@ type ProductServiceServer interface {
 	DeleteSize(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
 	DeleteColors(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
 	DeleteSizes(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
-	GetDeletedProducts(context.Context, *GetManyRequest) (*ProductsAdminResponse, error)
+	GetDeletedProducts(context.Context, *GetAllProductsAdminRequest) (*ProductsPaginatedAdminResponse, error)
 	GetDeletedProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
 	GetDeletedColors(context.Context, *GetManyRequest) (*ColorsAdminResponse, error)
 	GetDeletedSizes(context.Context, *GetManyRequest) (*SizesAdminResponse, error)
@@ -876,7 +876,7 @@ func (UnimplementedProductServiceServer) DeleteColors(context.Context, *DeleteMa
 func (UnimplementedProductServiceServer) DeleteSizes(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSizes not implemented")
 }
-func (UnimplementedProductServiceServer) GetDeletedProducts(context.Context, *GetManyRequest) (*ProductsAdminResponse, error) {
+func (UnimplementedProductServiceServer) GetDeletedProducts(context.Context, *GetAllProductsAdminRequest) (*ProductsPaginatedAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDeletedProducts not implemented")
 }
 func (UnimplementedProductServiceServer) GetDeletedProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error) {
@@ -1561,7 +1561,7 @@ func _ProductService_DeleteSizes_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _ProductService_GetDeletedProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetManyRequest)
+	in := new(GetAllProductsAdminRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1573,7 +1573,7 @@ func _ProductService_GetDeletedProducts_Handler(srv interface{}, ctx context.Con
 		FullMethod: ProductService_GetDeletedProducts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).GetDeletedProducts(ctx, req.(*GetManyRequest))
+		return srv.(ProductServiceServer).GetDeletedProducts(ctx, req.(*GetAllProductsAdminRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

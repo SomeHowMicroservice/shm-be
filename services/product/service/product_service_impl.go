@@ -1522,13 +1522,49 @@ func (s *productServiceImpl) DeleteSizes(ctx context.Context, req *protobuf.Dele
 	return nil
 }
 
-func (s *productServiceImpl) GetDeletedProducts(ctx context.Context) ([]*model.Product, error) {
-	products, err := s.productRepo.FindAllDeletedWithCategoriesAndThumbnail(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("lấy tất cả sản phẩm đã xóa thất bại: %w", err)
+func (s *productServiceImpl) GetDeletedProducts(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error) {
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.Limit == 0 {
+		req.Limit = 10
 	}
 
-	return products, nil
+	if req.Limit > 100 {
+		req.Limit = 100
+	}
+
+	query := &common.PaginationQuery{
+		Page:       int(req.Page),
+		Limit:      int(req.Limit),
+		Sort:       req.Sort,
+		Search:     req.Search,
+		Order:      req.Order,
+		IsActive:   req.IsActive,
+		CategoryID: req.CategoryId,
+		TagID:      req.TagId,
+	}
+
+	products, total, err := s.productRepo.FindAllDeletedPaginatedWithCategoriesAndThumbnail(ctx, query)
+	if err != nil {
+		return nil, nil, fmt.Errorf("lấy tất cả sản phẩm đã xóa thất bại: %w", err)
+	}
+
+	totalPages := int(total) / query.Limit
+	if int(total)%query.Limit != 0 {
+		totalPages++
+	}
+
+	meta := &common.PaginationMeta{
+		Page:       query.Page,
+		Limit:      query.Limit,
+		Total:      total,
+		TotalPages: totalPages,
+		HasNext:    query.Page < totalPages,
+		HasPrev:    query.Page > 1,
+	}
+
+	return products, meta, nil
 }
 
 func (s *productServiceImpl) GetDeletedProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error) {

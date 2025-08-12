@@ -70,7 +70,7 @@ service ProductService {
 
   rpc DeleteSizes(DeleteManyRequest) returns (DeletedResponse);
 
-  rpc GetDeletedProducts(GetManyRequest) returns (ProductsAdminResponse);
+  rpc GetDeletedProducts(GetAllProductsAdminRequest) returns (ProductsPaginatedAdminResponse);
 
   rpc GetDeletedProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
 

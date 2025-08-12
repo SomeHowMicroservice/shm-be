@@ -4449,7 +4449,7 @@ const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"\x14CategoryTreeResponse\x12?\n" +
 	"\n" +
 	"categories\x18\x01 \x03(\v2\x1f.product.CategoryPublicResponseR\n" +
-	"categories2\xb0\"\n" +
+	"categories2\xc5\"\n" +
 	"\x0eProductService\x12J\n" +
 	"\x0eCreateCategory\x12\x1e.product.CreateCategoryRequest\x1a\x18.product.CreatedResponse\x12I\n" +
 	"\x0fGetCategoryTree\x12\x17.product.GetManyRequest\x1a\x1d.product.CategoryTreeResponse\x12T\n" +
@@ -4487,8 +4487,8 @@ const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"\n" +
 	"DeleteSize\x12\x19.product.DeleteOneRequest\x1a\x18.product.DeletedResponse\x12D\n" +
 	"\fDeleteColors\x12\x1a.product.DeleteManyRequest\x1a\x18.product.DeletedResponse\x12C\n" +
-	"\vDeleteSizes\x12\x1a.product.DeleteManyRequest\x1a\x18.product.DeletedResponse\x12M\n" +
-	"\x12GetDeletedProducts\x12\x17.product.GetManyRequest\x1a\x1e.product.ProductsAdminResponse\x12]\n" +
+	"\vDeleteSizes\x12\x1a.product.DeleteManyRequest\x1a\x18.product.DeletedResponse\x12b\n" +
+	"\x12GetDeletedProducts\x12#.product.GetAllProductsAdminRequest\x1a'.product.ProductsPaginatedAdminResponse\x12]\n" +
 	"\x15GetDeletedProductById\x12\x1e.product.GetProductByIdRequest\x1a$.product.ProductAdminDetailsResponse\x12I\n" +
 	"\x10GetDeletedColors\x12\x17.product.GetManyRequest\x1a\x1c.product.ColorsAdminResponse\x12G\n" +
 	"\x0fGetDeletedSizes\x12\x17.product.GetManyRequest\x1a\x1b.product.SizesAdminResponse\x12E\n" +
@@ -4674,7 +4674,7 @@ var file_services_product_protobuf_product_proto_depIdxs = []int32{
 	11,  // 79: product.ProductService.DeleteSize:input_type -> product.DeleteOneRequest
 	12,  // 80: product.ProductService.DeleteColors:input_type -> product.DeleteManyRequest
 	12,  // 81: product.ProductService.DeleteSizes:input_type -> product.DeleteManyRequest
-	10,  // 82: product.ProductService.GetDeletedProducts:input_type -> product.GetManyRequest
+	2,   // 82: product.ProductService.GetDeletedProducts:input_type -> product.GetAllProductsAdminRequest
 	20,  // 83: product.ProductService.GetDeletedProductById:input_type -> product.GetProductByIdRequest
 	10,  // 84: product.ProductService.GetDeletedColors:input_type -> product.GetManyRequest
 	10,  // 85: product.ProductService.GetDeletedSizes:input_type -> product.GetManyRequest
@@ -4730,7 +4730,7 @@ var file_services_product_protobuf_product_proto_depIdxs = []int32{
 	13,  // 135: product.ProductService.DeleteSize:output_type -> product.DeletedResponse
 	13,  // 136: product.ProductService.DeleteColors:output_type -> product.DeletedResponse
 	13,  // 137: product.ProductService.DeleteSizes:output_type -> product.DeletedResponse
-	17,  // 138: product.ProductService.GetDeletedProducts:output_type -> product.ProductsAdminResponse
+	0,   // 138: product.ProductService.GetDeletedProducts:output_type -> product.ProductsPaginatedAdminResponse
 	21,  // 139: product.ProductService.GetDeletedProductById:output_type -> product.ProductAdminDetailsResponse
 	36,  // 140: product.ProductService.GetDeletedColors:output_type -> product.ColorsAdminResponse
 	34,  // 141: product.ProductService.GetDeletedSizes:output_type -> product.SizesAdminResponse

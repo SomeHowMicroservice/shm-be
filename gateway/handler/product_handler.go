@@ -1283,14 +1283,14 @@ func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
 	}
 
 	res, err := h.productClient.GetAllProductsAdmin(ctx, &productpb.GetAllProductsAdminRequest{
-		Page: query.Page,
-		Limit: query.Limit,
-		Sort: query.Sort,
-		Order: query.Order,
-		IsActive: query.IsActive,
-		Search: query.Search,
+		Page:       query.Page,
+		Limit:      query.Limit,
+		Sort:       query.Sort,
+		Order:      query.Order,
+		IsActive:   query.IsActive,
+		Search:     query.Search,
 		CategoryId: query.CategoryID,
-		TagId: query.TagID,
+		TagId:      query.TagID,
 	})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
@@ -1303,7 +1303,7 @@ func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
 
 	common.JSON(c, http.StatusOK, "Lấy tất cả sản phẩm thành công", gin.H{
 		"products": res.Products,
-		"meta": res.Meta,
+		"meta":     res.Meta,
 	})
 }
 
@@ -1705,7 +1705,23 @@ func (h *ProductHandler) GetDeletedProducts(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetDeletedProducts(ctx, &protobuf.GetManyRequest{})
+	var query request.PaginationQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	res, err := h.productClient.GetDeletedProducts(ctx, &protobuf.GetAllProductsAdminRequest{
+		Page:       query.Page,
+		Limit:      query.Limit,
+		Sort:       query.Sort,
+		Order:      query.Order,
+		IsActive:   query.IsActive,
+		Search:     query.Search,
+		CategoryId: query.CategoryID,
+		TagId:      query.TagID,
+	})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
@@ -1717,6 +1733,7 @@ func (h *ProductHandler) GetDeletedProducts(c *gin.Context) {
 
 	common.JSON(c, http.StatusOK, "Lấy tất cả sản phẩm đã xóa thành công", gin.H{
 		"products": res.Products,
+		"meta":     res.Meta,
 	})
 }
 

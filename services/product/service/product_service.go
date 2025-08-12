@@ -75,7 +75,7 @@ type ProductService interface {
 
 	DeleteSizes(ctx context.Context, req *protobuf.DeleteManyRequest) error
 
-	GetDeletedProducts(ctx context.Context) ([]*model.Product, error)
+	GetDeletedProducts(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error)
 
 	GetDeletedProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error)
 

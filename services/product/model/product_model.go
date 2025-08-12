@@ -8,12 +8,12 @@ type Product struct {
 	Slug        string     `gorm:"type:varchar(255);uniqueIndex:products_slug_key;not null" json:"slug"`
 	Description string     `gorm:"type:text" json:"description"`
 	Price       float32    `gorm:"type:decimal(10,2);not null" json:"price"`
-	IsActive    bool       `gorm:"type:boolean;default:true" json:"is_active"`
+	IsActive    bool       `gorm:"type:boolean;not null;default:true" json:"is_active"`
 	IsSale      bool       `gorm:"type:boolean;not null" json:"is_sale"`
 	SalePrice   *float32   `gorm:"type:decimal(10,2)" json:"sale_price"`
 	StartSale   *time.Time `gorm:"type:date" json:"start_sale"`
 	EndSale     *time.Time `gorm:"type:date" json:"end_sale"`
-	IsDeleted   bool       `gorm:"type:boolean;default:false" json:"is_deleted"`
+	IsDeleted   bool       `gorm:"type:boolean;not null;default:false" json:"is_deleted"`
 	CreatedAt   time.Time  `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time  `gorm:"autoUpdateTime" json:"updated_at"`
 	CreatedByID string     `gorm:"type:char(36);not null" json:"created_by_id"`

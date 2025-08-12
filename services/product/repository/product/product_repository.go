@@ -26,8 +26,6 @@ type ProductRepository interface {
 
 	FindAllByCategorySlug(ctx context.Context, categorySlug string) ([]*model.Product, error)
 
-	FindAllWithCategoriesAndThumbnail(ctx context.Context) ([]*model.Product, error)
-
 	UpdateCategories(ctx context.Context, product *model.Product, categories []*model.Category) error
 
 	UpdateTags(ctx context.Context, product *model.Product, tags []*model.Tag) error
@@ -38,7 +36,7 @@ type ProductRepository interface {
 
 	UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error
 
-	FindAllDeletedWithCategoriesAndThumbnail(ctx context.Context) ([]*model.Product, error)
+	FindAllDeletedPaginatedWithCategoriesAndThumbnail(ctx context.Context, query *common.PaginationQuery) ([]*model.Product, int64, error)
 
 	FindDeletedByIDWithDetails(ctx context.Context, id string) (*model.Product, error)
 

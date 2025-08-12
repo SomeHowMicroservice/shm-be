@@ -513,13 +513,23 @@ func (h *GRPCHandler) DeleteSizes(ctx context.Context, req *protobuf.DeleteManyR
 	}, nil
 }
 
-func (h *GRPCHandler) GetDeletedProducts(ctx context.Context, req *protobuf.GetManyRequest) (*protobuf.ProductsAdminResponse, error) {
-	products, err := h.svc.GetDeletedProducts(ctx)
+func (h *GRPCHandler) GetDeletedProducts(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) (*protobuf.ProductsPaginatedAdminResponse, error) {
+	products, meta, err := h.svc.GetDeletedProducts(ctx, req)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return toProductsAdminResponse(products), nil
+	return &protobuf.ProductsPaginatedAdminResponse{
+		Products: toProductsAdminResponse(products),
+		Meta: &protobuf.PaginationMetaResponse{
+			Page: uint32(meta.Page),
+			Limit: uint32(meta.Limit),
+			Total: uint32(meta.Total),
+			TotalPages: uint32(meta.TotalPages),
+			HasPrev: &meta.HasPrev,
+			HasNext: &meta.HasNext,
+		},
+	}, nil
 }
 
 func (h *GRPCHandler) GetDeletedProductById(ctx context.Context, req *protobuf.GetProductByIdRequest) (*protobuf.ProductAdminDetailsResponse, error) {
