@@ -162,6 +162,12 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		}
 	}
 
+	if isActiveStr := c.PostForm("is_active"); isActiveStr != "" {
+		if isActive, err := strconv.ParseBool(isActiveStr); err == nil {
+			req.IsActive = &isActive
+		}
+	}
+
 	if salePriceStr := c.PostForm("sale_price"); salePriceStr != "" {
 		if salePrice, err := strconv.ParseFloat(salePriceStr, 32); err == nil {
 			salePriceFloat := float32(salePrice)
@@ -331,6 +337,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       req.Price,
+		IsActive:    *req.IsActive,
 		IsSale:      isSale,
 		SalePrice:   salePrice,
 		StartSale:   startSale,
@@ -406,6 +413,12 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	if isSaleStr := c.PostForm("is_sale"); isSaleStr != "" {
 		if isSale, err := strconv.ParseBool(isSaleStr); err == nil {
 			req.IsSale = &isSale
+		}
+	}
+
+	if isActiveStr := c.PostForm("is_active"); isActiveStr != "" {
+		if isActive, err := strconv.ParseBool(isActiveStr); err == nil {
+			req.IsActive = &isActive
 		}
 	}
 
@@ -701,6 +714,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		Title:            req.Title,
 		Description:      req.Description,
 		Price:            req.Price,
+		IsActive:         req.IsActive,
 		IsSale:           isSale,
 		SalePrice:        salePrice,
 		StartSale:        startSale,
@@ -1261,7 +1275,23 @@ func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetAllProductsAdmin(ctx, &productpb.GetManyRequest{})
+	var query request.PaginationQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		message := common.HandleValidationError(err)
+		common.JSON(c, http.StatusBadRequest, message, nil)
+		return
+	}
+
+	res, err := h.productClient.GetAllProductsAdmin(ctx, &productpb.GetAllProductsAdminRequest{
+		Page: query.Page,
+		Limit: query.Limit,
+		Sort: query.Sort,
+		Order: query.Order,
+		IsActive: query.IsActive,
+		Search: query.Search,
+		CategoryId: query.CategoryID,
+		TagId: query.TagID,
+	})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
@@ -1273,6 +1303,7 @@ func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
 
 	common.JSON(c, http.StatusOK, "Lấy tất cả sản phẩm thành công", gin.H{
 		"products": res.Products,
+		"meta": res.Meta,
 	})
 }
 

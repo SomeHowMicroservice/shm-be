@@ -52,6 +52,7 @@ type CreateProductForm struct {
 	Title       string              `form:"title" validate:"required,min=2"`
 	Description string              `form:"description" validate:"required,min=1"`
 	Price       float32             `form:"price" validate:"required,gt=0"`
+	IsActive    *bool               `form:"is_active" validate:"required"`
 	IsSale      *bool               `form:"is_sale" validate:"required"`
 	SalePrice   *float32            `form:"sale_price" validate:"omitempty,gt=0"`
 	StartSale   *time.Time          `form:"start_sale" validate:"omitempty"`
@@ -73,6 +74,7 @@ type UpdateProductForm struct {
 	Title            *string             `form:"title" validate:"omitempty,min=2"`
 	Description      *string             `form:"description" validate:"omitempty,min=1"`
 	Price            *float32            `form:"price" validate:"omitempty,gt=0"`
+	IsActive         *bool               `form:"is_active" validate:"omitempty"`
 	IsSale           *bool               `form:"is_sale" validate:"omitempty"`
 	SalePrice        *float32            `form:"sale_price" validate:"omitempty,gt=0"`
 	StartSale        *time.Time          `form:"start_sale" validate:"omitempty"`
@@ -107,4 +109,15 @@ type DeleteManyRequest struct {
 
 type RestoreManyRequest struct {
 	IDs []string `json:"ids" binding:"required,dive,uuid4"`
+}
+
+type PaginationQuery struct {
+	Page       uint32 `form:"page" binding:"omitempty,min=1" json:"page"`
+	Limit      uint32 `form:"limit" binding:"omitempty,min=1,max=100" json:"limit"`
+	Sort       string `form:"sort" json:"sort"`
+	Order      string `form:"order" binding:"omitempty,oneof=asc desc" json:"order"`
+	IsActive   *bool   `form:"is_active" json:"is_active"`
+	Search     string `form:"search" json:"search"`
+	CategoryID string `form:"category_id" json:"category_id" binding:"omitempty,uuid4"`
+	TagID      string `form:"tag_id" json:"tag_id" binding:"omitempty,uuid4"`
 }
