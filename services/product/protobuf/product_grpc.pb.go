@@ -101,7 +101,7 @@ type ProductServiceClient interface {
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetCategoriesNoChild(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
 	GetProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
-	GetAllProductsAdmin(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error)
+	GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsPaginatedAdminResponse, error)
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 	DeleteProduct(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	DeleteProducts(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
@@ -347,9 +347,9 @@ func (c *productServiceClient) GetProductById(ctx context.Context, in *GetProduc
 	return out, nil
 }
 
-func (c *productServiceClient) GetAllProductsAdmin(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error) {
+func (c *productServiceClient) GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsPaginatedAdminResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProductsAdminResponse)
+	out := new(ProductsPaginatedAdminResponse)
 	err := c.cc.Invoke(ctx, ProductService_GetAllProductsAdmin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -731,7 +731,7 @@ type ProductServiceServer interface {
 	CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error)
 	GetCategoriesNoChild(context.Context, *GetManyRequest) (*BaseCategoriesResponse, error)
 	GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
-	GetAllProductsAdmin(context.Context, *GetManyRequest) (*ProductsAdminResponse, error)
+	GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsPaginatedAdminResponse, error)
 	UpdateProduct(context.Context, *UpdateProductRequest) (*ProductAdminDetailsResponse, error)
 	DeleteProduct(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
 	DeleteProducts(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
@@ -837,7 +837,7 @@ func (UnimplementedProductServiceServer) GetCategoriesNoChild(context.Context, *
 func (UnimplementedProductServiceServer) GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductById not implemented")
 }
-func (UnimplementedProductServiceServer) GetAllProductsAdmin(context.Context, *GetManyRequest) (*ProductsAdminResponse, error) {
+func (UnimplementedProductServiceServer) GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsPaginatedAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllProductsAdmin not implemented")
 }
 func (UnimplementedProductServiceServer) UpdateProduct(context.Context, *UpdateProductRequest) (*ProductAdminDetailsResponse, error) {
@@ -1327,7 +1327,7 @@ func _ProductService_GetProductById_Handler(srv interface{}, ctx context.Context
 }
 
 func _ProductService_GetAllProductsAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetManyRequest)
+	in := new(GetAllProductsAdminRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1339,7 +1339,7 @@ func _ProductService_GetAllProductsAdmin_Handler(srv interface{}, ctx context.Co
 		FullMethod: ProductService_GetAllProductsAdmin_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).GetAllProductsAdmin(ctx, req.(*GetManyRequest))
+		return srv.(ProductServiceServer).GetAllProductsAdmin(ctx, req.(*GetAllProductsAdminRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

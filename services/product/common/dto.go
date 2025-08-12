@@ -23,3 +23,23 @@ type Preload struct {
 	Relation string
 	Scope    func(*gorm.DB) *gorm.DB
 }
+
+type PaginationQuery struct {
+	Page       int    `json:"page"`
+	Limit      int    `json:"limit"`
+	Sort       string `json:"sort"`
+	Order      string `json:"order"`
+	IsActive   *bool  `json:"is_active"`
+	Search     string `json:"search"`
+	CategoryID string `json:"category_id"`
+	TagID      string `json:"tag_id"`
+}
+
+type PaginationMeta struct {
+	Page       int   `json:"page"`
+	Limit      int   `json:"limit"`
+	Total      int64 `json:"total"`
+	TotalPages int   `json:"total_pages"`
+	HasNext    bool  `json:"has_next"`
+	HasPrev    bool  `json:"has_prev"`
+}

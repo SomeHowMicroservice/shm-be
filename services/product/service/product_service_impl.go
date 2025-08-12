@@ -824,6 +824,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 		Slug:        slug,
 		Description: req.Description,
 		Price:       req.Price,
+		IsActive:    req.IsActive,
 		IsSale:      req.IsSale,
 		SalePrice:   req.SalePrice,
 		StartSale:   startSale,
@@ -953,13 +954,49 @@ func (s *productServiceImpl) GetProductByID(ctx context.Context, productID strin
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
-func (s *productServiceImpl) GetAllProductsAdmin(ctx context.Context) ([]*model.Product, error) {
-	products, err := s.productRepo.FindAllWithCategoriesAndThumbnail(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("lấy tất cả sản phẩm thất bại: %w", err)
+func (s *productServiceImpl) GetAllProductsAdmin(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error) {
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.Limit == 0 {
+		req.Limit = 10
 	}
 
-	return products, nil
+	if req.Limit > 100 {
+		req.Limit = 100
+	}
+
+	query := &common.PaginationQuery{
+		Page:       int(req.Page),
+		Limit:      int(req.Limit),
+		Sort:       req.Sort,
+		Search:     req.Search,
+		Order:      req.Order,
+		IsActive:   req.IsActive,
+		CategoryID: req.CategoryId,
+		TagID:      req.TagId,
+	}
+
+	products, total, err := s.productRepo.FindAllPaginatedWithCategoriesAndThumbnail(ctx, query)
+	if err != nil {
+		return nil, nil, fmt.Errorf("lấy tất cả sản phẩm thất bại: %w", err)
+	}
+
+	totalPages := int(total) / query.Limit
+	if int(total)%query.Limit != 0 {
+		totalPages++
+	}
+
+	meta := &common.PaginationMeta{
+		Page:       query.Page,
+		Limit:      query.Limit,
+		Total:      total,
+		TotalPages: totalPages,
+		HasNext:    query.Page < totalPages,
+		HasPrev:    query.Page > 1,
+	}
+
+	return products, meta, nil
 }
 
 func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error) {
@@ -992,6 +1029,10 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 
 	if req.Price != nil && *req.Price != product.Price {
 		updateProductData["price"] = req.Price
+	}
+
+	if req.IsActive != nil && *req.IsActive != product.IsActive {
+		updateProductData["is_active"] = req.IsActive
 	}
 
 	if req.IsSale != nil && *req.IsSale != product.IsSale {
@@ -2160,6 +2201,7 @@ func toProductAdminDetailsResponse(product *model.Product, cRes *userpb.UserResp
 		Slug:        product.Slug,
 		Description: product.Description,
 		Price:       product.Price,
+		IsActive:    &product.IsActive,
 		IsSale:      &product.IsSale,
 		SalePrice:   product.SalePrice,
 		StartSale:   startSalePtr,

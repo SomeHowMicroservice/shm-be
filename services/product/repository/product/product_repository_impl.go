@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/common"
@@ -175,6 +176,80 @@ func (r *productRepositoryImpl) FindAllDeletedWithCategoriesAndThumbnail(ctx con
 	return r.findAllBase(ctx, true,
 		common.Preload{Relation: "Categories"},
 		common.Preload{Relation: "Images", Scope: getThumbnail})
+}
+
+func (r *productRepositoryImpl) FindAllPaginatedWithCategoriesAndThumbnail(ctx context.Context, query *common.PaginationQuery) ([]*model.Product, int64, error) {
+	var products []*model.Product
+	var total int64
+
+	db := r.db.Model(&model.Product{}).Preload("Categories").Preload("Images", "is_thumbnail = true").Where("is_deleted = false")
+	db = r.applyFilters(db, query)
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	db = r.applySorting(db, query)
+
+	offset := (query.Page - 1) * query.Limit
+	if err := db.Offset(offset).Limit(query.Limit).Find(&products).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return products, total, nil
+}
+
+func (r *productRepositoryImpl) applyFilters(db *gorm.DB, query *common.PaginationQuery) *gorm.DB {
+	if query.Search != "" {
+		searchTerm := "%" + strings.ToLower(query.Search) + "%"
+		db = db.Where("LOWER(title) LIKE ?", searchTerm)
+	}
+
+	if query.CategoryID != "" {
+		db = db.Where("id IN (?)",
+			r.db.Table("product_categories pc").
+				Select("pc.product_id").
+				Joins("JOIN categories c ON c.id = pc.category_id").
+				Where("c.id = ?", query.CategoryID))
+	}
+
+	if query.TagID != "" {
+		db = db.Where("id IN (?)",
+			r.db.Table("product_tags pt").
+				Select("pt.product_id").
+				Joins("JOIN tags t ON t.id = pt.tag_id").
+				Where("t.id = ?", query.TagID))
+	}
+
+	if query.IsActive != nil {
+		db = db.Where("is_active = ?", *query.IsActive)
+	}
+
+	return db
+}
+
+func (r *productRepositoryImpl) applySorting(db *gorm.DB, query *common.PaginationQuery) *gorm.DB {
+	if query.Sort == "" {
+		query.Sort = "created_at"
+	}
+	if query.Order == "" {
+		query.Order = "desc"
+	}
+
+	allowedSorts := map[string]bool{
+		"price":      true,
+		"created_at": true,
+		"updated_at": true,
+		"stock":      true,
+	}
+
+	if allowedSorts[query.Sort] {
+		db = db.Order(query.Sort + " " + strings.ToUpper(query.Order))
+	} else {
+		db = db.Order("created_at DESC")
+	}
+
+	return db
 }
 
 func (r *productRepositoryImpl) findAllByIDBase(ctx context.Context, ids []string, isDeleted bool, preloads ...string) ([]*model.Product, error) {

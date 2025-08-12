@@ -44,7 +44,7 @@ service ProductService {
 
   rpc GetProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
 
-  rpc GetAllProductsAdmin(GetManyRequest) returns (ProductsAdminResponse);
+  rpc GetAllProductsAdmin(GetAllProductsAdminRequest) returns (ProductsPaginatedAdminResponse);
 
   rpc UpdateProduct(UpdateProductRequest) returns (ProductAdminDetailsResponse);
 
@@ -117,6 +117,31 @@ service ProductService {
   rpc PermanentlyDeleteTags(PermanentlyDeleteManyRequest) returns (DeletedResponse);
 }
 
+message ProductsPaginatedAdminResponse {
+  ProductsAdminResponse products = 1;
+  PaginationMetaResponse meta = 2;
+}
+
+message PaginationMetaResponse {
+  uint32 page = 1;
+  uint32 limit = 2;
+  uint32 total = 3;
+  uint32 total_pages = 4;
+  optional bool has_prev = 5;
+  optional bool has_next = 6;
+}
+
+message GetAllProductsAdminRequest {
+  uint32 page = 1;
+  uint32 limit = 2;
+  string sort = 3;
+  string order = 4;
+  string search = 5;
+  string category_id = 6;
+  string tag_id = 7;
+  optional bool is_active = 8;
+}
+
 message PermanentlyDeleteManyRequest {
   repeated string ids = 1;
 }
@@ -172,19 +197,20 @@ message UpdateProductRequest {
   optional string title = 2;
   optional string description = 3;
   optional float price = 4;
-  optional bool is_sale = 5;
-  optional float sale_price = 6;
-  optional string start_sale = 7;
-  optional string end_sale = 8;
-  repeated string category_ids = 9;
-  repeated string tag_ids = 10;
-  repeated UpdateImageRequest update_images = 11;
-  repeated CreateImageRequest new_images = 12;
-  repeated string delete_image_ids = 13;
-  repeated UpdateVariantRequest update_variants = 14;
-  repeated CreateVariantRequest new_variants = 15;
-  repeated string delete_variant_ids = 16;
-  string user_id = 17;
+  optional bool is_active = 5;
+  optional bool is_sale = 6;
+  optional float sale_price = 7;
+  optional string start_sale = 8;
+  optional string end_sale = 9;
+  repeated string category_ids = 10;
+  repeated string tag_ids = 11;
+  repeated UpdateImageRequest update_images = 12;
+  repeated CreateImageRequest new_images = 13;
+  repeated string delete_image_ids = 14;
+  repeated UpdateVariantRequest update_variants = 15;
+  repeated CreateVariantRequest new_variants = 16;
+  repeated string delete_variant_ids = 17;
+  string user_id = 18;
 }
 
 message UpdateImageRequest {
@@ -228,18 +254,19 @@ message ProductAdminDetailsResponse {
   string slug = 3;
   string description = 4;
   float price = 5;
-  optional bool is_sale = 6;
-  optional float sale_price = 7;
-  optional string start_sale = 8;
-  optional string end_sale = 9;
-  repeated BaseCategoryResponse categories = 10;
-  repeated BaseVariantResponse variants = 11;
-  repeated BaseImageResponse images = 12;
-  repeated BaseTagResponse tags = 13;
-  string created_at = 14;
-  string updated_at = 15;
-  BaseUserResponse created_by = 16;
-  BaseUserResponse updated_by = 17;
+  optional bool is_active = 6;
+  optional bool is_sale = 7;
+  optional float sale_price = 8;
+  optional string start_sale = 9;
+  optional string end_sale = 10;
+  repeated BaseCategoryResponse categories = 11;
+  repeated BaseVariantResponse variants = 12;
+  repeated BaseImageResponse images = 13;
+  repeated BaseTagResponse tags = 14;
+  string created_at = 15;
+  string updated_at = 16;
+  BaseUserResponse created_by = 17;
+  BaseUserResponse updated_by = 18;
 }
 
 message BaseCategoriesResponse {
@@ -250,15 +277,16 @@ message CreateProductRequest {
   string title = 1;
   string description = 2;
   float price = 3;
-  bool is_sale = 4;
-  optional float sale_price = 5;
-  optional string start_sale = 6;
-  optional string end_sale = 7;
-  repeated string category_ids = 8;
-  repeated string tag_ids = 9;
-  repeated CreateVariantRequest variants = 10;
-  repeated CreateImageRequest images = 11;
-  string user_id = 12;
+  bool is_active = 4;
+  bool is_sale = 5;
+  optional float sale_price = 6;
+  optional string start_sale = 7;
+  optional string end_sale = 8;
+  repeated string category_ids = 9;
+  repeated string tag_ids = 10;
+  repeated CreateVariantRequest variants = 11;
+  repeated CreateImageRequest images = 12;
+  string user_id = 13;
 }
 
 message CreateVariantRequest {

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/SomeHowMicroservice/shm-be/services/product/common"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 )
@@ -50,7 +51,7 @@ type ProductService interface {
 
 	GetProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error)
 
-	GetAllProductsAdmin(ctx context.Context) ([]*model.Product, error)
+	GetAllProductsAdmin(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error)
 
 	UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error)
 
