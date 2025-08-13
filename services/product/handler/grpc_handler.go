@@ -347,7 +347,7 @@ func (h *GRPCHandler) UpdateProduct(ctx context.Context, req *protobuf.UpdatePro
 	convertedProduct, err := h.svc.UpdateProduct(ctx, req)
 	if err != nil {
 		switch err {
-		case customErr.ErrSlugAlreadyExists, customErr.ErrSKUAlreadyExists:
+		case customErr.ErrSlugAlreadyExists, customErr.ErrHasSKUAlreadyExists:
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		case customErr.ErrHasCategoryNotFound, customErr.ErrHasTagNotFound, customErr.ErrHasImageNotFound, customErr.ErrHasVariantNotFound, customErr.ErrProductNotFound, customErr.ErrVariantNotFound, customErr.ErrImageNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())

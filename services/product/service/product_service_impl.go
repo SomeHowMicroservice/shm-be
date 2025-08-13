@@ -685,6 +685,8 @@ func (s *productServiceImpl) UpdateSize(ctx context.Context, req *protobuf.Updat
 			return customErr.ErrSizeNotFound
 		}
 
+		fmt.Println(size)
+
 		updateData := map[string]interface{}{}
 		if size.Name != req.Name {
 			updateData["name"] = req.Name
@@ -695,12 +697,14 @@ func (s *productServiceImpl) UpdateSize(ctx context.Context, req *protobuf.Updat
 		}
 
 		if len(updateData) > 0 {
+			fmt.Println("lồn")
 			if err = s.sizeRepo.UpdateTx(ctx, tx, size.ID, updateData); err != nil {
 				if isUniqueViolation(err) {
 					return customErr.ErrSizeAlreadyExists
 				}
 				return fmt.Errorf("cập nhật kích cỡ sản phẩm thất bại: %w", err)
 			}
+			fmt.Println("cặc")
 		}
 
 		return nil

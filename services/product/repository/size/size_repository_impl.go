@@ -62,7 +62,7 @@ func (r *sizeRepositoryImpl) Update(ctx context.Context, id string, updateData m
 }
 
 func (r *sizeRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
-	if err := tx.WithContext(ctx).Model(&model.Color{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Size{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
 		return err
 	}
 
