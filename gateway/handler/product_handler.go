@@ -1302,7 +1302,7 @@ func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
 	}
 
 	common.JSON(c, http.StatusOK, "Lấy tất cả sản phẩm thành công", gin.H{
-		"products": res.Products,
+		"products": res.Products.Products,
 		"meta":     res.Meta,
 	})
 }

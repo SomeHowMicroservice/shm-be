@@ -24,6 +24,11 @@ type Preload struct {
 	Scope    func(*gorm.DB) *gorm.DB
 }
 
+type Locking struct {
+	Strength string
+	Options  string
+}
+
 type PaginationQuery struct {
 	Page       int    `json:"page"`
 	Limit      int    `json:"limit"`

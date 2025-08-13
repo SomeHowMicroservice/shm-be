@@ -32,7 +32,7 @@ func NewContainer(cfg *config.Config, db *gorm.DB, mqChannel *amqp091.Channel, g
 	variantRepo := variantRepo.NewVariantRepository(db)
 	inventoryRepo := inventoryRepo.NewInventoryRepository(db)
 	imageRepo := imageRepo.NewImageRepository(db)
-	svc := service.NewProductService(cfg, userClient, mqChannel, categoryRepo, productRepo, tagRepo, colorRepo, sizeRepo, variantRepo, inventoryRepo, imageRepo)
+	svc := service.NewProductService(cfg, db, userClient, mqChannel, categoryRepo, productRepo, tagRepo, colorRepo, sizeRepo, variantRepo, inventoryRepo, imageRepo)
 	hdl := handler.NewGRPCHandler(grpcServer, svc)
 	return &Container{hdl, imageRepo}
 }

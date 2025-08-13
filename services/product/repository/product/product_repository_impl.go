@@ -215,11 +215,7 @@ func (r *productRepositoryImpl) applyFilters(db *gorm.DB, query *common.Paginati
 	}
 
 	if query.TagID != "" {
-		db = db.Where("id IN (?)",
-			r.db.Table("product_tags pt").
-				Select("pt.product_id").
-				Joins("JOIN tags t ON t.id = pt.tag_id").
-				Where("t.id = ?", query.TagID))
+		db = db.Where("id IN (?)", r.db.Table("product_tags pt").Select("pt.product_id").Joins("JOIN tags t ON t.id = pt.tag_id").Where("t.id = ?", query.TagID))
 	}
 
 	if query.IsActive != nil {

@@ -35,6 +35,7 @@ import (
 
 type productServiceImpl struct {
 	cfg           *config.Config
+	db            *gorm.DB
 	userClient    userpb.UserServiceClient
 	mqChannel     *amqp091.Channel
 	categoryRepo  categoryRepo.CategoryRepository
@@ -47,9 +48,10 @@ type productServiceImpl struct {
 	imageRepo     imageRepo.ImageRepository
 }
 
-func NewProductService(cfg *config.Config, userClient userpb.UserServiceClient, mqChannel *amqp091.Channel, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, inventoryRepo inventoryRepo.InventoryRepository, imageRepo imageRepo.ImageRepository) ProductService {
+func NewProductService(cfg *config.Config, db *gorm.DB, userClient userpb.UserServiceClient, mqChannel *amqp091.Channel, categoryRepo categoryRepo.CategoryRepository, productRepo productRepo.ProductRepository, tagRepo tagRepo.TagRepository, colorRepo colorRepo.ColorRepository, sizeRepo sizeRepo.SizeRepository, variantRepo variantRepo.VariantRepository, inventoryRepo inventoryRepo.InventoryRepository, imageRepo imageRepo.ImageRepository) ProductService {
 	return &productServiceImpl{
 		cfg,
+		db,
 		userClient,
 		mqChannel,
 		categoryRepo,
@@ -302,51 +304,68 @@ func (s *productServiceImpl) GetCategoryByID(ctx context.Context, categoryID str
 }
 
 func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error) {
-	category, err := s.categoryRepo.FindByIDWithParents(ctx, req.Id)
-	if err != nil {
-		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
-	}
-	if category == nil {
-		return nil, customErr.ErrCategoryNotFound
-	}
-
-	updateData := map[string]interface{}{}
-	if category.Name != req.Name {
-		updateData["name"] = req.Name
-	}
-	if category.Slug != req.Slug {
-		updateData["slug"] = req.Slug
-	}
-	if category.UpdatedByID != req.UserId {
-		updateData["updated_by_id"] = req.UserId
-	}
-
-	if len(updateData) > 0 {
-		if err = s.categoryRepo.Update(ctx, category.ID, updateData); err != nil {
-			if errors.Is(err, customErr.ErrCategoryNotFound) {
-				return nil, err
-			}
-			return nil, fmt.Errorf("cập nhật danh mục sản phẩm thất bại: %w", err)
-		}
-	}
-
-	parentIDs := getIDsFromCategories(category.Parents)
-
-	if !slices.Equal(parentIDs, req.ParentIds) {
-		parents, err := s.categoryRepo.FindAllByID(ctx, req.ParentIds)
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		category, err := s.categoryRepo.FindByIDWithParentsTx(ctx, tx, req.Id)
 		if err != nil {
-			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
+			if strings.Contains(err.Error(), "lock") {
+				return fmt.Errorf("danh mục đang được cập nhật bởi người dùng khác, vui lòng thử lại: %w", err)
+			}
+			return fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 		}
-		if len(parents) != len(req.ParentIds) {
-			return nil, customErr.ErrHasCategoryNotFound
+		if category == nil {
+			return customErr.ErrCategoryNotFound
 		}
 
-		if err = s.categoryRepo.UpdateParents(ctx, category, parents); err != nil {
-			return nil, fmt.Errorf("cập nhật danh mục cha thất bại: %w", err)
+		updateData := map[string]interface{}{}
+		if category.Name != req.Name {
+			updateData["name"] = req.Name
 		}
+		if category.Slug != req.Slug {
+			exists, err := s.categoryRepo.ExistsBySlugTx(ctx, tx, req.Slug)
+			if err != nil {
+				return fmt.Errorf("kiếm tra slug thất bại: %w", err)
+			}
+			if exists {
+				return customErr.ErrSlugAlreadyExists
+			}
+
+			updateData["slug"] = req.Slug
+		}
+		if category.UpdatedByID != req.UserId {
+			updateData["updated_by_id"] = req.UserId
+		}
+
+		if len(updateData) > 0 {
+			if err = s.categoryRepo.UpdateTx(ctx, tx, category.ID, updateData); err != nil {
+				return fmt.Errorf("cập nhật danh mục sản phẩm thất bại: %w", err)
+			}
+		}
+
+		parentIDs := getIDsFromCategories(category.Parents)
+		if !slices.Equal(parentIDs, req.ParentIds) {
+			parents, err := s.categoryRepo.FindAllByIDTx(ctx, tx, req.ParentIds)
+			if err != nil {
+				if strings.Contains(err.Error(), "lock") {
+					return fmt.Errorf("danh mục cha đang được cập nhật, vui lòng thử lại: %w", err)
+				}
+				return fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
+			}
+
+			if len(parents) != len(req.ParentIds) {
+				return customErr.ErrHasCategoryNotFound
+			}
+
+			if err = s.categoryRepo.UpdateParentsTx(ctx, tx, category, parents); err != nil {
+				return fmt.Errorf("cập nhật danh mục cha thất bại: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
-	category, err = s.categoryRepo.FindByIDWithParentsAndProducts(ctx, category.ID)
+	category, err := s.categoryRepo.FindByIDWithParentsAndProducts(ctx, req.Id)
 	if err != nil {
 		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 	}
@@ -1898,7 +1917,7 @@ func (s *productServiceImpl) RestoreProducts(ctx context.Context, req *protobuf.
 	}
 
 	updateData := map[string]interface{}{
-		"is_deleted":    true,
+		"is_deleted":    false,
 		"updated_by_id": req.UserId,
 	}
 	if err = s.productRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
@@ -1941,7 +1960,7 @@ func (s *productServiceImpl) RestoreColors(ctx context.Context, req *protobuf.Re
 	}
 
 	updateData := map[string]interface{}{
-		"is_deleted":    true,
+		"is_deleted":    false,
 		"updated_by_id": req.UserId,
 	}
 	if err = s.colorRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
@@ -1984,7 +2003,7 @@ func (s *productServiceImpl) RestoreSizes(ctx context.Context, req *protobuf.Res
 	}
 
 	updateData := map[string]interface{}{
-		"is_deleted":    true,
+		"is_deleted":    false,
 		"updated_by_id": req.UserId,
 	}
 	if err = s.sizeRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {

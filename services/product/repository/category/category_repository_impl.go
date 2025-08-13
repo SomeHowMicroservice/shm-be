@@ -8,6 +8,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/product/common"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type categoryRepositoryImpl struct {
@@ -27,16 +28,20 @@ func (r *categoryRepositoryImpl) Create(ctx context.Context, category *model.Cat
 }
 
 func (r *categoryRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Category, error) {
-	return r.findAllByIDBase(ctx, ids)
+	return r.findAllByIDBase(ctx, r.db, ids, nil)
 }
 
 func (r *categoryRepositoryImpl) FindAllByIDWithChildren(ctx context.Context, ids []string) ([]*model.Category, error) {
-	return r.findAllByIDBase(ctx, ids, "Children")
+	return r.findAllByIDBase(ctx, r.db, ids, nil, "Children")
 }
 
 func (r *categoryRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
+	return r.ExistsBySlugTx(ctx, r.db, slug)
+}
+
+func (r *categoryRepositoryImpl) ExistsBySlugTx(ctx context.Context, tx *gorm.DB, slug string) (bool, error) {
 	var count int64
-	if err := r.db.WithContext(ctx).Model(&model.Category{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Category{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("slug = ?", slug).Count(&count).Error; err != nil {
 		return false, err
 	}
 
@@ -53,7 +58,7 @@ func (r *categoryRepositoryImpl) ExistsByID(ctx context.Context, id string) (boo
 }
 
 func (r *categoryRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Category, error) {
-	return r.findByIDBase(ctx, id)
+	return r.findByIDBase(ctx, r.db, id, nil)
 }
 
 func (r *categoryRepositoryImpl) FindAllWithParentsAndChildren(ctx context.Context) ([]*model.Category, error) {
@@ -69,11 +74,14 @@ func (r *categoryRepositoryImpl) FindAll(ctx context.Context) ([]*model.Category
 }
 
 func (r *categoryRepositoryImpl) FindByIDWithParentsAndProducts(ctx context.Context, id string) (*model.Category, error) {
-	return r.findByIDBase(ctx, id, common.Preload{Relation: "Parents"}, common.Preload{Relation: "Products"}, common.Preload{Relation: "Products.Images", Scope: func(db *gorm.DB) *gorm.DB { return db.Where("is_thumbnail = ?", true) }})
+	return r.findByIDBase(ctx, r.db, id, nil,
+		&common.Preload{Relation: "Parents"},
+		&common.Preload{Relation: "Products"},
+		&common.Preload{Relation: "Products.Images", Scope: getThumbnail})
 }
 
-func (r *categoryRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
-	result := r.db.WithContext(ctx).Model(&model.Category{}).Where("id = ?", id).Updates(updateData)
+func (r *categoryRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
+	result := tx.WithContext(ctx).Model(&model.Category{}).Where("id = ?", id).Updates(updateData)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -85,11 +93,11 @@ func (r *categoryRepositoryImpl) Update(ctx context.Context, id string, updateDa
 }
 
 func (r *categoryRepositoryImpl) FindByIDWithParents(ctx context.Context, id string) (*model.Category, error) {
-	return r.findByIDBase(ctx, id, common.Preload{Relation: "Parents"})
+	return r.findByIDBase(ctx, r.db, id, nil, &common.Preload{Relation: "Parents"})
 }
 
-func (r *categoryRepositoryImpl) UpdateParents(ctx context.Context, category *model.Category, parents []*model.Category) error {
-	if err := r.db.WithContext(ctx).Model(category).Association("Parents").Replace(parents); err != nil {
+func (r *categoryRepositoryImpl) UpdateParentsTx(ctx context.Context, tx *gorm.DB, category *model.Category, parents []*model.Category) error {
+	if err := tx.WithContext(ctx).Model(category).Association("Parents").Replace(parents); err != nil {
 		return err
 	}
 
@@ -98,6 +106,10 @@ func (r *categoryRepositoryImpl) UpdateParents(ctx context.Context, category *mo
 
 func (r *categoryRepositoryImpl) FindAllWithChildren(ctx context.Context) ([]*model.Category, error) {
 	return r.findAllBase(ctx, "Children")
+}
+
+func (r *categoryRepositoryImpl) FindAllByIDTx(ctx context.Context, tx *gorm.DB, ids []string) ([]*model.Category, error) {
+	return r.findAllByIDBase(ctx, tx, ids, &common.Locking{Strength: "SHARE", Options: "NOWAIT"})
 }
 
 func (r *categoryRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
@@ -120,9 +132,19 @@ func (r *categoryRepositoryImpl) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *categoryRepositoryImpl) findByIDBase(ctx context.Context, id string, preloads ...common.Preload) (*model.Category, error) {
+func (r *categoryRepositoryImpl) FindByIDWithParentsTx(ctx context.Context, tx *gorm.DB, id string) (*model.Category, error) {
+	return r.findByIDBase(ctx, tx, id,
+		&common.Locking{Strength: "UPDATE", Options: "NOWAIT"},
+		&common.Preload{Relation: "Parents"})
+}
+
+func (r *categoryRepositoryImpl) findByIDBase(ctx context.Context, tx *gorm.DB, id string, looking *common.Locking, preloads ...*common.Preload) (*model.Category, error) {
 	var category model.Category
-	query := r.db.WithContext(ctx)
+	query := tx.WithContext(ctx)
+
+	if looking != nil {
+		query.Clauses(clause.Locking{Strength: looking.Strength, Options: looking.Options})
+	}
 
 	for _, preload := range preloads {
 		if preload.Scope != nil {
@@ -157,9 +179,13 @@ func (r *categoryRepositoryImpl) findAllBase(ctx context.Context, preloads ...st
 	return categories, nil
 }
 
-func (r *categoryRepositoryImpl) findAllByIDBase(ctx context.Context, ids []string, preloads ...string) ([]*model.Category, error) {
+func (r *categoryRepositoryImpl) findAllByIDBase(ctx context.Context, tx *gorm.DB, ids []string, looking *common.Locking, preloads ...string) ([]*model.Category, error) {
 	var categories []*model.Category
-	query := r.db.WithContext(ctx)
+	query := tx.WithContext(ctx)
+
+	if looking != nil {
+		query.Clauses(clause.Locking{Strength: looking.Strength, Options: looking.Options})
+	}
 
 	for _, preload := range preloads {
 		query = query.Preload(preload)
@@ -170,4 +196,8 @@ func (r *categoryRepositoryImpl) findAllByIDBase(ctx context.Context, ids []stri
 	}
 
 	return categories, nil
+}
+
+func getThumbnail(db *gorm.DB) *gorm.DB {
+	return db.Where("is_thumbnail = true")
 }
