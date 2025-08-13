@@ -5,6 +5,7 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/services/product/common"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
+	"gorm.io/gorm"
 )
 
 type ProductRepository interface {
@@ -24,13 +25,17 @@ type ProductRepository interface {
 
 	FindByIDWithCategoriesAndTags(ctx context.Context, id string) (*model.Product, error)
 
+	FindByIDWithCategoriesAndTagsTx(ctx context.Context, tx *gorm.DB, id string) (*model.Product, error)
+
 	FindAllByCategorySlug(ctx context.Context, categorySlug string) ([]*model.Product, error)
 
-	UpdateCategories(ctx context.Context, product *model.Product, categories []*model.Category) error
+	UpdateCategoriesTx(ctx context.Context, tx *gorm.DB, product *model.Product, categories []*model.Category) error
 
-	UpdateTags(ctx context.Context, product *model.Product, tags []*model.Tag) error
+	UpdateTagsTx(ctx context.Context, tx *gorm.DB, product *model.Product, tags []*model.Tag) error
 
 	Update(ctx context.Context, id string, updateData map[string]interface{}) error
+
+	UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error
 
 	FindAllByID(ctx context.Context, ids []string) ([]*model.Product, error)
 

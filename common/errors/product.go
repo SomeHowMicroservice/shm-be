@@ -44,4 +44,6 @@ var (
 	ErrHasColorNotFound = errors.New("có màu sắc không tìm thấy")
 
 	ErrHasSizeNotFound = errors.New("có kích cỡ không tìm thấy")
+
+	ErrHasSKUAlreadyExists = errors.New("có SKU đã tồn tại")
 )

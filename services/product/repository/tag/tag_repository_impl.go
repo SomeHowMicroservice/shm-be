@@ -2,10 +2,13 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
+	"github.com/SomeHowMicroservice/shm-be/services/product/common"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type tagRepositoryImpl struct {
@@ -43,15 +46,11 @@ func (r *tagRepositoryImpl) FindAll(ctx context.Context) ([]*model.Tag, error) {
 }
 
 func (r *tagRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Tag, error) {
-	var tag model.Tag
-	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&tag).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
+	return findByIDBase(ctx, r.db, id, nil)
+}
 
-	return &tag, nil
+func (r *tagRepositoryImpl) FindByIDTx(ctx context.Context, tx *gorm.DB, id string) (*model.Tag, error) {
+	return findByIDBase(ctx, tx, id, &common.Locking{Strength: clause.LockingStrengthUpdate, Options: clause.LockingOptionsNoWait})
 }
 
 func (r *tagRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
@@ -61,6 +60,14 @@ func (r *tagRepositoryImpl) Update(ctx context.Context, id string, updateData ma
 	}
 	if result.RowsAffected == 0 {
 		return customErr.ErrTagNotFound
+	}
+
+	return nil
+}
+
+func (r *tagRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
+	if err := tx.WithContext(ctx).Model(&model.Tag{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+		return err
 	}
 
 	return nil
@@ -131,4 +138,22 @@ func (r *tagRepositoryImpl) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func findByIDBase(ctx context.Context, tx *gorm.DB, id string, locking *common.Locking) (*model.Tag, error) {
+	var tag model.Tag
+	query := tx.WithContext(ctx)
+
+	if locking != nil {
+		query = query.Clauses(clause.Locking{Strength: locking.Strength, Options: locking.Options})
+	}
+
+	if err := tx.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&tag).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &tag, nil
 }

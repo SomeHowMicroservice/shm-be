@@ -4,18 +4,21 @@ import (
 	"context"
 
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
+	"gorm.io/gorm"
 )
 
 type TagRepository interface {
-	ExistsBySlug(ctx context.Context, slug string) (bool, error)
-
 	Create(ctx context.Context, tag *model.Tag) error
 
 	FindAll(ctx context.Context) ([]*model.Tag, error)
 
 	FindByID(ctx context.Context, id string) (*model.Tag, error)
 
+	FindByIDTx(ctx context.Context, tx *gorm.DB, id string) (*model.Tag, error)
+
 	Update(ctx context.Context, id string, updateData map[string]interface{}) error
+
+	UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error
 
 	UpdateAllByID(ctx context.Context, ids []string, updateData map[string]interface{}) error
 

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"gorm.io/gorm"
 )
@@ -24,8 +23,8 @@ func (r *variantRepositoryImpl) Create(ctx context.Context, variant *model.Varia
 	return nil
 }
 
-func (r *variantRepositoryImpl) CreateAll(ctx context.Context, variants []*model.Variant) error {
-	if err := r.db.WithContext(ctx).Create(&variants).Error; err != nil {
+func (r *variantRepositoryImpl) CreateAllTx(ctx context.Context, tx *gorm.DB, variants []*model.Variant) error {
+	if err := tx.WithContext(ctx).Create(&variants).Error; err != nil {
 		return err
 	}
 
@@ -50,20 +49,16 @@ func (r *variantRepositoryImpl) FindAllByID(ctx context.Context, ids []string) (
 	return variants, nil
 }
 
-func (r *variantRepositoryImpl) Update(ctx context.Context, id string, updateData map[string]interface{}) error {
-	result := r.db.WithContext(ctx).Model(&model.Variant{}).Where("id = ?", id).Updates(updateData)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return customErr.ErrVariantNotFound
+func (r *variantRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
+	if err := tx.WithContext(ctx).Model(&model.Variant{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (r *variantRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
-	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Variant{}).Error; err != nil {
+func (r *variantRepositoryImpl) DeleteAllByIDTx(ctx context.Context, tx *gorm.DB, ids []string) error {
+	if err := tx.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Variant{}).Error; err != nil {
 		return err
 	}
 

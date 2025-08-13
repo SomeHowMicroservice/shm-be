@@ -145,7 +145,7 @@ func findByIDBase(ctx context.Context, tx *gorm.DB, id string, locking *common.L
 	query := tx.WithContext(ctx)
 
 	if locking != nil {
-		query.Clauses(clause.Locking{Strength: locking.Strength, Options: locking.Options})
+		query = query.Clauses(clause.Locking{Strength: locking.Strength, Options: locking.Options})
 	}
 
 	if err := tx.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&color).Error; err != nil {

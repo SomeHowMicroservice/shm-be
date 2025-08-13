@@ -9,6 +9,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/services/product/common"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type productRepositoryImpl struct {
@@ -41,7 +42,7 @@ func (r *productRepositoryImpl) FindBySlugWithDetails(ctx context.Context, slug 
 }
 
 func (r *productRepositoryImpl) FindByIDWithDetails(ctx context.Context, id string) (*model.Product, error) {
-	return r.findByIDBase(ctx, id, false,
+	return findByIDBase(ctx, r.db, id, false, nil,
 		&common.Preload{Relation: "Categories"},
 		&common.Preload{Relation: "Tags", Scope: notDeleted},
 		&common.Preload{Relation: "Variants"},
@@ -53,7 +54,7 @@ func (r *productRepositoryImpl) FindByIDWithDetails(ctx context.Context, id stri
 }
 
 func (r *productRepositoryImpl) FindDeletedByIDWithDetails(ctx context.Context, id string) (*model.Product, error) {
-	return r.findByIDBase(ctx, id, true,
+	return findByIDBase(ctx, r.db, id, true, nil,
 		&common.Preload{Relation: "Categories"},
 		&common.Preload{Relation: "Tags", Scope: notDeleted},
 		&common.Preload{Relation: "Variants"},
@@ -74,7 +75,7 @@ func (r *productRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool
 }
 
 func (r *productRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Product, error) {
-	return r.findByIDBase(ctx, id, false)
+	return findByIDBase(ctx, r.db, id, false, nil)
 }
 
 func (r *productRepositoryImpl) FindAllByCategorySlug(ctx context.Context, categorySlug string) ([]*model.Product, error) {
@@ -87,7 +88,7 @@ func (r *productRepositoryImpl) FindAllByCategorySlug(ctx context.Context, categ
 }
 
 func (r *productRepositoryImpl) FindDeletedByID(ctx context.Context, id string) (*model.Product, error) {
-	return r.findByIDBase(ctx, id, true)
+	return findByIDBase(ctx, r.db, id, true, nil)
 }
 
 func (r *productRepositoryImpl) Delete(ctx context.Context, id string) error {
@@ -103,7 +104,7 @@ func (r *productRepositoryImpl) Delete(ctx context.Context, id string) error {
 }
 
 func (r *productRepositoryImpl) FindDeletedByIDWithImages(ctx context.Context, id string) (*model.Product, error) {
-	return r.findByIDBase(ctx, id, true, &common.Preload{Relation: "Images"})
+	return findByIDBase(ctx, r.db, id, true, nil, &common.Preload{Relation: "Images"})
 }
 
 func (r *productRepositoryImpl) FindAllDeletedByIDWithImages(ctx context.Context, ids []string) ([]*model.Product, error) {
@@ -122,8 +123,8 @@ func (r *productRepositoryImpl) FindAllDeletedByID(ctx context.Context, ids []st
 	return r.findAllByIDBase(ctx, ids, true)
 }
 
-func (r *productRepositoryImpl) UpdateCategories(ctx context.Context, product *model.Product, categories []*model.Category) error {
-	if err := r.db.WithContext(ctx).Model(product).Association("Categories").Replace(categories); err != nil {
+func (r *productRepositoryImpl) UpdateCategoriesTx(ctx context.Context, tx *gorm.DB, product *model.Product, categories []*model.Category) error {
+	if err := tx.WithContext(ctx).Model(product).Association("Categories").Replace(categories); err != nil {
 		return err
 	}
 
@@ -131,11 +132,13 @@ func (r *productRepositoryImpl) UpdateCategories(ctx context.Context, product *m
 }
 
 func (r *productRepositoryImpl) FindByIDWithCategoriesAndTags(ctx context.Context, id string) (*model.Product, error) {
-	return r.findByIDBase(ctx, id, false, &common.Preload{Relation: "Categories"}, &common.Preload{Relation: "Tags"})
+	return findByIDBase(ctx, r.db, id, false, nil,
+		&common.Preload{Relation: "Categories"},
+		&common.Preload{Relation: "Tags"})
 }
 
-func (r *productRepositoryImpl) UpdateTags(ctx context.Context, product *model.Product, tags []*model.Tag) error {
-	if err := r.db.WithContext(ctx).Model(product).Association("Tags").Replace(tags); err != nil {
+func (r *productRepositoryImpl) UpdateTagsTx(ctx context.Context, tx *gorm.DB, product *model.Product, tags []*model.Tag) error {
+	if err := tx.WithContext(ctx).Model(product).Association("Tags").Replace(tags); err != nil {
 		return err
 	}
 
@@ -154,6 +157,14 @@ func (r *productRepositoryImpl) Update(ctx context.Context, id string, updateDat
 	return nil
 }
 
+func (r *productRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
+	if err := r.db.WithContext(ctx).Model(&model.Product{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *productRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Product, error) {
 	return r.findAllByIDBase(ctx, ids, false)
 }
@@ -167,11 +178,22 @@ func (r *productRepositoryImpl) UpdateAllByID(ctx context.Context, ids []string,
 }
 
 func (r *productRepositoryImpl) FindAllDeletedPaginatedWithCategoriesAndThumbnail(ctx context.Context, query *common.PaginationQuery) ([]*model.Product, int64, error) {
-	return r.findAllPaginatedBase(ctx, true, query, &common.Preload{Relation: "Categories"}, &common.Preload{Relation: "Images", Scope: getThumbnail})
+	return r.findAllPaginatedBase(ctx, true, query,
+		&common.Preload{Relation: "Categories"},
+		&common.Preload{Relation: "Images", Scope: getThumbnail})
 }
 
 func (r *productRepositoryImpl) FindAllPaginatedWithCategoriesAndThumbnail(ctx context.Context, query *common.PaginationQuery) ([]*model.Product, int64, error) {
-	return r.findAllPaginatedBase(ctx, false, query, &common.Preload{Relation: "Categories"}, &common.Preload{Relation: "Images", Scope: getThumbnail})
+	return r.findAllPaginatedBase(ctx, false, query,
+		&common.Preload{Relation: "Categories"},
+		&common.Preload{Relation: "Images", Scope: getThumbnail})
+}
+
+func (r *productRepositoryImpl) FindByIDWithCategoriesAndTagsTx(ctx context.Context, tx *gorm.DB, id string) (*model.Product, error) {
+	return findByIDBase(ctx, tx, id, false,
+		&common.Locking{Strength: clause.LockingStrengthUpdate, Options: clause.LockingOptionsNoWait},
+		&common.Preload{Relation: "Categories"},
+		&common.Preload{Relation: "Tags"})
 }
 
 func (r *productRepositoryImpl) findAllPaginatedBase(ctx context.Context, isDeleted bool, pQuery *common.PaginationQuery, preloads ...*common.Preload) ([]*model.Product, int64, error) {
@@ -264,9 +286,31 @@ func (r *productRepositoryImpl) findAllByIDBase(ctx context.Context, ids []strin
 	return products, nil
 }
 
-func (r *productRepositoryImpl) findByIDBase(ctx context.Context, id string, isDeleted bool, preloads ...*common.Preload) (*model.Product, error) {
+func (r *productRepositoryImpl) findBySlugBase(ctx context.Context, slug string, preloads ...string) (*model.Product, error) {
 	var product model.Product
 	query := r.db.WithContext(ctx)
+
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
+
+	if err := query.Scopes(notDeleted).Where("slug = ?", slug).First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &product, nil
+}
+
+func findByIDBase(ctx context.Context, tx *gorm.DB, id string, isDeleted bool, locking *common.Locking, preloads ...*common.Preload) (*model.Product, error) {
+	var product model.Product
+	query := tx.WithContext(ctx)
+
+	if locking != nil {
+		query = query.Clauses(clause.Locking{Strength: locking.Strength, Options: locking.Options})
+	}
 
 	for _, preload := range preloads {
 		if preload.Scope != nil {
@@ -277,24 +321,6 @@ func (r *productRepositoryImpl) findByIDBase(ctx context.Context, id string, isD
 	}
 
 	if err := query.Where("id = ? AND is_deleted = ?", id, isDeleted).First(&product).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return &product, nil
-}
-
-func (r *productRepositoryImpl) findBySlugBase(ctx context.Context, slug string, preloads ...string) (*model.Product, error) {
-	var product model.Product
-	query := r.db.WithContext(ctx)
-
-	for _, preload := range preloads {
-		query = query.Preload(preload)
-	}
-
-	if err := query.Scopes(notDeleted).Where("slug = ?", slug).First(&product).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}

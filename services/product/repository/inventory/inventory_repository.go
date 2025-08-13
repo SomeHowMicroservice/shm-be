@@ -1,7 +1,11 @@
 package repository
 
-import "context"
+import (
+	"context"
+
+	"gorm.io/gorm"
+)
 
 type InventoryRepository interface {
-	UpdateByVariantID(ctx context.Context, variantID string, updateData map[string]interface{}) error
+	UpdateByVariantIDTx(ctx context.Context, tx *gorm.DB, variantID string, updateData map[string]interface{}) error
 }

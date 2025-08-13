@@ -24,8 +24,8 @@ func (r *imageRepositoryImpl) Create(ctx context.Context, image *model.Image) er
 	return nil
 }
 
-func (r *imageRepositoryImpl) CreateAll(ctx context.Context, images []*model.Image) error {
-	if err := r.db.WithContext(ctx).Create(&images).Error; err != nil {
+func (r *imageRepositoryImpl) CreateAllTx(ctx context.Context, tx *gorm.DB, images []*model.Image) error {
+	if err := tx.WithContext(ctx).Create(&images).Error; err != nil {
 		return err
 	}
 
@@ -53,8 +53,20 @@ func (r *imageRepositoryImpl) Update(ctx context.Context, id string, updateData 
 	return nil
 }
 
+func (r *imageRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
+	if err := tx.WithContext(ctx).Model(&model.Image{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *imageRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
-	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Image{}).Error; err != nil {
+	return r.DeleteAllByIDTx(ctx, r.db, ids)
+}
+
+func (r *imageRepositoryImpl) DeleteAllByIDTx(ctx context.Context, tx *gorm.DB, ids []string) error {
+	if err := tx.WithContext(ctx).Where("id IN ?", ids).Delete(&model.Image{}).Error; err != nil {
 		return err
 	}
 

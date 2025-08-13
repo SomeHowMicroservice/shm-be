@@ -216,13 +216,6 @@ func (s *productServiceImpl) GetProductsByCategory(ctx context.Context, category
 
 func (s *productServiceImpl) CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (*model.Tag, error) {
 	slug := common.GenerateSlug(req.Name)
-	exists, err := s.tagRepo.ExistsBySlug(ctx, slug)
-	if err != nil {
-		return nil, fmt.Errorf("kiểm tra tag sản phẩm tồn tại thất bại: %w", err)
-	}
-	if exists {
-		return nil, customErr.ErrTagAlreadyExists
-	}
 
 	tag := &model.Tag{
 		ID:          uuid.NewString(),
@@ -231,7 +224,10 @@ func (s *productServiceImpl) CreateTag(ctx context.Context, req *protobuf.Create
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
-	if err = s.tagRepo.Create(ctx, tag); err != nil {
+	if err := s.tagRepo.Create(ctx, tag); err != nil {
+		if isUniqueViolation(err) {
+			return nil, customErr.ErrTagAlreadyExists
+		}
 		return nil, fmt.Errorf("tạo nhãn sản phẩm thất bại: %w", err)
 	}
 
@@ -602,38 +598,36 @@ func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*protobuf.Tag
 }
 
 func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequest) error {
-	tag, err := s.tagRepo.FindByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
-	}
-	if tag == nil {
-		return customErr.ErrTagNotFound
-	}
-	updateData := map[string]interface{}{}
-	if tag.Name != req.Name {
-		slug := common.GenerateSlug(req.Name)
-		exists, err := s.tagRepo.ExistsBySlug(ctx, slug)
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		tag, err := s.tagRepo.FindByIDTx(ctx, tx, req.Id)
 		if err != nil {
-			return fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
+			return fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
 		}
-		if exists {
-			return customErr.ErrTagAlreadyExists
+		if tag == nil {
+			return customErr.ErrTagNotFound
 		}
 
-		updateData["name"] = req.Name
-		updateData["slug"] = slug
-	}
-	if tag.UpdatedByID != req.UserId {
-		updateData["updated_by_id"] = req.UserId
-	}
+		updateData := map[string]interface{}{}
+		if tag.Name != req.Name {
+			updateData["name"] = req.Name
+			updateData["slug"] = common.GenerateSlug(req.Name)
+		}
+		if tag.UpdatedByID != req.UserId {
+			updateData["updated_by_id"] = req.UserId
+		}
 
-	if len(updateData) > 0 {
-		if err = s.tagRepo.Update(ctx, tag.ID, updateData); err != nil {
-			if errors.Is(err, customErr.ErrTagNotFound) {
-				return err
+		if len(updateData) > 0 {
+			if err = s.tagRepo.UpdateTx(ctx, tx, tag.ID, updateData); err != nil {
+				if isUniqueViolation(err) {
+					return customErr.ErrTagAlreadyExists
+				}
+				return fmt.Errorf("cập nhật tag sản phẩm thất bại: %w", err)
 			}
-			return fmt.Errorf("cập nhật tag sản phẩm thất bại: %w", err)
 		}
+
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -682,6 +676,9 @@ func (s *productServiceImpl) UpdateSize(ctx context.Context, req *protobuf.Updat
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		size, err := s.sizeRepo.FindByIDTx(ctx, tx, req.Id)
 		if err != nil {
+			if strings.Contains(err.Error(), "lock") {
+				return fmt.Errorf("size đang được cập nhật bởi người dùng khác, vui lòng thử lại: %w", err)
+			}
 			return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
 		}
 		if size == nil {
@@ -699,6 +696,9 @@ func (s *productServiceImpl) UpdateSize(ctx context.Context, req *protobuf.Updat
 
 		if len(updateData) > 0 {
 			if err = s.sizeRepo.UpdateTx(ctx, tx, size.ID, updateData); err != nil {
+				if isUniqueViolation(err) {
+					return customErr.ErrSizeAlreadyExists
+				}
 				return fmt.Errorf("cập nhật kích cỡ sản phẩm thất bại: %w", err)
 			}
 		}
@@ -985,311 +985,289 @@ func (s *productServiceImpl) GetAllProductsAdmin(ctx context.Context, req *proto
 }
 
 func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error) {
-	product, err := s.productRepo.FindByIDWithCategoriesAndTags(ctx, req.Id)
-	if err != nil {
-		return nil, fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
-	}
-	if product == nil {
-		return nil, customErr.ErrProductNotFound
-	}
-
-	updateProductData := map[string]interface{}{}
-	if req.Title != nil && *req.Title != product.Title {
-		newSlug := common.GenerateSlug(*req.Title)
-		exists, err := s.productRepo.ExistsBySlug(ctx, newSlug)
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		product, err := s.productRepo.FindByIDWithCategoriesAndTagsTx(ctx, tx, req.Id)
 		if err != nil {
-			return nil, fmt.Errorf("kiểm tra slug thất bại: %w", err)
-		}
-		if exists {
-			return nil, customErr.ErrSlugAlreadyExists
-		}
-
-		updateProductData["title"] = req.Title
-		updateProductData["slug"] = newSlug
-	}
-	if req.Description != nil && *req.Description != product.Description {
-		updateProductData["description"] = req.Description
-	}
-	if req.Price != nil && *req.Price != product.Price {
-		updateProductData["price"] = req.Price
-	}
-	if req.IsActive != nil && *req.IsActive != product.IsActive {
-		updateProductData["is_active"] = req.IsActive
-	}
-	if req.IsSale != nil && *req.IsSale != product.IsSale {
-		if !*req.IsSale {
-			updateProductData["sale_price"] = nil
-			updateProductData["start_sale"] = nil
-			updateProductData["end_sale"] = nil
-		}
-		updateProductData["is_sale"] = req.IsSale
-	}
-	if req.SalePrice != nil && product.SalePrice != req.SalePrice {
-		updateProductData["sale_price"] = req.SalePrice
-	}
-	if req.StartSale != nil {
-		parsedStartSale, err := common.ParseDate(*req.StartSale)
-		if err != nil {
-			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian bắt đầu giảm giá thất bại: %w", err)
-		}
-
-		if product.StartSale == nil || !parsedStartSale.Equal(*product.StartSale) {
-			updateProductData["start_sale"] = parsedStartSale
-		}
-	}
-	if req.EndSale != nil {
-		parsedEndSale, err := common.ParseDate(*req.EndSale)
-		if err != nil {
-			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian kết thúc giảm giá thất bại: %w", err)
-		}
-
-		if product.EndSale == nil || !parsedEndSale.Equal(*product.EndSale) {
-			updateProductData["end_sale"] = parsedEndSale
-		}
-	}
-	if req.UserId != product.UpdatedByID {
-		updateProductData["update_by_id"] = req.UserId
-	}
-
-	if len(updateProductData) > 0 {
-		if err = s.productRepo.Update(ctx, product.ID, updateProductData); err != nil {
-			if errors.Is(err, customErr.ErrProductNotFound) {
-				return nil, err
+			if strings.Contains(err.Error(), "lock") {
+				return fmt.Errorf("sản phẩm đang được cập nhật bởi người dùng khác, vui lòng thử lại: %w", err)
 			}
-			return nil, fmt.Errorf("cập nhật sản phẩm thất bại: %w", err)
+			return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
 		}
-	}
+		if product == nil {
+			return customErr.ErrProductNotFound
+		}
 
-	if len(req.CategoryIds) > 0 {
-		categoryIDs := getIDsFromCategories(product.Categories)
-		if !slices.Equal(req.CategoryIds, categoryIDs) {
-			categories, err := s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
+		updateProductData := map[string]interface{}{}
+		if req.Title != nil && *req.Title != product.Title {
+			updateProductData["title"] = req.Title
+			updateProductData["slug"] = common.GenerateSlug(*req.Title)
+		}
+		if req.Description != nil && *req.Description != product.Description {
+			updateProductData["description"] = req.Description
+		}
+		if req.Price != nil && *req.Price != product.Price {
+			updateProductData["price"] = req.Price
+		}
+		if req.IsActive != nil && *req.IsActive != product.IsActive {
+			updateProductData["is_active"] = req.IsActive
+		}
+		if req.IsSale != nil && *req.IsSale != product.IsSale {
+			if !*req.IsSale {
+				updateProductData["sale_price"] = nil
+				updateProductData["start_sale"] = nil
+				updateProductData["end_sale"] = nil
+			}
+			updateProductData["is_sale"] = req.IsSale
+		}
+		if req.SalePrice != nil && product.SalePrice != req.SalePrice {
+			updateProductData["sale_price"] = req.SalePrice
+		}
+		if req.StartSale != nil {
+			parsedStartSale, err := common.ParseDate(*req.StartSale)
 			if err != nil {
-				return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+				return fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian bắt đầu giảm giá thất bại: %w", err)
 			}
-			if len(categories) != len(req.CategoryIds) {
-				return nil, customErr.ErrHasCategoryNotFound
-			}
-
-			for _, c := range categories {
-				if len(c.Children) > 0 {
-					return nil, fmt.Errorf("danh mục %s có danh mục con, không thể được gán cho sản phẩm", c.Name)
-				}
-			}
-
-			if err = s.productRepo.UpdateCategories(ctx, product, categories); err != nil {
-				return nil, fmt.Errorf("cập nhật danh sách danh mục sản phẩm thất bại: %w", err)
+			if product.StartSale == nil || !parsedStartSale.Equal(*product.StartSale) {
+				updateProductData["start_sale"] = parsedStartSale
 			}
 		}
-	}
-
-	if len(req.TagIds) > 0 {
-		tagIDs := getIDsFromTags(product.Tags)
-		if !slices.Equal(tagIDs, req.TagIds) {
-			tags, err := s.tagRepo.FindAllByID(ctx, req.TagIds)
+		if req.EndSale != nil {
+			parsedEndSale, err := common.ParseDate(*req.EndSale)
 			if err != nil {
-				return nil, fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
+				return fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian kết thúc giảm giá thất bại: %w", err)
 			}
-
-			if len(tags) != len(req.TagIds) {
-				return nil, customErr.ErrHasTagNotFound
-			}
-
-			if err = s.productRepo.UpdateTags(ctx, product, tags); err != nil {
-				return nil, fmt.Errorf("cập nhật tag sản phẩm thất bại: %w", err)
+			if product.EndSale == nil || !parsedEndSale.Equal(*product.EndSale) {
+				updateProductData["end_sale"] = parsedEndSale
 			}
 		}
-	}
-
-	if len(req.DeleteImageIds) > 0 {
-		images, err := s.imageRepo.FindAllByID(ctx, req.DeleteImageIds)
-		if err != nil {
-			return nil, fmt.Errorf("tìm kiếm danh sách hình ảnh thất bại: %w", err)
-		}
-		if len(images) != len(req.DeleteImageIds) {
-			return nil, customErr.ErrHasImageNotFound
+		if req.UserId != product.UpdatedByID {
+			updateProductData["update_by_id"] = req.UserId
 		}
 
-		if err = s.imageRepo.DeleteAllByID(ctx, req.DeleteImageIds); err != nil {
-			if errors.Is(err, customErr.ErrHasImageNotFound) {
-				return nil, err
-			}
-			return nil, fmt.Errorf("xóa danh sách hình ảnh thất bại: %w", err)
-		}
-
-		for _, image := range images {
-			body := []byte(image.FileID)
-			if err := mq.PublishMessage(s.mqChannel, "", "image.delete", body); err != nil {
-				return nil, fmt.Errorf("publish delete image msg thất bại: %w", err)
+		if len(updateProductData) > 0 {
+			if err = s.productRepo.UpdateTx(ctx, tx, product.ID, updateProductData); err != nil {
+				if isUniqueViolation(err) {
+					return customErr.ErrSlugAlreadyExists
+				}
+				return fmt.Errorf("cập nhật sản phẩm thất bại: %w", err)
 			}
 		}
-	}
 
-	if len(req.UpdateImages) > 0 {
-		for _, image := range req.UpdateImages {
-			updateData := map[string]interface{}{}
-			if image.IsThumbnail != nil {
-				updateData["is_thumbnail"] = image.IsThumbnail
-			}
-			if image.SortOrder != nil {
-				updateData["sort_order"] = image.SortOrder
-			}
+		if len(req.CategoryIds) > 0 {
+			categoryIDs := getIDsFromCategories(product.Categories)
+			if !slices.Equal(req.CategoryIds, categoryIDs) {
+				categories, err := s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
+				if err != nil {
+					return fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+				}
+				if len(categories) != len(req.CategoryIds) {
+					return customErr.ErrHasCategoryNotFound
+				}
 
-			if len(updateData) > 0 {
-				if err = s.imageRepo.Update(ctx, image.Id, updateData); err != nil {
-					if errors.Is(err, customErr.ErrImageNotFound) {
-						return nil, err
+				for _, c := range categories {
+					if len(c.Children) > 0 {
+						return fmt.Errorf("danh mục %s có danh mục con, không thể được gán cho sản phẩm", c.Name)
 					}
-					return nil, fmt.Errorf("cập nhật ảnh %s thất bại: %w", image.Id, err)
+				}
+
+				if err = s.productRepo.UpdateCategoriesTx(ctx, tx, product, categories); err != nil {
+					return fmt.Errorf("cập nhật danh sách danh mục sản phẩm thất bại: %w", err)
 				}
 			}
 		}
-	}
 
-	if len(req.NewImages) > 0 {
-		newImages := make([]*model.Image, 0, len(req.NewImages))
+		if len(req.TagIds) > 0 {
+			tagIDs := getIDsFromTags(product.Tags)
+			if !slices.Equal(tagIDs, req.TagIds) {
+				tags, err := s.tagRepo.FindAllByID(ctx, req.TagIds)
+				if err != nil {
+					return fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
+				}
 
-		for _, img := range req.NewImages {
-			ext := strings.ToLower(filepath.Ext(img.FileName))
-			if ext == "" {
-				ext = ".jpg"
+				if len(tags) != len(req.TagIds) {
+					return customErr.ErrHasTagNotFound
+				}
+
+				if err = s.productRepo.UpdateTagsTx(ctx, tx, product, tags); err != nil {
+					return fmt.Errorf("cập nhật tag sản phẩm thất bại: %w", err)
+				}
 			}
-			fileName := fmt.Sprintf("%s-%s_%d%s", product.Slug, img.ColorId, img.SortOrder, ext)
+		}
 
-			imageUrl := fmt.Sprintf("%s/%s/%s", s.cfg.ImageKit.URLEndpoint, s.cfg.ImageKit.Folder, fileName)
-			image := &model.Image{
-				ID:          uuid.NewString(),
-				ProductID:   product.ID,
-				ColorID:     img.ColorId,
-				Url:         imageUrl,
-				IsThumbnail: img.IsThumbnail,
-				SortOrder:   int(img.SortOrder),
-				CreatedByID: req.UserId,
-				UpdatedByID: req.UserId,
-			}
-
-			uploadFileRequest := &common.Base64UploadRequest{
-				ImageID:    image.ID,
-				Base64Data: img.Base64Data,
-				FileName:   fileName,
-				Folder:     s.cfg.ImageKit.Folder,
-			}
-
-			body, err := json.Marshal(uploadFileRequest)
+		if len(req.DeleteImageIds) > 0 {
+			images, err := s.imageRepo.FindAllByID(ctx, req.DeleteImageIds)
 			if err != nil {
-				return nil, fmt.Errorf("marshal json thất bại: %w", err)
+				return fmt.Errorf("tìm kiếm danh sách hình ảnh thất bại: %w", err)
+			}
+			if len(images) != len(req.DeleteImageIds) {
+				return customErr.ErrHasImageNotFound
 			}
 
-			if err = mq.PublishMessage(s.mqChannel, "", "image.upload", body); err != nil {
-				return nil, fmt.Errorf("publish upload image msg thất bại: %w", err)
+			if err = s.imageRepo.DeleteAllByIDTx(ctx, tx, req.DeleteImageIds); err != nil {
+				return fmt.Errorf("xóa danh sách hình ảnh thất bại: %w", err)
 			}
 
-			newImages = append(newImages, image)
-		}
-
-		if err = s.imageRepo.CreateAll(ctx, newImages); err != nil {
-			return nil, fmt.Errorf("tạo ảnh sản phẩm thất bại: %w", err)
-		}
-	}
-
-	if len(req.DeleteVariantIds) > 0 {
-		variants, err := s.variantRepo.FindAllByID(ctx, req.DeleteVariantIds)
-		if err != nil {
-			return nil, fmt.Errorf("lấy danh sách danh mục sản phẩm thất bại: %w", err)
-		}
-		if len(variants) != len(req.DeleteVariantIds) {
-			return nil, customErr.ErrHasVariantNotFound
-		}
-
-		if err = s.variantRepo.DeleteAllByID(ctx, req.DeleteVariantIds); err != nil {
-			return nil, fmt.Errorf("xóa các biến thể sản phẩm thất bại: %w", err)
-		}
-	}
-
-	if len(req.UpdateVariants) > 0 {
-		for _, variant := range req.UpdateVariants {
-			updateData := map[string]interface{}{}
-			if variant.Sku != nil {
-				updateData["sku"] = variant.Sku
+			for _, image := range images {
+				body := []byte(image.FileID)
+				if err := mq.PublishMessage(s.mqChannel, "", "image.delete", body); err != nil {
+					return fmt.Errorf("publish delete image msg thất bại: %w", err)
+				}
 			}
-			if variant.ColorId != nil {
-				updateData["color_id"] = variant.ColorId
-			}
-			if variant.SizeId != nil {
-				updateData["size_id"] = variant.SizeId
-			}
+		}
 
-			if len(updateData) > 0 {
-				if err = s.variantRepo.Update(ctx, variant.Id, updateData); err != nil {
-					if errors.Is(err, customErr.ErrVariantNotFound) {
-						return nil, err
+		if len(req.UpdateImages) > 0 {
+			for _, image := range req.UpdateImages {
+				updateData := map[string]interface{}{}
+				if image.IsThumbnail != nil {
+					updateData["is_thumbnail"] = image.IsThumbnail
+				}
+				if image.SortOrder != nil {
+					updateData["sort_order"] = image.SortOrder
+				}
+
+				if len(updateData) > 0 {
+					if err = s.imageRepo.UpdateTx(ctx, tx, image.Id, updateData); err != nil {
+						return fmt.Errorf("cập nhật ảnh %s thất bại: %w", image.Id, err)
 					}
-					return nil, fmt.Errorf("cập nhật biến thể sản phẩm %s thất bại: %w", variant.Id, err)
-				}
-			}
-
-			if variant.Quantity != nil {
-				updateData1 := map[string]interface{}{
-					"quantity":      int(*variant.Quantity),
-					"updated_by_id": req.UserId,
-				}
-				if err = s.inventoryRepo.UpdateByVariantID(ctx, variant.Id, updateData1); err != nil {
-					if errors.Is(err, customErr.ErrInventoryNotFound) {
-						return nil, err
-					}
-					return nil, fmt.Errorf("cập nhật số lượng biến thể %s thất bại: %w", variant.Id, err)
-				}
-
-				updateData2 := map[string]interface{}{
-					"stock":    gorm.Expr("quantity - sold_quantity"),
-					"is_stock": gorm.Expr("CASE WHEN (quantity - sold_quantity) <= 5 THEN false ELSE true END"),
-				}
-				if err = s.inventoryRepo.UpdateByVariantID(ctx, variant.Id, updateData2); err != nil {
-					if errors.Is(err, customErr.ErrInventoryNotFound) {
-						return nil, err
-					}
-					return nil, fmt.Errorf("cập nhật tồn kho biến thể %s thất bại: %w", variant.Id, err)
 				}
 			}
 		}
-	}
 
-	if len(req.NewVariants) > 0 {
-		newVariants := make([]*model.Variant, 0, len(req.NewVariants))
+		if len(req.NewImages) > 0 {
+			newImages := make([]*model.Image, 0, len(req.NewImages))
 
-		for _, v := range req.NewVariants {
-			exists, err := s.variantRepo.ExistsBySKU(ctx, v.Sku)
-			if err != nil {
-				return nil, fmt.Errorf("kiểm tra mã SKU biến thể thất bại: %w", err)
-			}
-			if exists {
-				return nil, customErr.ErrSKUAlreadyExists
-			}
+			for _, img := range req.NewImages {
+				ext := strings.ToLower(filepath.Ext(img.FileName))
+				if ext == "" {
+					ext = ".jpg"
+				}
+				fileName := fmt.Sprintf("%s-%s_%d%s", product.Slug, img.ColorId, img.SortOrder, ext)
 
-			variant := &model.Variant{
-				ID:        uuid.NewString(),
-				ProductID: product.ID,
-				SKU:       v.Sku,
-				ColorID:   v.ColorId,
-				SizeID:    v.SizeId,
-				Inventory: &model.Inventory{
+				imageUrl := fmt.Sprintf("%s/%s/%s", s.cfg.ImageKit.URLEndpoint, s.cfg.ImageKit.Folder, fileName)
+				image := &model.Image{
 					ID:          uuid.NewString(),
-					Quantity:    int(v.Quantity),
+					ProductID:   product.ID,
+					ColorID:     img.ColorId,
+					Url:         imageUrl,
+					IsThumbnail: img.IsThumbnail,
+					SortOrder:   int(img.SortOrder),
+					CreatedByID: req.UserId,
 					UpdatedByID: req.UserId,
-				},
-				CreatedByID: req.UserId,
-				UpdatedByID: req.UserId,
+				}
+
+				uploadFileRequest := &common.Base64UploadRequest{
+					ImageID:    image.ID,
+					Base64Data: img.Base64Data,
+					FileName:   fileName,
+					Folder:     s.cfg.ImageKit.Folder,
+				}
+
+				body, err := json.Marshal(uploadFileRequest)
+				if err != nil {
+					return fmt.Errorf("marshal json thất bại: %w", err)
+				}
+
+				if err = mq.PublishMessage(s.mqChannel, "", "image.upload", body); err != nil {
+					return fmt.Errorf("publish upload image msg thất bại: %w", err)
+				}
+
+				newImages = append(newImages, image)
 			}
-			variant.Inventory.SetStock()
-			newVariants = append(newVariants, variant)
+
+			if err = s.imageRepo.CreateAllTx(ctx, tx, newImages); err != nil {
+				return fmt.Errorf("tạo ảnh sản phẩm thất bại: %w", err)
+			}
 		}
 
-		if err := s.variantRepo.CreateAll(ctx, newVariants); err != nil {
-			return nil, fmt.Errorf("tạo variant mới thất bại: %w", err)
+		if len(req.DeleteVariantIds) > 0 {
+			variants, err := s.variantRepo.FindAllByID(ctx, req.DeleteVariantIds)
+			if err != nil {
+				return fmt.Errorf("lấy danh sách danh mục sản phẩm thất bại: %w", err)
+			}
+			if len(variants) != len(req.DeleteVariantIds) {
+				return customErr.ErrHasVariantNotFound
+			}
+
+			if err = s.variantRepo.DeleteAllByIDTx(ctx, tx, req.DeleteVariantIds); err != nil {
+				return fmt.Errorf("xóa các biến thể sản phẩm thất bại: %w", err)
+			}
 		}
+
+		if len(req.UpdateVariants) > 0 {
+			for _, variant := range req.UpdateVariants {
+				updateData := map[string]interface{}{}
+				if variant.Sku != nil {
+					updateData["sku"] = variant.Sku
+				}
+				if variant.ColorId != nil {
+					updateData["color_id"] = variant.ColorId
+				}
+				if variant.SizeId != nil {
+					updateData["size_id"] = variant.SizeId
+				}
+
+				if len(updateData) > 0 {
+					if err = s.variantRepo.UpdateTx(ctx, tx, variant.Id, updateData); err != nil {
+						if isUniqueViolation(err) {
+							return customErr.ErrSKUAlreadyExists
+						}
+						return fmt.Errorf("cập nhật biến thể sản phẩm %s thất bại: %w", variant.Id, err)
+					}
+				}
+
+				if variant.Quantity != nil {
+					updateData := map[string]interface{}{
+						"quantity":      int(*variant.Quantity),
+						"updated_by_id": req.UserId,
+						"stock":         gorm.Expr("quantity - sold_quantity"),
+						"is_stock":      gorm.Expr("CASE WHEN (quantity - sold_quantity) <= 5 THEN false ELSE true END"),
+					}
+					if err = s.inventoryRepo.UpdateByVariantIDTx(ctx, tx, variant.Id, updateData); err != nil {
+						if errors.Is(err, customErr.ErrInventoryNotFound) {
+							return err
+						}
+						return fmt.Errorf("cập nhật số lượng biến thể %s thất bại: %w", variant.Id, err)
+					}
+				}
+			}
+		}
+
+		if len(req.NewVariants) > 0 {
+			newVariants := make([]*model.Variant, 0, len(req.NewVariants))
+
+			for _, v := range req.NewVariants {
+				variant := &model.Variant{
+					ID:        uuid.NewString(),
+					ProductID: product.ID,
+					SKU:       v.Sku,
+					ColorID:   v.ColorId,
+					SizeID:    v.SizeId,
+					Inventory: &model.Inventory{
+						ID:          uuid.NewString(),
+						Quantity:    int(v.Quantity),
+						UpdatedByID: req.UserId,
+					},
+					CreatedByID: req.UserId,
+					UpdatedByID: req.UserId,
+				}
+				variant.Inventory.SetStock()
+				newVariants = append(newVariants, variant)
+			}
+
+			if err := s.variantRepo.CreateAllTx(ctx, tx, newVariants); err != nil {
+				if isUniqueViolation(err) {
+					return customErr.ErrHasSKUAlreadyExists
+				}
+				return fmt.Errorf("tạo variant mới thất bại: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
-	product, err = s.productRepo.FindByIDWithDetails(ctx, product.ID)
+	product, err := s.productRepo.FindByIDWithDetails(ctx, req.Id)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin sản phẩm sau cập nhật thất bại: %w", err)
 	}
@@ -1959,7 +1937,7 @@ func (s *productServiceImpl) RestoreTags(ctx context.Context, req *protobuf.Rest
 	}
 
 	updateData := map[string]interface{}{
-		"is_deleted":    true,
+		"is_deleted":    false,
 		"updated_by_id": req.UserId,
 	}
 	if err = s.tagRepo.UpdateAllByID(ctx, req.Ids, updateData); err != nil {
