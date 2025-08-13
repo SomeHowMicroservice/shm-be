@@ -5,8 +5,10 @@ import (
 	"errors"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
+	"github.com/SomeHowMicroservice/shm-be/services/product/common"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type sizeRepositoryImpl struct {
@@ -35,24 +37,7 @@ func (r *sizeRepositoryImpl) FindAll(ctx context.Context) ([]*model.Size, error)
 }
 
 func (r *sizeRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Size, error) {
-	var size model.Size
-	if err := r.db.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&size).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return &size, nil
-}
-
-func (r *sizeRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
-	var count int64
-	if err := r.db.WithContext(ctx).Model(&model.Size{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
-		return false, err
-	}
-
-	return count > 0, nil
+	return findByIDBase(ctx, r.db, id, nil)
 }
 
 func (r *sizeRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
@@ -71,6 +56,14 @@ func (r *sizeRepositoryImpl) Update(ctx context.Context, id string, updateData m
 	}
 	if result.RowsAffected == 0 {
 		return customErr.ErrSizeNotFound
+	}
+
+	return nil
+}
+
+func (r *sizeRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
+	if err := tx.WithContext(ctx).Model(&model.Color{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+		return err
 	}
 
 	return nil
@@ -141,4 +134,26 @@ func (r *sizeRepositoryImpl) FindAllDeleted(ctx context.Context) ([]*model.Size,
 	}
 
 	return sizes, nil
+}
+
+func (r *sizeRepositoryImpl) FindByIDTx(ctx context.Context, tx *gorm.DB, id string) (*model.Size, error) {
+	return findByIDBase(ctx, tx, id, &common.Locking{Strength: clause.LockingStrengthUpdate, Options: clause.LockingOptionsNoWait})
+}
+
+func findByIDBase(ctx context.Context, tx *gorm.DB, id string, locking *common.Locking) (*model.Size, error) {
+	var size model.Size
+	query := tx.WithContext(ctx)
+
+	if locking != nil {
+		query.Clauses(clause.Locking{Strength: locking.Strength, Options: locking.Options})
+	}
+
+	if err := tx.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&size).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &size, nil
 }

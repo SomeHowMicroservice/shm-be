@@ -28,11 +28,11 @@ func (r *categoryRepositoryImpl) Create(ctx context.Context, category *model.Cat
 }
 
 func (r *categoryRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*model.Category, error) {
-	return r.findAllByIDBase(ctx, r.db, ids, nil)
+	return r.findAllByIDBase(ctx, r.db, ids)
 }
 
 func (r *categoryRepositoryImpl) FindAllByIDWithChildren(ctx context.Context, ids []string) ([]*model.Category, error) {
-	return r.findAllByIDBase(ctx, r.db, ids, nil, "Children")
+	return r.findAllByIDBase(ctx, r.db, ids, "Children")
 }
 
 func (r *categoryRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) (bool, error) {
@@ -41,7 +41,7 @@ func (r *categoryRepositoryImpl) ExistsBySlug(ctx context.Context, slug string) 
 
 func (r *categoryRepositoryImpl) ExistsBySlugTx(ctx context.Context, tx *gorm.DB, slug string) (bool, error) {
 	var count int64
-	if err := tx.WithContext(ctx).Model(&model.Category{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("slug = ?", slug).Count(&count).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Category{}).Where("slug = ?", slug).Count(&count).Error; err != nil {
 		return false, err
 	}
 
@@ -81,12 +81,8 @@ func (r *categoryRepositoryImpl) FindByIDWithParentsAndProducts(ctx context.Cont
 }
 
 func (r *categoryRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
-	result := tx.WithContext(ctx).Model(&model.Category{}).Where("id = ?", id).Updates(updateData)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return customErr.ErrCategoryNotFound
+	if err := tx.WithContext(ctx).Model(&model.Category{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+		return err
 	}
 
 	return nil
@@ -109,7 +105,7 @@ func (r *categoryRepositoryImpl) FindAllWithChildren(ctx context.Context) ([]*mo
 }
 
 func (r *categoryRepositoryImpl) FindAllByIDTx(ctx context.Context, tx *gorm.DB, ids []string) ([]*model.Category, error) {
-	return r.findAllByIDBase(ctx, tx, ids, &common.Locking{Strength: "SHARE", Options: "NOWAIT"})
+	return r.findAllByIDBase(ctx, tx, ids)
 }
 
 func (r *categoryRepositoryImpl) DeleteAllByID(ctx context.Context, ids []string) error {
@@ -134,7 +130,7 @@ func (r *categoryRepositoryImpl) Delete(ctx context.Context, id string) error {
 
 func (r *categoryRepositoryImpl) FindByIDWithParentsTx(ctx context.Context, tx *gorm.DB, id string) (*model.Category, error) {
 	return r.findByIDBase(ctx, tx, id,
-		&common.Locking{Strength: "UPDATE", Options: "NOWAIT"},
+		&common.Locking{Strength: clause.LockingStrengthUpdate, Options: clause.LockingOptionsNoWait},
 		&common.Preload{Relation: "Parents"})
 }
 
@@ -179,13 +175,9 @@ func (r *categoryRepositoryImpl) findAllBase(ctx context.Context, preloads ...st
 	return categories, nil
 }
 
-func (r *categoryRepositoryImpl) findAllByIDBase(ctx context.Context, tx *gorm.DB, ids []string, looking *common.Locking, preloads ...string) ([]*model.Category, error) {
+func (r *categoryRepositoryImpl) findAllByIDBase(ctx context.Context, tx *gorm.DB, ids []string, preloads ...string) ([]*model.Category, error) {
 	var categories []*model.Category
 	query := tx.WithContext(ctx)
-
-	if looking != nil {
-		query.Clauses(clause.Locking{Strength: looking.Strength, Options: looking.Options})
-	}
 
 	for _, preload := range preloads {
 		query = query.Preload(preload)

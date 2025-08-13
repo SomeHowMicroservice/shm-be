@@ -26,6 +26,7 @@ import (
 	variantRepo "github.com/SomeHowMicroservice/shm-be/services/product/repository/variant"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -71,17 +72,9 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 		req.Slug = &slug
 	}
 
-	exists, err := s.categoryRepo.ExistsBySlug(ctx, *req.Slug)
-	if err != nil {
-		return nil, fmt.Errorf("kiếm tra tồn tại slug thất bại: %w", err)
-	}
-	if exists {
-		return nil, customErr.ErrSlugAlreadyExists
-	}
-
 	var parents []*model.Category
 	if len(req.ParentIds) > 0 {
-		parents, err = s.categoryRepo.FindAllByID(ctx, req.ParentIds)
+		parents, err := s.categoryRepo.FindAllByID(ctx, req.ParentIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
 		}
@@ -98,7 +91,10 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
-	if err = s.categoryRepo.Create(ctx, category); err != nil {
+	if err := s.categoryRepo.Create(ctx, category); err != nil {
+		if isUniqueViolation(err) {
+			return nil, customErr.ErrSlugAlreadyExists
+		}
 		return nil, fmt.Errorf("tạo danh mục sản phẩm thất bại: %w", err)
 	}
 
@@ -163,13 +159,6 @@ func (s *productServiceImpl) GetProductBySlug(ctx context.Context, productSlug s
 
 func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error) {
 	slug := common.GenerateSlug(req.Name)
-	exists, err := s.colorRepo.ExistsBySlug(ctx, slug)
-	if err != nil {
-		return nil, fmt.Errorf("kiểm tra màu tồn tại thất bại: %w", err)
-	}
-	if exists {
-		return nil, customErr.ErrColorAlreadyExists
-	}
 
 	color := &model.Color{
 		ID:          uuid.NewString(),
@@ -178,7 +167,10 @@ func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.Crea
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
-	if err = s.colorRepo.Create(ctx, color); err != nil {
+	if err := s.colorRepo.Create(ctx, color); err != nil {
+		if isUniqueViolation(err) {
+			return nil, customErr.ErrColorAlreadyExists
+		}
 		return nil, fmt.Errorf("tạo màu sắc thất bại: %w", err)
 	}
 
@@ -187,13 +179,6 @@ func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.Crea
 
 func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*model.Size, error) {
 	slug := common.GenerateSlug(req.Name)
-	exists, err := s.sizeRepo.ExistsBySlug(ctx, slug)
-	if err != nil {
-		return nil, fmt.Errorf("kiểm tra size tồn tại thất bại: %w", err)
-	}
-	if exists {
-		return nil, customErr.ErrSizeAlreadyExists
-	}
 
 	size := &model.Size{
 		ID:          uuid.NewString(),
@@ -202,7 +187,10 @@ func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.Creat
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
-	if err = s.sizeRepo.Create(ctx, size); err != nil {
+	if err := s.sizeRepo.Create(ctx, size); err != nil {
+		if isUniqueViolation(err) {
+			return nil, customErr.ErrSizeAlreadyExists
+		}
 		return nil, fmt.Errorf("tạo size thất bại: %w", err)
 	}
 
@@ -321,14 +309,6 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 			updateData["name"] = req.Name
 		}
 		if category.Slug != req.Slug {
-			exists, err := s.categoryRepo.ExistsBySlugTx(ctx, tx, req.Slug)
-			if err != nil {
-				return fmt.Errorf("kiếm tra slug thất bại: %w", err)
-			}
-			if exists {
-				return customErr.ErrSlugAlreadyExists
-			}
-
 			updateData["slug"] = req.Slug
 		}
 		if category.UpdatedByID != req.UserId {
@@ -337,6 +317,9 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 
 		if len(updateData) > 0 {
 			if err = s.categoryRepo.UpdateTx(ctx, tx, category.ID, updateData); err != nil {
+				if isUniqueViolation(err) {
+					return customErr.ErrSlugAlreadyExists
+				}
 				return fmt.Errorf("cập nhật danh mục sản phẩm thất bại: %w", err)
 			}
 		}
@@ -345,9 +328,6 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 		if !slices.Equal(parentIDs, req.ParentIds) {
 			parents, err := s.categoryRepo.FindAllByIDTx(ctx, tx, req.ParentIds)
 			if err != nil {
-				if strings.Contains(err.Error(), "lock") {
-					return fmt.Errorf("danh mục cha đang được cập nhật, vui lòng thử lại: %w", err)
-				}
 				return fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
 			}
 
@@ -629,7 +609,6 @@ func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.Update
 	if tag == nil {
 		return customErr.ErrTagNotFound
 	}
-
 	updateData := map[string]interface{}{}
 	if tag.Name != req.Name {
 		slug := common.GenerateSlug(req.Name)
@@ -644,7 +623,6 @@ func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.Update
 		updateData["name"] = req.Name
 		updateData["slug"] = slug
 	}
-
 	if tag.UpdatedByID != req.UserId {
 		updateData["updated_by_id"] = req.UserId
 	}
@@ -662,80 +640,72 @@ func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.Update
 }
 
 func (s *productServiceImpl) UpdateColor(ctx context.Context, req *protobuf.UpdateColorRequest) error {
-	color, err := s.colorRepo.FindByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
-	}
-	if color == nil {
-		return customErr.ErrColorNotFound
-	}
-
-	updateData := map[string]interface{}{}
-	if color.Name != req.Name {
-		slug := common.GenerateSlug(req.Name)
-		exists, err := s.colorRepo.ExistsBySlug(ctx, slug)
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		color, err := s.colorRepo.FindByIDTx(ctx, tx, req.Id)
 		if err != nil {
-			return fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
-		}
-		if exists {
-			return customErr.ErrColorAlreadyExists
-		}
-
-		updateData["name"] = req.Name
-		updateData["slug"] = slug
-	}
-
-	if color.UpdatedByID != req.UserId {
-		updateData["updated_by_id"] = req.UserId
-	}
-
-	if len(updateData) > 0 {
-		if err = s.colorRepo.Update(ctx, color.ID, updateData); err != nil {
-			if errors.Is(err, customErr.ErrColorNotFound) {
-				return err
+			if strings.Contains(err.Error(), "lock") {
+				return fmt.Errorf("màu sắc đang được cập nhật bởi người dùng khác, vui lòng thử lại: %w", err)
 			}
-			return fmt.Errorf("cập nhật màu sắc sản phẩm thất bại: %w", err)
+			return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
 		}
+		if color == nil {
+			return customErr.ErrColorNotFound
+		}
+
+		updateData := map[string]interface{}{}
+		if color.Name != req.Name {
+			updateData["name"] = req.Name
+			updateData["slug"] = common.GenerateSlug(req.Name)
+		}
+		if color.UpdatedByID != req.UserId {
+			updateData["updated_by_id"] = req.UserId
+		}
+
+		if len(updateData) > 0 {
+			if err = s.colorRepo.UpdateTx(ctx, tx, color.ID, updateData); err != nil {
+				if isUniqueViolation(err) {
+					return customErr.ErrColorAlreadyExists
+				}
+				return fmt.Errorf("cập nhật màu sắc sản phẩm thất bại: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (s *productServiceImpl) UpdateSize(ctx context.Context, req *protobuf.UpdateSizeRequest) error {
-	size, err := s.sizeRepo.FindByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
-	}
-	if size == nil {
-		return customErr.ErrSizeNotFound
-	}
-
-	updateData := map[string]interface{}{}
-	if size.Name != req.Name {
-		slug := common.GenerateSlug(req.Name)
-		exists, err := s.sizeRepo.ExistsBySlug(ctx, slug)
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		size, err := s.sizeRepo.FindByIDTx(ctx, tx, req.Id)
 		if err != nil {
-			return fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
+			return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
 		}
-		if exists {
-			return customErr.ErrSizeAlreadyExists
+		if size == nil {
+			return customErr.ErrSizeNotFound
 		}
 
-		updateData["name"] = req.Name
-		updateData["slug"] = slug
-	}
+		updateData := map[string]interface{}{}
+		if size.Name != req.Name {
+			updateData["name"] = req.Name
+			updateData["slug"] = common.GenerateSlug(req.Name)
+		}
+		if size.UpdatedByID != req.UserId {
+			updateData["updated_by_id"] = req.UserId
+		}
 
-	if size.UpdatedByID != req.UserId {
-		updateData["updated_by_id"] = req.UserId
-	}
-
-	if len(updateData) > 0 {
-		if err = s.sizeRepo.Update(ctx, size.ID, updateData); err != nil {
-			if errors.Is(err, customErr.ErrSizeNotFound) {
-				return err
+		if len(updateData) > 0 {
+			if err = s.sizeRepo.UpdateTx(ctx, tx, size.ID, updateData); err != nil {
+				return fmt.Errorf("cập nhật kích cỡ sản phẩm thất bại: %w", err)
 			}
-			return fmt.Errorf("cập nhật kích cỡ sản phẩm thất bại: %w", err)
 		}
+
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -786,17 +756,10 @@ func (s *productServiceImpl) GetCategoriesNoChild(ctx context.Context) ([]*model
 
 func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error) {
 	slug := common.GenerateSlug(req.Title)
-	exists, err := s.productRepo.ExistsBySlug(ctx, slug)
-	if err != nil {
-		return nil, fmt.Errorf("kiểm tra tồn tại slug thất bại: %w", err)
-	}
-	if exists {
-		return nil, customErr.ErrSlugAlreadyExists
-	}
 
 	var categories []*model.Category
 	if len(req.CategoryIds) > 0 {
-		categories, err = s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
+		categories, err := s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 		}
@@ -813,7 +776,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 
 	var tags []*model.Tag
 	if len(req.TagIds) > 0 {
-		tags, err = s.tagRepo.FindAllByID(ctx, req.TagIds)
+		tags, err := s.tagRepo.FindAllByID(ctx, req.TagIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
 		}
@@ -924,7 +887,10 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	}
 	product.Images = images
 
-	if err = s.productRepo.Create(ctx, product); err != nil {
+	if err := s.productRepo.Create(ctx, product); err != nil {
+		if isUniqueViolation(err) {
+			return nil, customErr.ErrSlugAlreadyExists
+		}
 		return nil, fmt.Errorf("tạo sản phẩm thất bại: %w", err)
 	}
 
@@ -1041,19 +1007,15 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 		updateProductData["title"] = req.Title
 		updateProductData["slug"] = newSlug
 	}
-
 	if req.Description != nil && *req.Description != product.Description {
 		updateProductData["description"] = req.Description
 	}
-
 	if req.Price != nil && *req.Price != product.Price {
 		updateProductData["price"] = req.Price
 	}
-
 	if req.IsActive != nil && *req.IsActive != product.IsActive {
 		updateProductData["is_active"] = req.IsActive
 	}
-
 	if req.IsSale != nil && *req.IsSale != product.IsSale {
 		if !*req.IsSale {
 			updateProductData["sale_price"] = nil
@@ -1062,11 +1024,9 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 		}
 		updateProductData["is_sale"] = req.IsSale
 	}
-
 	if req.SalePrice != nil && product.SalePrice != req.SalePrice {
 		updateProductData["sale_price"] = req.SalePrice
 	}
-
 	if req.StartSale != nil {
 		parsedStartSale, err := common.ParseDate(*req.StartSale)
 		if err != nil {
@@ -1077,7 +1037,6 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 			updateProductData["start_sale"] = parsedStartSale
 		}
 	}
-
 	if req.EndSale != nil {
 		parsedEndSale, err := common.ParseDate(*req.EndSale)
 		if err != nil {
@@ -1088,7 +1047,6 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 			updateProductData["end_sale"] = parsedEndSale
 		}
 	}
-
 	if req.UserId != product.UpdatedByID {
 		updateProductData["update_by_id"] = req.UserId
 	}
@@ -1170,11 +1128,9 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	if len(req.UpdateImages) > 0 {
 		for _, image := range req.UpdateImages {
 			updateData := map[string]interface{}{}
-
 			if image.IsThumbnail != nil {
 				updateData["is_thumbnail"] = image.IsThumbnail
 			}
-
 			if image.SortOrder != nil {
 				updateData["sort_order"] = image.SortOrder
 			}
@@ -1253,15 +1209,12 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	if len(req.UpdateVariants) > 0 {
 		for _, variant := range req.UpdateVariants {
 			updateData := map[string]interface{}{}
-
 			if variant.Sku != nil {
 				updateData["sku"] = variant.Sku
 			}
-
 			if variant.ColorId != nil {
 				updateData["color_id"] = variant.ColorId
 			}
-
 			if variant.SizeId != nil {
 				updateData["size_id"] = variant.SizeId
 			}
@@ -1378,19 +1331,11 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 }
 
 func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *protobuf.DeleteOneRequest) error {
-	product, err := s.productRepo.FindByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
-	}
-	if product == nil {
-		return customErr.ErrProductNotFound
-	}
-
 	updateData := map[string]interface{}{
 		"is_deleted":    true,
 		"updated_by_id": req.UserId,
 	}
-	if err = s.productRepo.Update(ctx, req.Id, updateData); err != nil {
+	if err := s.productRepo.Update(ctx, req.Id, updateData); err != nil {
 		if errors.Is(err, customErr.ErrProductNotFound) {
 			return err
 		}
@@ -1421,15 +1366,7 @@ func (s *productServiceImpl) DeleteProducts(ctx context.Context, req *protobuf.D
 }
 
 func (s *productServiceImpl) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
-	category, err := s.categoryRepo.FindByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
-	}
-	if category == nil {
-		return customErr.ErrCategoryNotFound
-	}
-
-	if err = s.categoryRepo.Delete(ctx, req.Id); err != nil {
+	if err := s.categoryRepo.Delete(ctx, req.Id); err != nil {
 		if errors.Is(err, customErr.ErrCategoryNotFound) {
 			return err
 		}
@@ -1456,19 +1393,11 @@ func (s *productServiceImpl) PermanentlyDeleteCategories(ctx context.Context, re
 }
 
 func (s *productServiceImpl) DeleteColor(ctx context.Context, req *protobuf.DeleteOneRequest) error {
-	color, err := s.colorRepo.FindByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
-	}
-	if color == nil {
-		return customErr.ErrColorNotFound
-	}
-
 	updateData := map[string]interface{}{
 		"is_deleted":    true,
 		"updated_by_id": req.UserId,
 	}
-	if err = s.colorRepo.Update(ctx, req.Id, updateData); err != nil {
+	if err := s.colorRepo.Update(ctx, req.Id, updateData); err != nil {
 		if errors.Is(err, customErr.ErrColorNotFound) {
 			return err
 		}
@@ -1479,19 +1408,11 @@ func (s *productServiceImpl) DeleteColor(ctx context.Context, req *protobuf.Dele
 }
 
 func (s *productServiceImpl) DeleteSize(ctx context.Context, req *protobuf.DeleteOneRequest) error {
-	size, err := s.sizeRepo.FindByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
-	}
-	if size == nil {
-		return customErr.ErrSizeNotFound
-	}
-
 	updateData := map[string]interface{}{
 		"is_deleted":    true,
 		"updated_by_id": req.UserId,
 	}
-	if err = s.sizeRepo.Update(ctx, req.Id, updateData); err != nil {
+	if err := s.sizeRepo.Update(ctx, req.Id, updateData); err != nil {
 		if errors.Is(err, customErr.ErrSizeNotFound) {
 			return err
 		}
@@ -1842,19 +1763,11 @@ func (s *productServiceImpl) GetDeletedTags(ctx context.Context) (*protobuf.Tags
 }
 
 func (s *productServiceImpl) DeleteTag(ctx context.Context, req *protobuf.DeleteOneRequest) error {
-	tag, err := s.tagRepo.FindByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
-	}
-	if tag == nil {
-		return customErr.ErrTagNotFound
-	}
-
 	updateData := map[string]interface{}{
 		"is_deleted":    true,
 		"updated_by_id": req.UserId,
 	}
-	if err = s.tagRepo.Update(ctx, req.Id, updateData); err != nil {
+	if err := s.tagRepo.Update(ctx, req.Id, updateData); err != nil {
 		if errors.Is(err, customErr.ErrTagNotFound) {
 			return err
 		}
@@ -2117,15 +2030,7 @@ func (s *productServiceImpl) PermanentlyDeleteProducts(ctx context.Context, req 
 }
 
 func (s *productServiceImpl) PermanentlyDeleteColor(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
-	color, err := s.colorRepo.FindDeletedByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
-	}
-	if color == nil {
-		return customErr.ErrColorNotFound
-	}
-
-	if err = s.colorRepo.Delete(ctx, req.Id); err != nil {
+	if err := s.colorRepo.Delete(ctx, req.Id); err != nil {
 		if errors.Is(err, customErr.ErrColorNotFound) {
 			return err
 		}
@@ -2152,15 +2057,7 @@ func (s *productServiceImpl) PermanentlyDeleteColors(ctx context.Context, req *p
 }
 
 func (s *productServiceImpl) PermanentlyDeleteSize(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
-	size, err := s.sizeRepo.FindDeletedByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
-	}
-	if size == nil {
-		return customErr.ErrSizeNotFound
-	}
-
-	if err = s.sizeRepo.Delete(ctx, req.Id); err != nil {
+	if err := s.sizeRepo.Delete(ctx, req.Id); err != nil {
 		if errors.Is(err, customErr.ErrSizeNotFound) {
 			return err
 		}
@@ -2187,15 +2084,7 @@ func (s *productServiceImpl) PermanentlyDeleteSizes(ctx context.Context, req *pr
 }
 
 func (s *productServiceImpl) PermanentlyDeleteTag(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
-	tag, err := s.tagRepo.FindDeletedByID(ctx, req.Id)
-	if err != nil {
-		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
-	}
-	if tag == nil {
-		return customErr.ErrTagNotFound
-	}
-
-	if err = s.tagRepo.Delete(ctx, req.Id); err != nil {
+	if err := s.tagRepo.Delete(ctx, req.Id); err != nil {
 		if errors.Is(err, customErr.ErrTagNotFound) {
 			return err
 		}
@@ -2219,6 +2108,15 @@ func (s *productServiceImpl) PermanentlyDeleteTags(ctx context.Context, req *pro
 	}
 
 	return nil
+}
+
+func isUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505"
+	}
+
+	return false
 }
 
 func getIDsFromTags(tags []*model.Tag) []string {
