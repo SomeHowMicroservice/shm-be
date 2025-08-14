@@ -101,7 +101,7 @@ type ProductServiceClient interface {
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 	GetCategoriesNoChild(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*BaseCategoriesResponse, error)
 	GetProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
-	GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsPaginatedAdminResponse, error)
+	GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error)
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 	DeleteProduct(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	DeleteProducts(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
@@ -114,7 +114,7 @@ type ProductServiceClient interface {
 	DeleteSize(ctx context.Context, in *DeleteOneRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	DeleteColors(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	DeleteSizes(ctx context.Context, in *DeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
-	GetDeletedProducts(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsPaginatedAdminResponse, error)
+	GetDeletedProducts(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error)
 	GetDeletedProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*ProductAdminDetailsResponse, error)
 	GetDeletedColors(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*ColorsAdminResponse, error)
 	GetDeletedSizes(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*SizesAdminResponse, error)
@@ -347,9 +347,9 @@ func (c *productServiceClient) GetProductById(ctx context.Context, in *GetProduc
 	return out, nil
 }
 
-func (c *productServiceClient) GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsPaginatedAdminResponse, error) {
+func (c *productServiceClient) GetAllProductsAdmin(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProductsPaginatedAdminResponse)
+	out := new(ProductsAdminResponse)
 	err := c.cc.Invoke(ctx, ProductService_GetAllProductsAdmin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -477,9 +477,9 @@ func (c *productServiceClient) DeleteSizes(ctx context.Context, in *DeleteManyRe
 	return out, nil
 }
 
-func (c *productServiceClient) GetDeletedProducts(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsPaginatedAdminResponse, error) {
+func (c *productServiceClient) GetDeletedProducts(ctx context.Context, in *GetAllProductsAdminRequest, opts ...grpc.CallOption) (*ProductsAdminResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProductsPaginatedAdminResponse)
+	out := new(ProductsAdminResponse)
 	err := c.cc.Invoke(ctx, ProductService_GetDeletedProducts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -731,7 +731,7 @@ type ProductServiceServer interface {
 	CreateProduct(context.Context, *CreateProductRequest) (*CreatedResponse, error)
 	GetCategoriesNoChild(context.Context, *GetManyRequest) (*BaseCategoriesResponse, error)
 	GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
-	GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsPaginatedAdminResponse, error)
+	GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsAdminResponse, error)
 	UpdateProduct(context.Context, *UpdateProductRequest) (*ProductAdminDetailsResponse, error)
 	DeleteProduct(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
 	DeleteProducts(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
@@ -744,7 +744,7 @@ type ProductServiceServer interface {
 	DeleteSize(context.Context, *DeleteOneRequest) (*DeletedResponse, error)
 	DeleteColors(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
 	DeleteSizes(context.Context, *DeleteManyRequest) (*DeletedResponse, error)
-	GetDeletedProducts(context.Context, *GetAllProductsAdminRequest) (*ProductsPaginatedAdminResponse, error)
+	GetDeletedProducts(context.Context, *GetAllProductsAdminRequest) (*ProductsAdminResponse, error)
 	GetDeletedProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error)
 	GetDeletedColors(context.Context, *GetManyRequest) (*ColorsAdminResponse, error)
 	GetDeletedSizes(context.Context, *GetManyRequest) (*SizesAdminResponse, error)
@@ -837,7 +837,7 @@ func (UnimplementedProductServiceServer) GetCategoriesNoChild(context.Context, *
 func (UnimplementedProductServiceServer) GetProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductById not implemented")
 }
-func (UnimplementedProductServiceServer) GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsPaginatedAdminResponse, error) {
+func (UnimplementedProductServiceServer) GetAllProductsAdmin(context.Context, *GetAllProductsAdminRequest) (*ProductsAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllProductsAdmin not implemented")
 }
 func (UnimplementedProductServiceServer) UpdateProduct(context.Context, *UpdateProductRequest) (*ProductAdminDetailsResponse, error) {
@@ -876,7 +876,7 @@ func (UnimplementedProductServiceServer) DeleteColors(context.Context, *DeleteMa
 func (UnimplementedProductServiceServer) DeleteSizes(context.Context, *DeleteManyRequest) (*DeletedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSizes not implemented")
 }
-func (UnimplementedProductServiceServer) GetDeletedProducts(context.Context, *GetAllProductsAdminRequest) (*ProductsPaginatedAdminResponse, error) {
+func (UnimplementedProductServiceServer) GetDeletedProducts(context.Context, *GetAllProductsAdminRequest) (*ProductsAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDeletedProducts not implemented")
 }
 func (UnimplementedProductServiceServer) GetDeletedProductById(context.Context, *GetProductByIdRequest) (*ProductAdminDetailsResponse, error) {

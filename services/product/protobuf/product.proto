@@ -44,7 +44,7 @@ service ProductService {
 
   rpc GetProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
 
-  rpc GetAllProductsAdmin(GetAllProductsAdminRequest) returns (ProductsPaginatedAdminResponse);
+  rpc GetAllProductsAdmin(GetAllProductsAdminRequest) returns (ProductsAdminResponse);
 
   rpc UpdateProduct(UpdateProductRequest) returns (ProductAdminDetailsResponse);
 
@@ -70,7 +70,7 @@ service ProductService {
 
   rpc DeleteSizes(DeleteManyRequest) returns (DeletedResponse);
 
-  rpc GetDeletedProducts(GetAllProductsAdminRequest) returns (ProductsPaginatedAdminResponse);
+  rpc GetDeletedProducts(GetAllProductsAdminRequest) returns (ProductsAdminResponse);
 
   rpc GetDeletedProductById(GetProductByIdRequest) returns (ProductAdminDetailsResponse);
 
@@ -115,11 +115,6 @@ service ProductService {
   rpc PermanentlyDeleteTag(PermanentlyDeleteOneRequest) returns (DeletedResponse);
 
   rpc PermanentlyDeleteTags(PermanentlyDeleteManyRequest) returns (DeletedResponse);
-}
-
-message ProductsPaginatedAdminResponse {
-  ProductsAdminResponse products = 1;
-  PaginationMetaResponse meta = 2;
 }
 
 message PaginationMetaResponse {
@@ -229,6 +224,7 @@ message UpdateVariantRequest {
 
 message ProductsAdminResponse {
   repeated ProductAdminResponse products = 1;
+  PaginationMetaResponse meta = 2;
 }
 
 message SimpleImageResponse {

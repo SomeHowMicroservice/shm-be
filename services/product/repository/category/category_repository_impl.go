@@ -134,6 +134,26 @@ func (r *categoryRepositoryImpl) FindByIDWithParentsTx(ctx context.Context, tx *
 		&common.Preload{Relation: "Parents"})
 }
 
+func (r *categoryRepositoryImpl) GetAllDescendants(ctx context.Context, categoryID string) ([]string, error) {
+	var childIDs []string
+	query := `
+	WITH RECURSIVE descendants AS (
+		SELECT child_id 
+		FROM category_parents 
+		WHERE parent_id = ?
+		UNION
+		SELECT cp.child_id 
+		FROM category_parents cp
+		INNER JOIN descendants d ON cp.parent_id = d.child_id
+	)
+	SELECT child_id FROM descendants;
+	`
+	if err := r.db.WithContext(ctx).Raw(query, categoryID).Scan(&childIDs).Error; err != nil {
+		return nil, err
+	}
+	return childIDs, nil
+}
+
 func (r *categoryRepositoryImpl) findByIDBase(ctx context.Context, tx *gorm.DB, id string, looking *common.Locking, preloads ...*common.Preload) (*model.Category, error) {
 	var category model.Category
 	query := tx.WithContext(ctx)

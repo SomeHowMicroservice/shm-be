@@ -4,6 +4,7 @@ import (
 	"context"
 
 	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
+	"github.com/SomeHowMicroservice/shm-be/services/product/common"
 	"github.com/SomeHowMicroservice/shm-be/services/product/model"
 	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	"github.com/SomeHowMicroservice/shm-be/services/product/service"
@@ -324,23 +325,13 @@ func (h *GRPCHandler) GetProductById(ctx context.Context, req *protobuf.GetProdu
 	return convertedProduct, nil
 }
 
-func (h *GRPCHandler) GetAllProductsAdmin(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) (*protobuf.ProductsPaginatedAdminResponse, error) {
+func (h *GRPCHandler) GetAllProductsAdmin(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) (*protobuf.ProductsAdminResponse, error) {
 	products, meta, err := h.svc.GetAllProductsAdmin(ctx, req)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &protobuf.ProductsPaginatedAdminResponse{
-		Products: toProductsAdminResponse(products),
-		Meta: &protobuf.PaginationMetaResponse{
-			Page: uint32(meta.Page),
-			Limit: uint32(meta.Limit),
-			Total: uint32(meta.Total),
-			TotalPages: uint32(meta.TotalPages),
-			HasPrev: &meta.HasPrev,
-			HasNext: &meta.HasNext,
-		},
-	}, nil
+	return toProductsAdminResponse(products, meta), nil
 }
 
 func (h *GRPCHandler) UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error) {
@@ -513,23 +504,13 @@ func (h *GRPCHandler) DeleteSizes(ctx context.Context, req *protobuf.DeleteManyR
 	}, nil
 }
 
-func (h *GRPCHandler) GetDeletedProducts(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) (*protobuf.ProductsPaginatedAdminResponse, error) {
+func (h *GRPCHandler) GetDeletedProducts(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) (*protobuf.ProductsAdminResponse, error) {
 	products, meta, err := h.svc.GetDeletedProducts(ctx, req)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &protobuf.ProductsPaginatedAdminResponse{
-		Products: toProductsAdminResponse(products),
-		Meta: &protobuf.PaginationMetaResponse{
-			Page: uint32(meta.Page),
-			Limit: uint32(meta.Limit),
-			Total: uint32(meta.Total),
-			TotalPages: uint32(meta.TotalPages),
-			HasPrev: &meta.HasPrev,
-			HasNext: &meta.HasNext,
-		},
-	}, nil
+	return toProductsAdminResponse(products, meta), nil
 }
 
 func (h *GRPCHandler) GetDeletedProductById(ctx context.Context, req *protobuf.GetProductByIdRequest) (*protobuf.ProductAdminDetailsResponse, error) {
@@ -858,7 +839,7 @@ func (h *GRPCHandler) PermanentlyDeleteTags(ctx context.Context, req *protobuf.P
 	}, nil
 }
 
-func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminResponse {
+func toProductsAdminResponse(products []*model.Product, meta *common.PaginationMeta) *protobuf.ProductsAdminResponse {
 	var productResponses []*protobuf.ProductAdminResponse
 	for _, pro := range products {
 		productResponses = append(productResponses, toProductAdminResponse(pro))
@@ -866,6 +847,14 @@ func toProductsAdminResponse(products []*model.Product) *protobuf.ProductsAdminR
 
 	return &protobuf.ProductsAdminResponse{
 		Products: productResponses,
+		Meta: &protobuf.PaginationMetaResponse{
+			Page:       uint32(meta.Page),
+			Limit:      uint32(meta.Limit),
+			Total:      uint32(meta.Total),
+			TotalPages: uint32(meta.TotalPages),
+			HasPrev:    &meta.HasPrev,
+			HasNext:    &meta.HasNext,
+		},
 	}
 }
 

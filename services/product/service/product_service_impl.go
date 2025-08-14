@@ -74,6 +74,9 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 
 	var parents []*model.Category
 	if len(req.ParentIds) > 0 {
+		if err := s.validateNoCycle(ctx, "", req.ParentIds); err != nil {
+			return nil, err
+		}
 		parents, err := s.categoryRepo.FindAllByID(ctx, req.ParentIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
@@ -322,6 +325,10 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 
 		parentIDs := getIDsFromCategories(category.Parents)
 		if !slices.Equal(parentIDs, req.ParentIds) {
+			if err := s.validateNoCycle(ctx, category.ID, req.ParentIds); err != nil {
+				return err
+			}
+
 			parents, err := s.categoryRepo.FindAllByIDTx(ctx, tx, req.ParentIds)
 			if err != nil {
 				return fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
@@ -758,8 +765,9 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	slug := common.GenerateSlug(req.Title)
 
 	var categories []*model.Category
+	var err error
 	if len(req.CategoryIds) > 0 {
-		categories, err := s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
+		categories, err = s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 		}
@@ -776,7 +784,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 
 	var tags []*model.Tag
 	if len(req.TagIds) > 0 {
-		tags, err := s.tagRepo.FindAllByID(ctx, req.TagIds)
+		tags, err = s.tagRepo.FindAllByID(ctx, req.TagIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
 		}
@@ -799,6 +807,8 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 		}
 		endSale = &parsedEndSale
 	}
+
+	fmt.Println(categories, tags)
 
 	product := &model.Product{
 		ID:          uuid.NewString(),
@@ -2085,6 +2095,32 @@ func (s *productServiceImpl) PermanentlyDeleteTags(ctx context.Context, req *pro
 		return fmt.Errorf("xóa danh sách tag thất bại: %w", err)
 	}
 
+	return nil
+}
+
+func (s *productServiceImpl) validateNoCycle(ctx context.Context, categoryID string, parentIDs []string) error {
+	// 1. Nếu đang UPDATE: Lấy toàn bộ descendants
+	// Vì nếu một parent mới là con/cháu hiện tại => tạo vòng lặp
+	if categoryID != "" {
+		descendants, err := s.categoryRepo.GetAllDescendants(ctx, categoryID)
+		if err != nil {
+			return fmt.Errorf("lấy danh mục con thất bại: %w", err)
+		}
+		// Thêm chính nó vào danh sách cấm
+		blocked := map[string]struct{}{categoryID: {}}
+		for _, d := range descendants {
+			blocked[d] = struct{}{}
+		}
+
+		for _, pid := range parentIDs {
+			if _, exists := blocked[pid]; exists {
+				return fmt.Errorf("danh mục %s không thể được gán làm cha vì tạo vòng lặp", pid)
+			}
+		}
+	}
+
+	// 2. Nếu đang CREATE: chỉ cần đảm bảo không gửi trùng ID hoặc logic business khác
+	// Nếu cần cấm việc tạo danh mục cha-con sai => check tương tự bằng ancestor query của từng parent
 	return nil
 }
 
