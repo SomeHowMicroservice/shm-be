@@ -158,7 +158,7 @@ func (r *productRepositoryImpl) Update(ctx context.Context, id string, updateDat
 }
 
 func (r *productRepositoryImpl) UpdateTx(ctx context.Context, tx *gorm.DB, id string, updateData map[string]interface{}) error {
-	if err := r.db.WithContext(ctx).Model(&model.Product{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Product{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
 		return err
 	}
 
