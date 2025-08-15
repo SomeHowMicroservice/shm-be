@@ -1163,8 +1163,7 @@ type ProductAdminResponse struct {
 	Title         string                  `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	Price         float32                 `protobuf:"fixed32,3,opt,name=price,proto3" json:"price,omitempty"`
 	Categories    []*BaseCategoryResponse `protobuf:"bytes,4,rep,name=categories,proto3" json:"categories,omitempty"`
-	Stock         int32                   `protobuf:"varint,5,opt,name=stock,proto3" json:"stock,omitempty"`
-	Thumbnail     *SimpleImageResponse    `protobuf:"bytes,6,opt,name=thumbnail,proto3" json:"thumbnail,omitempty"`
+	Thumbnail     *SimpleImageResponse    `protobuf:"bytes,5,opt,name=thumbnail,proto3" json:"thumbnail,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1225,13 +1224,6 @@ func (x *ProductAdminResponse) GetCategories() []*BaseCategoryResponse {
 		return x.Categories
 	}
 	return nil
-}
-
-func (x *ProductAdminResponse) GetStock() int32 {
-	if x != nil {
-		return x.Stock
-	}
-	return 0
 }
 
 func (x *ProductAdminResponse) GetThumbnail() *SimpleImageResponse {
@@ -4128,16 +4120,15 @@ const file_services_product_protobuf_product_proto_rawDesc = "" +
 	"\x04meta\x18\x02 \x01(\v2\x1f.product.PaginationMetaResponseR\x04meta\"7\n" +
 	"\x13SimpleImageResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
-	"\x03url\x18\x02 \x01(\tR\x03url\"\xe3\x01\n" +
+	"\x03url\x18\x02 \x01(\tR\x03url\"\xcd\x01\n" +
 	"\x14ProductAdminResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
 	"\x05price\x18\x03 \x01(\x02R\x05price\x12=\n" +
 	"\n" +
 	"categories\x18\x04 \x03(\v2\x1d.product.BaseCategoryResponseR\n" +
-	"categories\x12\x14\n" +
-	"\x05stock\x18\x05 \x01(\x05R\x05stock\x12:\n" +
-	"\tthumbnail\x18\x06 \x01(\v2\x1c.product.SimpleImageResponseR\tthumbnail\"'\n" +
+	"categories\x12:\n" +
+	"\tthumbnail\x18\x05 \x01(\v2\x1c.product.SimpleImageResponseR\tthumbnail\"'\n" +
 	"\x15GetProductByIdRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x89\x06\n" +
 	"\x1bProductAdminDetailsResponse\x12\x0e\n" +

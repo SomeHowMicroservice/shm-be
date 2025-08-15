@@ -236,8 +236,7 @@ message ProductAdminResponse {
   string title = 2;
   float price = 3;
   repeated BaseCategoryResponse categories = 4;
-  int32 stock = 5;
-  SimpleImageResponse thumbnail = 6;
+  SimpleImageResponse thumbnail = 5;
 }
 
 message GetProductByIdRequest {
