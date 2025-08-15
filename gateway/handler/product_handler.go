@@ -1290,7 +1290,6 @@ func (h *ProductHandler) GetAllProductsAdmin(c *gin.Context) {
 		IsActive:   query.IsActive,
 		Search:     query.Search,
 		CategoryId: query.CategoryID,
-		TagId:      query.TagID,
 	})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
@@ -1720,7 +1719,6 @@ func (h *ProductHandler) GetDeletedProducts(c *gin.Context) {
 		IsActive:   query.IsActive,
 		Search:     query.Search,
 		CategoryId: query.CategoryID,
-		TagId:      query.TagID,
 	})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {

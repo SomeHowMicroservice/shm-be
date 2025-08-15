@@ -236,10 +236,6 @@ func (r *productRepositoryImpl) applyFilters(db *gorm.DB, query *common.Paginati
 		db = db.Where("id IN (?)", r.db.Table("product_categories pc").Select("pc.product_id").Joins("JOIN categories c ON c.id = pc.category_id").Where("c.id = ?", query.CategoryID))
 	}
 
-	if query.TagID != "" {
-		db = db.Where("id IN (?)", r.db.Table("product_tags pt").Select("pt.product_id").Joins("JOIN tags t ON t.id = pt.tag_id").Where("t.id = ?", query.TagID))
-	}
-
 	if query.IsActive != nil {
 		db = db.Where("is_active = ?", *query.IsActive)
 	}

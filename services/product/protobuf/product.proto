@@ -133,8 +133,7 @@ message GetAllProductsAdminRequest {
   string order = 4;
   string search = 5;
   string category_id = 6;
-  string tag_id = 7;
-  optional bool is_active = 8;
+  optional bool is_active = 7;
 }
 
 message PermanentlyDeleteManyRequest {
@@ -237,7 +236,8 @@ message ProductAdminResponse {
   string title = 2;
   float price = 3;
   repeated BaseCategoryResponse categories = 4;
-  SimpleImageResponse thumbnail = 5;
+  int32 stock = 5;
+  SimpleImageResponse thumbnail = 6;
 }
 
 message GetProductByIdRequest {

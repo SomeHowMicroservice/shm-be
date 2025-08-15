@@ -37,7 +37,6 @@ type PaginationQuery struct {
 	IsActive   *bool  `json:"is_active"`
 	Search     string `json:"search"`
 	CategoryID string `json:"category_id"`
-	TagID      string `json:"tag_id"`
 }
 
 type PaginationMeta struct {

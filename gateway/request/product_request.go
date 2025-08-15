@@ -119,5 +119,4 @@ type PaginationQuery struct {
 	IsActive   *bool   `form:"is_active" json:"is_active"`
 	Search     string `form:"search" json:"search"`
 	CategoryID string `form:"category_id" json:"category_id" binding:"omitempty,uuid4"`
-	TagID      string `form:"tag_id" json:"tag_id" binding:"omitempty,uuid4"`
 }

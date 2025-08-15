@@ -974,7 +974,6 @@ func (s *productServiceImpl) GetAllProductsAdmin(ctx context.Context, req *proto
 		Order:      req.Order,
 		IsActive:   req.IsActive,
 		CategoryID: req.CategoryId,
-		TagID:      req.TagId,
 	}
 
 	products, total, err := s.productRepo.FindAllPaginatedWithCategoriesAndThumbnail(ctx, query)
@@ -1475,7 +1474,6 @@ func (s *productServiceImpl) GetDeletedProducts(ctx context.Context, req *protob
 		Order:      req.Order,
 		IsActive:   req.IsActive,
 		CategoryID: req.CategoryId,
-		TagID:      req.TagId,
 	}
 
 	products, total, err := s.productRepo.FindAllDeletedPaginatedWithCategoriesAndThumbnail(ctx, query)
