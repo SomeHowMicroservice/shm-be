@@ -21,12 +21,12 @@ var (
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Tải cấu hình User Service thất bại: %v", err)
+		log.Fatalf("Tải cấu hình Product Service thất bại: %v", err)
 	}
 
 	db, err := initialization.InitDB(cfg)
 	if err != nil {
-		log.Fatalf("Lỗi kết nối DB ở User Service: %v", err)
+		log.Fatalf("Lỗi kết nối DB ở Product Service: %v", err)
 	}
 
 	mqc, err := initialization.InitMessageQueue(cfg)

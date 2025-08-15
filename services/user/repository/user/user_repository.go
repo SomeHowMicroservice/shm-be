@@ -13,13 +13,13 @@ type UserRepository interface {
 
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 
-	FindByUsername(ctx context.Context, username string) (*model.User, error)
-
-	FindByID(ctx context.Context, id string) (*model.User, error)
+	FindByUsernameWithProfileAndRoles(ctx context.Context, username string) (*model.User, error)
 
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 
 	UpdatePassword(ctx context.Context, id, password string) error
 
 	FindAllByID(ctx context.Context, ids []string) ([]*model.User, error)
+
+	FindByIDWithProfileAndRoles(ctx context.Context, id string) (*model.User, error)
 }

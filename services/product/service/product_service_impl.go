@@ -2116,11 +2116,11 @@ func (s *productServiceImpl) validateParentRelations(ctx context.Context, parent
 	for _, id := range parentIDs {
 		ancestors, err := s.categoryRepo.GetAllAncestors(ctx, id)
 		if err != nil {
-			return fmt.Errorf("failed to validate parent relations: %w", err)
+			return fmt.Errorf("xác thực mối quan hệ thất bại: %w", err)
 		}
 		for _, anc := range ancestors {
 			if _, ok := idSet[anc]; ok {
-				return fmt.Errorf("invalid parent IDs: IDs %s and %s have an ancestor-descendant relationship", anc, id)
+				return fmt.Errorf("ID %s và %s có mối quan hệ", anc, id)
 			}
 		}
 	}
@@ -2135,7 +2135,7 @@ func (s *productServiceImpl) validateNoCycleWithCategory(ctx context.Context, ca
 
 	descendants, err := s.categoryRepo.GetAllDescendants(ctx, categoryID)
 	if err != nil {
-		return fmt.Errorf("failed to validate cycle: %w", err)
+		return fmt.Errorf("xác thực chu kỳ danh mục thất bại: %w", err)
 	}
 	descSet := make(map[string]struct{}, len(descendants))
 	for _, d := range descendants {
@@ -2144,7 +2144,7 @@ func (s *productServiceImpl) validateNoCycleWithCategory(ctx context.Context, ca
 
 	ancestors, err := s.categoryRepo.GetAllAncestors(ctx, categoryID)
 	if err != nil {
-		return fmt.Errorf("failed to validate cycle: %w", err)
+		return fmt.Errorf("xác thực chu kỳ danh mục thất bại: %w", err)
 	}
 	ancSet := make(map[string]struct{}, len(ancestors))
 	for _, a := range ancestors {
@@ -2153,10 +2153,10 @@ func (s *productServiceImpl) validateNoCycleWithCategory(ctx context.Context, ca
 
 	for _, pid := range parentIDs {
 		if _, ok := descSet[pid]; ok {
-			return fmt.Errorf("invalid parent ID %s: it is a descendant of the category, would create cycle", pid)
+			return fmt.Errorf("ID cha %s không hợp lệ có thể tạo ra chu kỳ", pid)
 		}
 		if _, ok := ancSet[pid]; ok {
-			return fmt.Errorf("invalid parent ID %s: it is already an ancestor of the category, redundant assignment", pid)
+			return fmt.Errorf("ID cha %s không hợp lệ nó đã có mối quan hệ với danh mục được gán", pid)
 		}
 	}
 

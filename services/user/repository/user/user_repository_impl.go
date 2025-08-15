@@ -40,7 +40,7 @@ func (r *userRepositoryImpl) ExistsByUsername(ctx context.Context, username stri
 	return count > 0, nil
 }
 
-func (r *userRepositoryImpl) FindByUsername(ctx context.Context, username string) (*model.User, error) {
+func (r *userRepositoryImpl) FindByUsernameWithProfileAndRoles(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
 	if err := r.db.WithContext(ctx).Preload("Profile").Preload("Roles").Where("username = ?", username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -64,7 +64,7 @@ func (r *userRepositoryImpl) FindByEmail(ctx context.Context, email string) (*mo
 	return &user, nil
 }
 
-func (r *userRepositoryImpl) FindByID(ctx context.Context, id string) (*model.User, error) {
+func (r *userRepositoryImpl) FindByIDWithProfileAndRoles(ctx context.Context, id string) (*model.User, error) {
 	var user model.User
 	if err := r.db.WithContext(ctx).Preload("Profile").Preload("Roles").Where("id = ?", id).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -72,7 +72,7 @@ func (r *userRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Us
 		}
 		return nil, err
 	}
-	
+
 	return &user, nil
 }
 
@@ -94,4 +94,4 @@ func (r *userRepositoryImpl) FindAllByID(ctx context.Context, ids []string) ([]*
 	}
 
 	return users, nil
-} 
+}

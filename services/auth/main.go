@@ -5,14 +5,11 @@ import (
 	"log"
 	"net"
 
-	"github.com/SomeHowMicroservice/shm-be/common/smtp"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/config"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/consumers"
-	"github.com/SomeHowMicroservice/shm-be/services/auth/handler"
+	"github.com/SomeHowMicroservice/shm-be/services/auth/container"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/initialization"
 	"github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
-	"github.com/SomeHowMicroservice/shm-be/services/auth/repository"
-	"github.com/SomeHowMicroservice/shm-be/services/auth/service"
 	"google.golang.org/grpc"
 )
 
@@ -41,22 +38,10 @@ func main() {
 	clients := initialization.InitClients(userAddr)
 
 	grpcServer := grpc.NewServer()
-	cacheRepo := repository.NewCacheRepository(rdb)
+	authContainer := container.NewContainer(cfg, rdb, mqc.Chann, grpcServer, clients.UserClient)
+	protobuf.RegisterAuthServiceServer(grpcServer, authContainer.GRPCHandler)
 
-	mailerCfg := &smtp.MailerConfig{
-		Host: cfg.SMTP.Host,
-		Port: cfg.SMTP.Port,
-		Username: cfg.SMTP.Username,
-		Password: cfg.SMTP.Password,
-	}
-
-	mailer := smtp.NewMailer(mailerCfg)
-	go consumers.StartEmailConsumer(mqc, mailer)
-	
-	svc := service.NewAuthService(cacheRepo, clients.UserClient, mailer, cfg, mqc.Chann)
-	authHandler := handler.NewGRPCHandler(grpcServer, svc)
-
-	protobuf.RegisterAuthServiceServer(grpcServer, authHandler)
+	go consumers.StartEmailConsumer(mqc, authContainer.Mailer)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {

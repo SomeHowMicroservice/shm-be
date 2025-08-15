@@ -41,7 +41,7 @@ type AuthServiceClient interface {
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	ForgotPassword(ctx context.Context, in *ForgotPasswordRequest, opts ...grpc.CallOption) (*ForgotPasswordResponse, error)
 	VerifyForgotPassword(ctx context.Context, in *VerifyForgotPasswordRequest, opts ...grpc.CallOption) (*VerifyForgotPasswordResponse, error)
-	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*AuthUpdatedResponse, error)
+	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
 	AdminSignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*LoggedInResponse, error)
 }
 
@@ -123,9 +123,9 @@ func (c *authServiceClient) VerifyForgotPassword(ctx context.Context, in *Verify
 	return out, nil
 }
 
-func (c *authServiceClient) ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*AuthUpdatedResponse, error) {
+func (c *authServiceClient) ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*UpdatedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthUpdatedResponse)
+	out := new(UpdatedResponse)
 	err := c.cc.Invoke(ctx, AuthService_ResetPassword_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ type AuthServiceServer interface {
 	ChangePassword(context.Context, *ChangePasswordRequest) (*RefreshTokenResponse, error)
 	ForgotPassword(context.Context, *ForgotPasswordRequest) (*ForgotPasswordResponse, error)
 	VerifyForgotPassword(context.Context, *VerifyForgotPasswordRequest) (*VerifyForgotPasswordResponse, error)
-	ResetPassword(context.Context, *ResetPasswordRequest) (*AuthUpdatedResponse, error)
+	ResetPassword(context.Context, *ResetPasswordRequest) (*UpdatedResponse, error)
 	AdminSignIn(context.Context, *SignInRequest) (*LoggedInResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -187,7 +187,7 @@ func (UnimplementedAuthServiceServer) ForgotPassword(context.Context, *ForgotPas
 func (UnimplementedAuthServiceServer) VerifyForgotPassword(context.Context, *VerifyForgotPasswordRequest) (*VerifyForgotPasswordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyForgotPassword not implemented")
 }
-func (UnimplementedAuthServiceServer) ResetPassword(context.Context, *ResetPasswordRequest) (*AuthUpdatedResponse, error) {
+func (UnimplementedAuthServiceServer) ResetPassword(context.Context, *ResetPasswordRequest) (*UpdatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
 }
 func (UnimplementedAuthServiceServer) AdminSignIn(context.Context, *SignInRequest) (*LoggedInResponse, error) {

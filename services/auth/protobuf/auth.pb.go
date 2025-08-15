@@ -21,27 +21,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type AuthUpdatedResponse struct {
+type UpdatedResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AuthUpdatedResponse) Reset() {
-	*x = AuthUpdatedResponse{}
+func (x *UpdatedResponse) Reset() {
+	*x = UpdatedResponse{}
 	mi := &file_services_auth_protobuf_auth_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AuthUpdatedResponse) String() string {
+func (x *UpdatedResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthUpdatedResponse) ProtoMessage() {}
+func (*UpdatedResponse) ProtoMessage() {}
 
-func (x *AuthUpdatedResponse) ProtoReflect() protoreflect.Message {
+func (x *UpdatedResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_services_auth_protobuf_auth_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,12 +53,12 @@ func (x *AuthUpdatedResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AuthUpdatedResponse.ProtoReflect.Descriptor instead.
-func (*AuthUpdatedResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use UpdatedResponse.ProtoReflect.Descriptor instead.
+func (*UpdatedResponse) Descriptor() ([]byte, []int) {
 	return file_services_auth_protobuf_auth_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *AuthUpdatedResponse) GetSuccess() bool {
+func (x *UpdatedResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
@@ -921,8 +921,8 @@ var File_services_auth_protobuf_auth_proto protoreflect.FileDescriptor
 
 const file_services_auth_protobuf_auth_proto_rawDesc = "" +
 	"\n" +
-	"!services/auth/protobuf/auth.proto\x12\x04auth\"/\n" +
-	"\x13AuthUpdatedResponse\x12\x18\n" +
+	"!services/auth/protobuf/auth.proto\x12\x04auth\"+\n" +
+	"\x0fUpdatedResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"k\n" +
 	"\x14ResetPasswordRequest\x120\n" +
 	"\x14reset_password_token\x18\x01 \x01(\tR\x12resetPasswordToken\x12!\n" +
@@ -979,7 +979,7 @@ const file_services_auth_protobuf_auth_proto_rawDesc = "" +
 	"\x11access_expires_in\x18\x02 \x01(\x03R\x0faccessExpiresIn\x12#\n" +
 	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x12,\n" +
 	"\x12refresh_expires_in\x18\x04 \x01(\x03R\x10refreshExpiresIn\x12&\n" +
-	"\x04user\x18\x05 \x01(\v2\x12.auth.AuthResponseR\x04user2\xfe\x04\n" +
+	"\x04user\x18\x05 \x01(\v2\x12.auth.AuthResponseR\x04user2\xfa\x04\n" +
 	"\vAuthService\x123\n" +
 	"\x06SignUp\x12\x13.auth.SignUpRequest\x1a\x14.auth.SignUpResponse\x12A\n" +
 	"\fVerifySignUp\x12\x19.auth.VerifySignUpRequest\x1a\x16.auth.LoggedInResponse\x125\n" +
@@ -987,8 +987,8 @@ const file_services_auth_protobuf_auth_proto_rawDesc = "" +
 	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x1a.auth.RefreshTokenResponse\x12I\n" +
 	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\x1a.auth.RefreshTokenResponse\x12K\n" +
 	"\x0eForgotPassword\x12\x1b.auth.ForgotPasswordRequest\x1a\x1c.auth.ForgotPasswordResponse\x12]\n" +
-	"\x14VerifyForgotPassword\x12!.auth.VerifyForgotPasswordRequest\x1a\".auth.VerifyForgotPasswordResponse\x12F\n" +
-	"\rResetPassword\x12\x1a.auth.ResetPasswordRequest\x1a\x19.auth.AuthUpdatedResponse\x12:\n" +
+	"\x14VerifyForgotPassword\x12!.auth.VerifyForgotPasswordRequest\x1a\".auth.VerifyForgotPasswordResponse\x12B\n" +
+	"\rResetPassword\x12\x1a.auth.ResetPasswordRequest\x1a\x15.auth.UpdatedResponse\x12:\n" +
 	"\vAdminSignIn\x12\x13.auth.SignInRequest\x1a\x16.auth.LoggedInResponseB>Z<github.com/SomeHowMicroservice/shm-be/services/auth/protobufb\x06proto3"
 
 var (
@@ -1005,7 +1005,7 @@ func file_services_auth_protobuf_auth_proto_rawDescGZIP() []byte {
 
 var file_services_auth_protobuf_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_services_auth_protobuf_auth_proto_goTypes = []any{
-	(*AuthUpdatedResponse)(nil),          // 0: auth.AuthUpdatedResponse
+	(*UpdatedResponse)(nil),              // 0: auth.UpdatedResponse
 	(*ResetPasswordRequest)(nil),         // 1: auth.ResetPasswordRequest
 	(*VerifyForgotPasswordResponse)(nil), // 2: auth.VerifyForgotPasswordResponse
 	(*VerifyForgotPasswordRequest)(nil),  // 3: auth.VerifyForgotPasswordRequest
@@ -1041,7 +1041,7 @@ var file_services_auth_protobuf_auth_proto_depIdxs = []int32{
 	8,  // 15: auth.AuthService.ChangePassword:output_type -> auth.RefreshTokenResponse
 	4,  // 16: auth.AuthService.ForgotPassword:output_type -> auth.ForgotPasswordResponse
 	2,  // 17: auth.AuthService.VerifyForgotPassword:output_type -> auth.VerifyForgotPasswordResponse
-	0,  // 18: auth.AuthService.ResetPassword:output_type -> auth.AuthUpdatedResponse
+	0,  // 18: auth.AuthService.ResetPassword:output_type -> auth.UpdatedResponse
 	15, // 19: auth.AuthService.AdminSignIn:output_type -> auth.LoggedInResponse
 	11, // [11:20] is the sub-list for method output_type
 	2,  // [2:11] is the sub-list for method input_type

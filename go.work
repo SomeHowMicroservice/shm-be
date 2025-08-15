@@ -7,5 +7,6 @@ use (
 	./services/payment
 	./services/product
 	./services/user
+	./services/post
 	./common
 )

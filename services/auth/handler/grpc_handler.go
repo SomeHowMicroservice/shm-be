@@ -11,16 +11,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type grpcHandler struct {
+type GRPCHandler struct {
 	protobuf.UnimplementedAuthServiceServer
 	svc service.AuthService
 }
 
-func NewGRPCHandler(grpcServer *grpc.Server, svc service.AuthService) *grpcHandler {
-	return &grpcHandler{svc: svc}
+func NewGRPCHandler(grpcServer *grpc.Server, svc service.AuthService) *GRPCHandler {
+	return &GRPCHandler{svc: svc}
 }
 
-func (h *grpcHandler) SignUp(ctx context.Context, req *protobuf.SignUpRequest) (*protobuf.SignUpResponse, error) {
+func (h *GRPCHandler) SignUp(ctx context.Context, req *protobuf.SignUpRequest) (*protobuf.SignUpResponse, error) {
 	token, err := h.svc.SignUp(ctx, req)
 	if err != nil {
 		switch err {
@@ -36,7 +36,7 @@ func (h *grpcHandler) SignUp(ctx context.Context, req *protobuf.SignUpRequest) (
 	}, nil
 }
 
-func (h *grpcHandler) VerifySignUp(ctx context.Context, req *protobuf.VerifySignUpRequest) (*protobuf.LoggedInResponse, error) {
+func (h *GRPCHandler) VerifySignUp(ctx context.Context, req *protobuf.VerifySignUpRequest) (*protobuf.LoggedInResponse, error) {
 	user, accessToken, accessExpiresIn, refreshToken, refreshExpiresIn, err := h.svc.VerifySignUp(ctx, req)
 	if err != nil {
 		switch err {
@@ -59,7 +59,7 @@ func (h *grpcHandler) VerifySignUp(ctx context.Context, req *protobuf.VerifySign
 	}, nil
 }
 
-func (h *grpcHandler) SignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.LoggedInResponse, error) {
+func (h *GRPCHandler) SignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.LoggedInResponse, error) {
 	user, accessToken, accessExpiresIn, refreshToken, refreshExpiresIn, err := h.svc.SignIn(ctx, req)
 	if err != nil {
 		switch err {
@@ -83,7 +83,7 @@ func (h *grpcHandler) SignIn(ctx context.Context, req *protobuf.SignInRequest) (
 	}, nil
 }
 
-func (h *grpcHandler) RefreshToken(ctx context.Context, req *protobuf.RefreshTokenRequest) (*protobuf.RefreshTokenResponse, error) {
+func (h *GRPCHandler) RefreshToken(ctx context.Context, req *protobuf.RefreshTokenRequest) (*protobuf.RefreshTokenResponse, error) {
 	accessToken, accessExpiresIn, refreshToken, refreshExpiresIn, err := h.svc.RefreshToken(ctx, req)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -96,7 +96,7 @@ func (h *grpcHandler) RefreshToken(ctx context.Context, req *protobuf.RefreshTok
 	}, nil
 }
 
-func (h *grpcHandler) ChangePassword(ctx context.Context, req *protobuf.ChangePasswordRequest) (*protobuf.RefreshTokenResponse, error) {
+func (h *GRPCHandler) ChangePassword(ctx context.Context, req *protobuf.ChangePasswordRequest) (*protobuf.RefreshTokenResponse, error) {
 	accessToken, accessExpiresIn, refreshToken, refreshExpiresIn, err := h.svc.ChangePassword(ctx, req)
 	if err != nil {
 		switch err {
@@ -116,7 +116,7 @@ func (h *grpcHandler) ChangePassword(ctx context.Context, req *protobuf.ChangePa
 	}, nil
 }
 
-func (h *grpcHandler) ForgotPassword(ctx context.Context, req *protobuf.ForgotPasswordRequest) (*protobuf.ForgotPasswordResponse, error) {
+func (h *GRPCHandler) ForgotPassword(ctx context.Context, req *protobuf.ForgotPasswordRequest) (*protobuf.ForgotPasswordResponse, error) {
 	token, err := h.svc.ForgotPassword(ctx, req)
 	if err != nil {
 		switch err {
@@ -132,7 +132,7 @@ func (h *grpcHandler) ForgotPassword(ctx context.Context, req *protobuf.ForgotPa
 	}, nil
 }
 
-func (h *grpcHandler) VerifyForgotPassword(ctx context.Context, req *protobuf.VerifyForgotPasswordRequest) (*protobuf.VerifyForgotPasswordResponse, error) {
+func (h *GRPCHandler) VerifyForgotPassword(ctx context.Context, req *protobuf.VerifyForgotPasswordRequest) (*protobuf.VerifyForgotPasswordResponse, error) {
 	token, err := h.svc.VerifyForgotPassword(ctx, req)
 	if err != nil {
 		switch err {
@@ -150,7 +150,7 @@ func (h *grpcHandler) VerifyForgotPassword(ctx context.Context, req *protobuf.Ve
 	}, nil
 }
 
-func (h *grpcHandler) ResetPassword(ctx context.Context, req *protobuf.ResetPasswordRequest) (*protobuf.AuthUpdatedResponse, error) {
+func (h *GRPCHandler) ResetPassword(ctx context.Context, req *protobuf.ResetPasswordRequest) (*protobuf.UpdatedResponse, error) {
 	if err := h.svc.ResetPassword(ctx, req); err != nil {
 		switch err {
 		case customErr.ErrUserNotFound, customErr.ErrAuthDataNotFound:
@@ -160,12 +160,12 @@ func (h *grpcHandler) ResetPassword(ctx context.Context, req *protobuf.ResetPass
 		}
 	}
 
-	return &protobuf.AuthUpdatedResponse{
+	return &protobuf.UpdatedResponse{
 		Success: true,
 	}, nil
 }
 
-func (h *grpcHandler) AdminSignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.LoggedInResponse, error) {
+func (h *GRPCHandler) AdminSignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.LoggedInResponse, error) {
 	user, accessToken, accessExpiresIn, refreshToken, refreshExpiresIn, err := h.svc.AdminSignIn(ctx, req)
 	if err != nil {
 		switch err {

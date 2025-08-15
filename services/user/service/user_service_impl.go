@@ -70,7 +70,7 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, fmt.Errorf("tạo người dùng thất bại: %w", err)
 	}
-	// Lấy quyền user để xét
+
 	role, err := s.roleRepo.FindByName(ctx, model.RoleUser)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin quyền thất bại: %w", err)
@@ -78,18 +78,18 @@ func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUs
 	if role == nil {
 		return nil, customErr.ErrRoleNotFound
 	}
-	// Thêm quyền cho người dùng
+
 	if err = s.roleRepo.CreateUserRoles(ctx, user.ID, role.ID); err != nil {
 		return nil, fmt.Errorf("thêm quyền cho người dùng thất bại: %w", err)
 	}
-	// Gán quyền vào phản hổi
+
 	user.Roles = []*model.Role{role}
 
 	return user, nil
 }
 
 func (s *userServiceImpl) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
-	user, err := s.userRepo.FindByUsername(ctx, username)
+	user, err := s.userRepo.FindByUsernameWithProfileAndRoles(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
 	}
@@ -100,7 +100,7 @@ func (s *userServiceImpl) GetUserByUsername(ctx context.Context, username string
 }
 
 func (s *userServiceImpl) GetUserByID(ctx context.Context, id string) (*model.User, error) {
-	user, err := s.userRepo.FindByID(ctx, id)
+	user, err := s.userRepo.FindByIDWithProfileAndRoles(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
 	}
@@ -161,7 +161,7 @@ func (s *userServiceImpl) UpdateUserProfile(ctx context.Context, req *protobuf.U
 		}
 	}
 	// Lấy lại user đã cập nhật
-	updatedUser, err := s.userRepo.FindByID(ctx, req.UserId)
+	updatedUser, err := s.userRepo.FindByIDWithProfileAndRoles(ctx, req.UserId)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
 	}
