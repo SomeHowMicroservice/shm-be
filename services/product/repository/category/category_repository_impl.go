@@ -134,8 +134,29 @@ func (r *categoryRepositoryImpl) FindByIDWithParentsTx(ctx context.Context, tx *
 		&common.Preload{Relation: "Parents"})
 }
 
-func (r *categoryRepositoryImpl) GetAllDescendants(ctx context.Context, categoryID string) ([]string, error) {
-	var childIDs []string
+func (r *categoryRepositoryImpl) GetAllAncestors(ctx context.Context, id string) ([]string, error) {
+	var ancestors []string
+	query := `
+	WITH RECURSIVE ancestors AS (
+		SELECT parent_id
+		FROM category_parents
+		WHERE child_id = ?
+		UNION
+		SELECT cp.parent_id
+		FROM category_parents cp
+		INNER JOIN ancestors a ON cp.child_id = a.parent_id
+	)
+	SELECT DISTINCT parent_id FROM ancestors;
+	`
+	if err := r.db.WithContext(ctx).Raw(query, id).Scan(&ancestors).Error; err != nil {
+		return nil, err
+	}
+
+	return ancestors, nil
+}
+
+func (r *categoryRepositoryImpl) GetAllDescendants(ctx context.Context, id string) ([]string, error) {
+	var descendants []string
 	query := `
 	WITH RECURSIVE descendants AS (
 		SELECT child_id 
@@ -148,10 +169,11 @@ func (r *categoryRepositoryImpl) GetAllDescendants(ctx context.Context, category
 	)
 	SELECT child_id FROM descendants;
 	`
-	if err := r.db.WithContext(ctx).Raw(query, categoryID).Scan(&childIDs).Error; err != nil {
+	if err := r.db.WithContext(ctx).Raw(query, id).Scan(&descendants).Error; err != nil {
 		return nil, err
 	}
-	return childIDs, nil
+
+	return descendants, nil
 }
 
 func (r *categoryRepositoryImpl) findByIDBase(ctx context.Context, tx *gorm.DB, id string, looking *common.Locking, preloads ...*common.Preload) (*model.Category, error) {

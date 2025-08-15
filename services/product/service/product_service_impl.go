@@ -73,11 +73,13 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 	}
 
 	var parents []*model.Category
+	var err error
 	if len(req.ParentIds) > 0 {
-		if err := s.validateNoCycle(ctx, "", req.ParentIds); err != nil {
+		if err = s.validateParentRelations(ctx, req.ParentIds); err != nil {
 			return nil, err
 		}
-		parents, err := s.categoryRepo.FindAllByID(ctx, req.ParentIds)
+
+		parents, err = s.categoryRepo.FindAllByID(ctx, req.ParentIds)
 		if err != nil {
 			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
 		}
@@ -325,7 +327,10 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 
 		parentIDs := getIDsFromCategories(category.Parents)
 		if !slices.Equal(parentIDs, req.ParentIds) {
-			if err := s.validateNoCycle(ctx, category.ID, req.ParentIds); err != nil {
+			if err = s.validateParentRelations(ctx, req.ParentIds); err != nil {
+				return err
+			}
+			if err = s.validateNoCycleWithCategory(ctx, req.Id, req.ParentIds); err != nil {
 				return err
 			}
 
@@ -2098,29 +2103,63 @@ func (s *productServiceImpl) PermanentlyDeleteTags(ctx context.Context, req *pro
 	return nil
 }
 
-func (s *productServiceImpl) validateNoCycle(ctx context.Context, categoryID string, parentIDs []string) error {
-	// 1. Nếu đang UPDATE: Lấy toàn bộ descendants
-	// Vì nếu một parent mới là con/cháu hiện tại => tạo vòng lặp
-	if categoryID != "" {
-		descendants, err := s.categoryRepo.GetAllDescendants(ctx, categoryID)
-		if err != nil {
-			return fmt.Errorf("lấy danh mục con thất bại: %w", err)
-		}
-		// Thêm chính nó vào danh sách cấm
-		blocked := map[string]struct{}{categoryID: {}}
-		for _, d := range descendants {
-			blocked[d] = struct{}{}
-		}
+func (s *productServiceImpl) validateParentRelations(ctx context.Context, parentIDs []string) error {
+	if len(parentIDs) <= 1 {
+		return nil
+	}
 
-		for _, pid := range parentIDs {
-			if _, exists := blocked[pid]; exists {
-				return fmt.Errorf("danh mục %s không thể được gán làm cha vì tạo vòng lặp", pid)
+	idSet := make(map[string]struct{}, len(parentIDs))
+	for _, id := range parentIDs {
+		idSet[id] = struct{}{}
+	}
+
+	for _, id := range parentIDs {
+		ancestors, err := s.categoryRepo.GetAllAncestors(ctx, id)
+		if err != nil {
+			return fmt.Errorf("failed to validate parent relations: %w", err)
+		}
+		for _, anc := range ancestors {
+			if _, ok := idSet[anc]; ok {
+				return fmt.Errorf("invalid parent IDs: IDs %s and %s have an ancestor-descendant relationship", anc, id)
 			}
 		}
 	}
 
-	// 2. Nếu đang CREATE: chỉ cần đảm bảo không gửi trùng ID hoặc logic business khác
-	// Nếu cần cấm việc tạo danh mục cha-con sai => check tương tự bằng ancestor query của từng parent
+	return nil
+}
+
+func (s *productServiceImpl) validateNoCycleWithCategory(ctx context.Context, categoryID string, parentIDs []string) error {
+	if len(parentIDs) == 0 {
+		return nil
+	}
+
+	descendants, err := s.categoryRepo.GetAllDescendants(ctx, categoryID)
+	if err != nil {
+		return fmt.Errorf("failed to validate cycle: %w", err)
+	}
+	descSet := make(map[string]struct{}, len(descendants))
+	for _, d := range descendants {
+		descSet[d] = struct{}{}
+	}
+
+	ancestors, err := s.categoryRepo.GetAllAncestors(ctx, categoryID)
+	if err != nil {
+		return fmt.Errorf("failed to validate cycle: %w", err)
+	}
+	ancSet := make(map[string]struct{}, len(ancestors))
+	for _, a := range ancestors {
+		ancSet[a] = struct{}{}
+	}
+
+	for _, pid := range parentIDs {
+		if _, ok := descSet[pid]; ok {
+			return fmt.Errorf("invalid parent ID %s: it is a descendant of the category, would create cycle", pid)
+		}
+		if _, ok := ancSet[pid]; ok {
+			return fmt.Errorf("invalid parent ID %s: it is already an ancestor of the category, redundant assignment", pid)
+		}
+	}
+
 	return nil
 }
 

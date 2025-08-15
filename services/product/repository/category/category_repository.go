@@ -46,5 +46,7 @@ type CategoryRepository interface {
 
 	FindAllByIDTx(ctx context.Context, tx *gorm.DB, ids []string) ([]*model.Category, error)
 
-	GetAllDescendants(ctx context.Context, categoryID string) ([]string, error)
+	GetAllAncestors(ctx context.Context, id string) ([]string, error)
+
+	GetAllDescendants(ctx context.Context, id string) ([]string, error)
 }
