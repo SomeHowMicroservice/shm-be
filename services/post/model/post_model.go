@@ -7,7 +7,7 @@ type Post struct {
 	Title       string    `gorm:"type:varchar(255);not null" json:"title"`
 	Slug        string    `gorm:"type:varchar(255);uniqueIndex:posts_slug_key;not null" json:"slug"`
 	Content     string    `gorm:"type:text;not null" json:"content"`
-	Viewed      int       `gorm:"type:bigint;not null;default:0" json:"viewed"`
+	Viewed      int       `gorm:"type:int;not null;default:0" json:"viewed"`
 	IsPublished bool      `gorm:"type:boolean;not null;default:true" json:"is_published"`
 	IsDeleted   bool      `gorm:"type:boolean;not null;default:false" json:"is_deleted"`
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`

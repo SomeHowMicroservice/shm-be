@@ -264,7 +264,7 @@ func (s *productServiceImpl) GetCategoryByID(ctx context.Context, categoryID str
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -279,7 +279,7 @@ func (s *productServiceImpl) GetCategoryByID(ctx context.Context, categoryID str
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -368,7 +368,7 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -383,7 +383,7 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -923,7 +923,7 @@ func (s *productServiceImpl) GetProductByID(ctx context.Context, productID strin
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -938,7 +938,7 @@ func (s *productServiceImpl) GetProductByID(ctx context.Context, productID strin
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -1286,7 +1286,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -1301,7 +1301,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -1504,7 +1504,7 @@ func (s *productServiceImpl) GetDeletedProductByID(ctx context.Context, productI
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
@@ -1519,7 +1519,7 @@ func (s *productServiceImpl) GetDeletedProductByID(ctx context.Context, productI
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrHasUserNotFound
+				return nil, customErr.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}

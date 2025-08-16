@@ -157,7 +157,7 @@ func (h *GRPCHandler) GetCategoryById(ctx context.Context, req *protobuf.GetCate
 	convertedCategory, err := h.svc.GetCategoryByID(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case customErr.ErrUserNotFound:
+		case customErr.ErrUserNotFound, customErr.ErrCategoryNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -315,7 +315,7 @@ func (h *GRPCHandler) GetProductById(ctx context.Context, req *protobuf.GetProdu
 	convertedProduct, err := h.svc.GetProductByID(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case customErr.ErrProductNotFound:
+		case customErr.ErrProductNotFound, customErr.ErrUserNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -340,7 +340,7 @@ func (h *GRPCHandler) UpdateProduct(ctx context.Context, req *protobuf.UpdatePro
 		switch err {
 		case customErr.ErrSlugAlreadyExists, customErr.ErrHasSKUAlreadyExists:
 			return nil, status.Error(codes.AlreadyExists, err.Error())
-		case customErr.ErrHasCategoryNotFound, customErr.ErrHasTagNotFound, customErr.ErrHasImageNotFound, customErr.ErrHasVariantNotFound, customErr.ErrProductNotFound, customErr.ErrVariantNotFound, customErr.ErrImageNotFound:
+		case customErr.ErrUserNotFound, customErr.ErrHasCategoryNotFound, customErr.ErrHasTagNotFound, customErr.ErrHasImageNotFound, customErr.ErrHasVariantNotFound, customErr.ErrProductNotFound, customErr.ErrVariantNotFound, customErr.ErrImageNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -517,7 +517,7 @@ func (h *GRPCHandler) GetDeletedProductById(ctx context.Context, req *protobuf.G
 	convertedProduct, err := h.svc.GetDeletedProductByID(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case customErr.ErrProductNotFound:
+		case customErr.ErrProductNotFound, customErr.ErrUserNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
