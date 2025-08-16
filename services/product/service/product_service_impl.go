@@ -851,10 +851,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 			Inventory: &model.Inventory{
 				ID:          uuid.NewString(),
 				Quantity:    int(v.Quantity),
-				UpdatedByID: req.UserId,
 			},
-			CreatedByID: req.UserId,
-			UpdatedByID: req.UserId,
 		}
 		variant.Inventory.SetStock()
 
@@ -878,8 +875,6 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 			Url:         imageUrl,
 			IsThumbnail: img.IsThumbnail,
 			SortOrder:   int(img.SortOrder),
-			CreatedByID: req.UserId,
-			UpdatedByID: req.UserId,
 		}
 
 		uploadFileRequest := &common.Base64UploadRequest{
@@ -1165,8 +1160,6 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 					Url:         imageUrl,
 					IsThumbnail: img.IsThumbnail,
 					SortOrder:   int(img.SortOrder),
-					CreatedByID: req.UserId,
-					UpdatedByID: req.UserId,
 				}
 
 				uploadFileRequest := &common.Base64UploadRequest{
@@ -1259,10 +1252,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 					Inventory: &model.Inventory{
 						ID:          uuid.NewString(),
 						Quantity:    int(v.Quantity),
-						UpdatedByID: req.UserId,
 					},
-					CreatedByID: req.UserId,
-					UpdatedByID: req.UserId,
 				}
 				variant.Inventory.SetStock()
 				newVariants = append(newVariants, variant)

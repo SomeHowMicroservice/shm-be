@@ -6,7 +6,7 @@ type Product struct {
 	ID          string     `gorm:"type:char(36);primaryKey" json:"id"`
 	Title       string     `gorm:"type:varchar(255);not null" json:"title"`
 	Slug        string     `gorm:"type:varchar(255);uniqueIndex:products_slug_key;not null" json:"slug"`
-	Description string     `gorm:"type:text" json:"description"`
+	Description string     `gorm:"type:text;not null" json:"description"`
 	Price       float32    `gorm:"type:decimal(10,2);not null" json:"price"`
 	IsActive    bool       `gorm:"type:boolean;not null;default:true" json:"is_active"`
 	IsSale      bool       `gorm:"type:boolean;not null" json:"is_sale"`
@@ -21,6 +21,6 @@ type Product struct {
 
 	Categories []*Category `gorm:"many2many:product_categories;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"categories"`
 	Tags       []*Tag      `gorm:"many2many:product_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"tags"`
-	Variants   []*Variant  `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE;OnDelete:CASCADE" json:"variants,omitempty"`
-	Images     []*Image    `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE;OnDelete:CASCADE" json:"images,omitempty"`
+	Variants   []*Variant  `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE;OnDelete:CASCADE" json:"variants"`
+	Images     []*Image    `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE;OnDelete:CASCADE" json:"images"`
 }
