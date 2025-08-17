@@ -66,7 +66,7 @@ func NewProductService(cfg *config.Config, db *gorm.DB, userClient userpb.UserSe
 	}
 }
 
-func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*model.Category, error) {
+func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (string, error) {
 	if req.Slug == nil {
 		slug := common.GenerateSlug(req.Name)
 		req.Slug = &slug
@@ -76,15 +76,15 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 	var err error
 	if len(req.ParentIds) > 0 {
 		if err = s.validateParentRelations(ctx, req.ParentIds); err != nil {
-			return nil, err
+			return "", err
 		}
 
 		parents, err = s.categoryRepo.FindAllByID(ctx, req.ParentIds)
 		if err != nil {
-			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
+			return "", fmt.Errorf("tìm kiếm danh mục sản phẩm cha thất bại: %w", err)
 		}
 		if len(parents) != len(req.ParentIds) {
-			return nil, customErr.ErrHasCategoryNotFound
+			return "", customErr.ErrHasCategoryNotFound
 		}
 	}
 
@@ -96,14 +96,14 @@ func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.C
 		CreatedByID: req.UserId,
 		UpdatedByID: req.UserId,
 	}
-	if err := s.categoryRepo.Create(ctx, category); err != nil {
+	if err = s.categoryRepo.Create(ctx, category); err != nil {
 		if isUniqueViolation(err) {
-			return nil, customErr.ErrSlugAlreadyExists
+			return "", customErr.ErrSlugAlreadyExists
 		}
-		return nil, fmt.Errorf("tạo danh mục sản phẩm thất bại: %w", err)
+		return "", fmt.Errorf("tạo danh mục sản phẩm thất bại: %w", err)
 	}
 
-	return category, nil
+	return category.ID, nil
 }
 
 func (s *productServiceImpl) GetCategoryTree(ctx context.Context) ([]*model.Category, error) {
@@ -162,7 +162,7 @@ func (s *productServiceImpl) GetProductBySlug(ctx context.Context, productSlug s
 	return product, nil
 }
 
-func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error) {
+func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (string, error) {
 	slug := common.GenerateSlug(req.Name)
 
 	color := &model.Color{
@@ -174,15 +174,15 @@ func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.Crea
 	}
 	if err := s.colorRepo.Create(ctx, color); err != nil {
 		if isUniqueViolation(err) {
-			return nil, customErr.ErrColorAlreadyExists
+			return "", customErr.ErrColorAlreadyExists
 		}
-		return nil, fmt.Errorf("tạo màu sắc thất bại: %w", err)
+		return "", fmt.Errorf("tạo màu sắc thất bại: %w", err)
 	}
 
-	return color, nil
+	return color.ID, nil
 }
 
-func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*model.Size, error) {
+func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (string, error) {
 	slug := common.GenerateSlug(req.Name)
 
 	size := &model.Size{
@@ -194,12 +194,12 @@ func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.Creat
 	}
 	if err := s.sizeRepo.Create(ctx, size); err != nil {
 		if isUniqueViolation(err) {
-			return nil, customErr.ErrSizeAlreadyExists
+			return "", customErr.ErrSizeAlreadyExists
 		}
-		return nil, fmt.Errorf("tạo size thất bại: %w", err)
+		return "", fmt.Errorf("tạo size thất bại: %w", err)
 	}
 
-	return size, nil
+	return size.ID, nil
 }
 
 func (s *productServiceImpl) GetProductsByCategory(ctx context.Context, categorySlug string) ([]*model.Product, error) {
@@ -219,7 +219,7 @@ func (s *productServiceImpl) GetProductsByCategory(ctx context.Context, category
 	return products, nil
 }
 
-func (s *productServiceImpl) CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (*model.Tag, error) {
+func (s *productServiceImpl) CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (string, error) {
 	slug := common.GenerateSlug(req.Name)
 
 	tag := &model.Tag{
@@ -231,12 +231,12 @@ func (s *productServiceImpl) CreateTag(ctx context.Context, req *protobuf.Create
 	}
 	if err := s.tagRepo.Create(ctx, tag); err != nil {
 		if isUniqueViolation(err) {
-			return nil, customErr.ErrTagAlreadyExists
+			return "", customErr.ErrTagAlreadyExists
 		}
-		return nil, fmt.Errorf("tạo nhãn sản phẩm thất bại: %w", err)
+		return "", fmt.Errorf("tạo nhãn sản phẩm thất bại: %w", err)
 	}
 
-	return tag, nil
+	return tag.ID, nil
 }
 
 func (s *productServiceImpl) GetAllCategories(ctx context.Context) ([]*model.Category, error) {
@@ -766,7 +766,7 @@ func (s *productServiceImpl) GetCategoriesNoChild(ctx context.Context) ([]*model
 	return noChildCategories, nil
 }
 
-func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error) {
+func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (string, error) {
 	slug := common.GenerateSlug(req.Title)
 
 	var categories []*model.Category
@@ -774,15 +774,15 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	if len(req.CategoryIds) > 0 {
 		categories, err = s.categoryRepo.FindAllByIDWithChildren(ctx, req.CategoryIds)
 		if err != nil {
-			return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
+			return "", fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
 		}
 		if len(categories) != len(req.CategoryIds) {
-			return nil, customErr.ErrHasCategoryNotFound
+			return "", customErr.ErrHasCategoryNotFound
 		}
 
 		for _, c := range categories {
 			if len(c.Children) > 0 {
-				return nil, fmt.Errorf("danh mục %s có danh mục con, không thể được gán cho sản phẩm", c.Name)
+				return "", fmt.Errorf("danh mục %s có danh mục con, không thể được gán cho sản phẩm", c.Name)
 			}
 		}
 	}
@@ -791,10 +791,10 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	if len(req.TagIds) > 0 {
 		tags, err = s.tagRepo.FindAllByID(ctx, req.TagIds)
 		if err != nil {
-			return nil, fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
+			return "", fmt.Errorf("tìm kiếm tag sản phẩm thất bại: %w", err)
 		}
 		if len(tags) != len(req.TagIds) {
-			return nil, customErr.ErrHasTagNotFound
+			return "", customErr.ErrHasTagNotFound
 		}
 	}
 
@@ -802,18 +802,16 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	if req.StartSale != nil && req.EndSale != nil {
 		parsedStartSale, err := common.ParseDate(*req.StartSale)
 		if err != nil {
-			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian bắt đầu giảm giá thất bại: %w", err)
+			return "", fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian bắt đầu giảm giá thất bại: %w", err)
 		}
 		startSale = &parsedStartSale
 
 		parsedEndSale, err := common.ParseDate(*req.EndSale)
 		if err != nil {
-			return nil, fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian kết thúc giảm giá thất bại: %w", err)
+			return "", fmt.Errorf("chuyển đổi kiểu dữ liệu thời gian kết thúc giảm giá thất bại: %w", err)
 		}
 		endSale = &parsedEndSale
 	}
-
-	fmt.Println(categories, tags)
 
 	product := &model.Product{
 		ID:          uuid.NewString(),
@@ -836,10 +834,10 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	for _, v := range req.Variants {
 		exists, err := s.variantRepo.ExistsBySKU(ctx, v.Sku)
 		if err != nil {
-			return nil, fmt.Errorf("kiểm tra mã SKU biến thể thất bại: %w", err)
+			return "", fmt.Errorf("kiểm tra mã SKU biến thể thất bại: %w", err)
 		}
 		if exists {
-			return nil, customErr.ErrSKUAlreadyExists
+			return "", customErr.ErrSKUAlreadyExists
 		}
 
 		variant := &model.Variant{
@@ -886,25 +884,25 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 
 		body, err := json.Marshal(uploadFileRequest)
 		if err != nil {
-			return nil, fmt.Errorf("marshal json thất bại: %w", err)
+			return "", fmt.Errorf("marshal json thất bại: %w", err)
 		}
 
 		if err = mq.PublishMessage(s.mqChannel, "", "image.upload", body); err != nil {
-			return nil, fmt.Errorf("publish upload image msg thất bại: %w", err)
+			return "", fmt.Errorf("publish upload image msg thất bại: %w", err)
 		}
 
 		images = append(images, image)
 	}
 	product.Images = images
 
-	if err := s.productRepo.Create(ctx, product); err != nil {
+	if err = s.productRepo.Create(ctx, product); err != nil {
 		if isUniqueViolation(err) {
-			return nil, customErr.ErrSlugAlreadyExists
+			return "", customErr.ErrSlugAlreadyExists
 		}
-		return nil, fmt.Errorf("tạo sản phẩm thất bại: %w", err)
+		return "", fmt.Errorf("tạo sản phẩm thất bại: %w", err)
 	}
 
-	return product, nil
+	return product.ID, nil
 }
 
 func (s *productServiceImpl) GetProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error) {
@@ -1050,7 +1048,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 			}
 		}
 		if req.UserId != product.UpdatedByID {
-			updateProductData["update_by_id"] = req.UserId
+			updateProductData["updated_by_id"] = req.UserId
 		}
 
 		if len(updateProductData) > 0 {
@@ -1225,7 +1223,6 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 				if variant.Quantity != nil {
 					updateData := map[string]interface{}{
 						"quantity":      int(*variant.Quantity),
-						"updated_by_id": req.UserId,
 						"stock":         gorm.Expr("quantity - sold_quantity"),
 						"is_stock":      gorm.Expr("CASE WHEN (quantity - sold_quantity) <= 5 THEN false ELSE true END"),
 					}

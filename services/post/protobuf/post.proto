@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package post;
+option go_package = "github.com/SomeHowMicroservice/shm-be/services/post/protobuf";
+
+service PostService {
+  rpc CreateTopic(CreateTopicRequest) returns (CreatedResponse);
+}
+
+message CreateTopicRequest {
+  string name = 1;
+  optional string slug = 2;
+  string user_id = 3;
+}
+
+message CreatedResponse {
+  string id = 1;
+}

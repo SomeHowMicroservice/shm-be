@@ -9,7 +9,7 @@ import (
 )
 
 type ProductService interface {
-	CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*model.Category, error)
+	CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (string, error)
 
 	GetCategoryTree(ctx context.Context) ([]*model.Category, error)
 
@@ -19,13 +19,13 @@ type ProductService interface {
 
 	GetProductBySlug(ctx context.Context, productSlug string) (*model.Product, error)
 
-	CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*model.Color, error)
+	CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (string, error)
 
-	CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*model.Size, error)
+	CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (string, error)
 
 	GetProductsByCategory(ctx context.Context, categorySlug string) ([]*model.Product, error)
 
-	CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (*model.Tag, error)
+	CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (string, error)
 
 	GetAllCategories(ctx context.Context) ([]*model.Category, error)
 
@@ -47,7 +47,7 @@ type ProductService interface {
 
 	GetAllTags(ctx context.Context) ([]*model.Tag, error)
 
-	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*model.Product, error)
+	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (string, error)
 
 	GetProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error)
 

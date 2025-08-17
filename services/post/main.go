@@ -6,8 +6,14 @@ import (
 	"net"
 
 	"github.com/SomeHowMicroservice/shm-be/services/post/config"
+	"github.com/SomeHowMicroservice/shm-be/services/post/container"
 	"github.com/SomeHowMicroservice/shm-be/services/post/initialization"
+	"github.com/SomeHowMicroservice/shm-be/services/post/protobuf"
 	"google.golang.org/grpc"
+)
+
+var (
+	userAddr = "localhost:8082"
 )
 
 func main() {
@@ -21,9 +27,13 @@ func main() {
 		log.Fatalf("Lỗi kết nối DB ở Post Service: %v", err)
 	}
 
-	log.Println(db)
+	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
+	clients := initialization.InitClients(userAddr)
 
 	grpcServer := grpc.NewServer()
+	postContainer := container.NewContainer(cfg, db, grpcServer, clients.UserClient)
+	protobuf.RegisterPostServiceServer(grpcServer, postContainer.GRPCHandler)
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {
 		log.Fatalf("Không thể lắng nghe: %v", err)

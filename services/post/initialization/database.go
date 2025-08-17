@@ -4,11 +4,16 @@ import (
 	"fmt"
 
 	"github.com/SomeHowMicroservice/shm-be/services/post/config"
+	"github.com/SomeHowMicroservice/shm-be/services/post/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-var allModels = []interface{}{}
+var allModels = []interface{}{
+	&model.Post{},
+	&model.Image{},
+	&model.Topic{},
+}
 
 func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(

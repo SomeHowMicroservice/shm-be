@@ -24,7 +24,7 @@ func NewGRPCHandler(grpcServer *grpc.Server, svc service.ProductService) *GRPCHa
 }
 
 func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (*protobuf.CreatedResponse, error) {
-	category, err := h.svc.CreateCategory(ctx, req)
+	categoryID, err := h.svc.CreateCategory(ctx, req)
 	if err != nil {
 		switch err {
 		case customErr.ErrSlugAlreadyExists:
@@ -37,7 +37,7 @@ func (h *GRPCHandler) CreateCategory(ctx context.Context, req *protobuf.CreateCa
 	}
 
 	return &protobuf.CreatedResponse{
-		Id: category.ID,
+		Id: categoryID,
 	}, nil
 }
 
@@ -76,7 +76,7 @@ func (h *GRPCHandler) GetProductBySlug(ctx context.Context, req *protobuf.GetPro
 }
 
 func (h *GRPCHandler) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (*protobuf.CreatedResponse, error) {
-	color, err := h.svc.CreateColor(ctx, req)
+	colorID, err := h.svc.CreateColor(ctx, req)
 	if err != nil {
 		switch err {
 		case customErr.ErrColorAlreadyExists:
@@ -87,12 +87,12 @@ func (h *GRPCHandler) CreateColor(ctx context.Context, req *protobuf.CreateColor
 	}
 
 	return &protobuf.CreatedResponse{
-		Id: color.ID,
+		Id: colorID,
 	}, nil
 }
 
 func (h *GRPCHandler) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (*protobuf.CreatedResponse, error) {
-	size, err := h.svc.CreateSize(ctx, req)
+	sizeID, err := h.svc.CreateSize(ctx, req)
 	if err != nil {
 		switch err {
 		case customErr.ErrSizeAlreadyExists:
@@ -103,7 +103,7 @@ func (h *GRPCHandler) CreateSize(ctx context.Context, req *protobuf.CreateSizeRe
 	}
 
 	return &protobuf.CreatedResponse{
-		Id: size.ID,
+		Id: sizeID,
 	}, nil
 }
 
@@ -122,7 +122,7 @@ func (h *GRPCHandler) GetProductsByCategory(ctx context.Context, req *protobuf.G
 }
 
 func (h *GRPCHandler) CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (*protobuf.CreatedResponse, error) {
-	tag, err := h.svc.CreateTag(ctx, req)
+	tagID, err := h.svc.CreateTag(ctx, req)
 	if err != nil {
 		switch err {
 		case customErr.ErrTagAlreadyExists:
@@ -133,7 +133,7 @@ func (h *GRPCHandler) CreateTag(ctx context.Context, req *protobuf.CreateTagRequ
 	}
 
 	return &protobuf.CreatedResponse{
-		Id: tag.ID,
+		Id: tagID,
 	}, nil
 }
 
@@ -278,7 +278,7 @@ func (h *GRPCHandler) UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequ
 }
 
 func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (*protobuf.CreatedResponse, error) {
-	product, err := h.svc.CreateProduct(ctx, req)
+	productID, err := h.svc.CreateProduct(ctx, req)
 	if err != nil {
 		switch err {
 		case customErr.ErrSlugAlreadyExists:
@@ -291,7 +291,7 @@ func (h *GRPCHandler) CreateProduct(ctx context.Context, req *protobuf.CreatePro
 	}
 
 	return &protobuf.CreatedResponse{
-		Id: product.ID,
+		Id: productID,
 	}, nil
 }
 
