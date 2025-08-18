@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/SomeHowMicroservice/shm-be/gateway/config"
 	"github.com/SomeHowMicroservice/shm-be/gateway/container"
 	"github.com/SomeHowMicroservice/shm-be/gateway/initialization"
@@ -15,6 +16,7 @@ var (
 	authAddr = "localhost:8081"
 	userAddr = "localhost:8082"
 	productAddr = "localhost:8083"
+	postAddr = "localhost:8084"
 )
 
 func main() {
@@ -26,9 +28,16 @@ func main() {
 	authAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.AuthPort)
 	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
 	productAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.ProductPort)
-	clients := initialization.InitClients(authAddr, userAddr, productAddr)
+	postAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.PostPort)
+	ca := &common.ClientAddresses{
+		AuthAddr: authAddr, 
+		UserAddr: userAddr, 
+		ProductAddr: productAddr, 
+		PostAddr: postAddr,
+	}
 
-	appContainer := container.NewContainer(clients.AuthClient, clients.UserClient, clients.ProductClient, cfg)
+	clients := initialization.InitClients(ca)
+	appContainer := container.NewContainer(clients, cfg)
 
 	r := gin.Default()
 	config.CORSConfig(r)
@@ -37,6 +46,7 @@ func main() {
 	router.AuthRouter(api, cfg, clients.UserClient, appContainer.Auth.Handler)
 	router.UserRouter(api, cfg, clients.UserClient, appContainer.User.Handler)
 	router.ProductRouter(api, cfg, clients.UserClient, appContainer.Product.Handler)
+	router.PostRouter(api, cfg, clients.UserClient, appContainer.Post.Handler)
 
 	r.Run(fmt.Sprintf(":%d", cfg.App.GRPCPort))
 }

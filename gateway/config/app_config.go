@@ -18,6 +18,7 @@ type AppConfig struct {
 		AuthPort int `mapstructure:"auth_port"`
 		UserPort int `mapstructure:"user_port"`
 		ProductPort int `mapstructure:"product_port"`
+		PostPort int `mapstructure:"post_port"`
 	} `mapstructure:"services"`
 }
 

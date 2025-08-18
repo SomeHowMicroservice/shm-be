@@ -9,7 +9,7 @@ type Post struct {
 	Content     string     `gorm:"type:text;not null" json:"content"`
 	IsPublished bool       `gorm:"type:boolean;not null;default:false" json:"is_published"`
 	IsDeleted   bool       `gorm:"type:boolean;not null;default:false" json:"is_deleted"`
-	PublishedAt *time.Time `gorm:"type:datetime" json:"published_at"`
+	PublishedAt *time.Time `gorm:"type:timestamp with time zone" json:"published_at"`
 	CreatedAt   time.Time  `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time  `gorm:"autoUpdateTime" json:"updated_at"`
 	CreatedByID string     `gorm:"type:char(36);not null" json:"created_by_id"`

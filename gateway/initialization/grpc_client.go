@@ -5,7 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	authpb "github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
+	postpb "github.com/SomeHowMicroservice/shm-be/services/post/protobuf"
 	productpb "github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
 	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
 	"google.golang.org/grpc"
@@ -16,35 +18,41 @@ type GRPCClients struct {
 	AuthClient    authpb.AuthServiceClient
 	UserClient    userpb.UserServiceClient
 	ProductClient productpb.ProductServiceClient
+	PostClient    postpb.PostServiceClient
 }
 
-func InitClients(authAddr string, userAddr string, productAddr string) *GRPCClients {
+func InitClients(ca *common.ClientAddresses) *GRPCClients {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	// Kết nối gRPC tới Auth Service
-	authConn, err := grpc.DialContext(ctx, authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+
+	authConn, err := grpc.DialContext(ctx, ca.AuthAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("Kết nối tới Auth Service thất bại: %v", err)
 	}
 	authClient := authpb.NewAuthServiceClient(authConn)
 
-	// Kết nối gRPC tới User Service
-	userConn, err := grpc.DialContext(ctx, userAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	userConn, err := grpc.DialContext(ctx, ca.UserAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("Kết nối tới User Service thất bại: %v", err)
 	}
 	userClient := userpb.NewUserServiceClient(userConn)
 
-	// Kết nối gRPC tới Product Service
-	productConn, err := grpc.DialContext(ctx, productAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	productConn, err := grpc.DialContext(ctx, ca.ProductAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("Kết nối tới Product Service thất bại: %v", err)
 	}
 	productClient := productpb.NewProductServiceClient(productConn)
 
+	postConn, err := grpc.DialContext(ctx, ca.PostAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	if err != nil {
+		log.Fatalf("Kết nối tới Post Service thất bại: %v", err)
+	}
+	postClient := postpb.NewPostServiceClient(postConn)
+
 	return &GRPCClients{
 		authClient,
 		userClient,
 		productClient,
+		postClient,
 	}
 }

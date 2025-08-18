@@ -2,24 +2,25 @@ package container
 
 import (
 	"github.com/SomeHowMicroservice/shm-be/gateway/config"
-	authpb "github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
-	productpb "github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	"github.com/SomeHowMicroservice/shm-be/gateway/initialization"
 )
 
 type Container struct {
-	Auth *AuthContainer
-	User *UserContainer
+	Auth    *AuthContainer
+	User    *UserContainer
 	Product *ProductContainer
+	Post    *PostContainer
 }
 
-func NewContainer(authClient authpb.AuthServiceClient, userClient userpb.UserServiceClient, productClient productpb.ProductServiceClient, cfg *config.AppConfig) *Container {
-	auth := NewAuthContainer(authClient, cfg)
-	user := NewUserContainer(userClient)
-	product := NewProductHandler(productClient)
+func NewContainer(cs *initialization.GRPCClients,cfg *config.AppConfig) *Container {
+	auth := NewAuthContainer(cs.AuthClient, cfg)
+	user := NewUserContainer(cs.UserClient)
+	product := NewProductHandler(cs.ProductClient)
+	post := NewPostContainer(cs.PostClient)
 	return &Container{
 		auth,
 		user,
 		product,
+		post,
 	}
 }
