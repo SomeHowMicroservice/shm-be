@@ -5,7 +5,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/gateway/handler"
 	"github.com/SomeHowMicroservice/shm-be/gateway/middleware"
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
 	"github.com/gin-gonic/gin"
 )
 

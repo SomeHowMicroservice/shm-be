@@ -2,7 +2,7 @@ package container
 
 import (
 	"github.com/SomeHowMicroservice/shm-be/gateway/handler"
-	postpb "github.com/SomeHowMicroservice/shm-be/services/post/protobuf"
+	postpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/post"
 )
 
 type PostContainer struct {

@@ -5,7 +5,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/gateway/handler"
 	"github.com/SomeHowMicroservice/shm-be/gateway/middleware"
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,5 +16,7 @@ func PostRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 	admin := rg.Group("/admin", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{model.RoleContributor}))
 	{
 		admin.POST("/topics", postHandler.CreateTopic)
+		// admin.GET("/topics", postHandler.GetAllTopicsAdmin)
+		// admin.PUT("/topics/:id", postHandler.UpdateTopic)
 	}
 }

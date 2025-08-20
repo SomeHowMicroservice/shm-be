@@ -7,7 +7,7 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/SomeHowMicroservice/shm-be/gateway/request"
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

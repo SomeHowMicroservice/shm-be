@@ -2,7 +2,7 @@ package container
 
 import (
 	"github.com/SomeHowMicroservice/shm-be/gateway/handler"
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
 )
 
 type UserContainer struct {

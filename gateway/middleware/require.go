@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"slices"
 
-	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/SomeHowMicroservice/shm-be/services/user/model"
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -46,7 +45,7 @@ func RequireRefreshToken(refreshName string, secretKey string, userClient userpb
 		userRes, err := fetchUserFromUserService(ctx, userID, userClient)
 		if err != nil {
 			switch err {
-			case customErr.ErrUserNotFound:
+			case common.ErrUserNotFound:
 				c.AbortWithStatusJSON(http.StatusUnauthorized, common.ApiResponse{
 					Message: err.Error(),
 				})
@@ -102,7 +101,7 @@ func RequireAuth(accessName string, secretKey string, userClient userpb.UserServ
 		userRes, err := fetchUserFromUserService(ctx, userID, userClient)
 		if err != nil {
 			switch err {
-			case customErr.ErrUserNotFound:
+			case common.ErrUserNotFound:
 				c.AbortWithStatusJSON(http.StatusUnauthorized, common.ApiResponse{
 					Message: err.Error(),
 				})
@@ -176,7 +175,7 @@ func fetchUserFromUserService(ctx context.Context, userID string, userClient use
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, customErr.ErrUserNotFound
+				return nil, common.ErrUserNotFound
 			default:
 				return nil, fmt.Errorf("lỗi user service: %s", st.Message())
 			}

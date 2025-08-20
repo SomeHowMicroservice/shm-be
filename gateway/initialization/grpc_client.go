@@ -2,14 +2,14 @@ package initialization
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
-	authpb "github.com/SomeHowMicroservice/shm-be/services/auth/protobuf"
-	postpb "github.com/SomeHowMicroservice/shm-be/services/post/protobuf"
-	productpb "github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	authpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/auth"
+	postpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/post"
+	productpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/product"
+	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -27,25 +27,25 @@ func InitClients(ca *common.ClientAddresses) *GRPCClients {
 
 	authConn, err := grpc.DialContext(ctx, ca.AuthAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("Kết nối tới Auth Service thất bại: %v", err)
+		panic(fmt.Errorf("kết nối tới Auth Service thất bại: %w", err))
 	}
 	authClient := authpb.NewAuthServiceClient(authConn)
 
 	userConn, err := grpc.DialContext(ctx, ca.UserAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("Kết nối tới User Service thất bại: %v", err)
+		panic(fmt.Errorf("kết nối tới User Service thất bại: %w", err))
 	}
 	userClient := userpb.NewUserServiceClient(userConn)
 
 	productConn, err := grpc.DialContext(ctx, ca.ProductAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("Kết nối tới Product Service thất bại: %v", err)
+		panic(fmt.Errorf("kết nối tới Product Service thất bại: %w", err))
 	}
 	productClient := productpb.NewProductServiceClient(productConn)
 
 	postConn, err := grpc.DialContext(ctx, ca.PostAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("Kết nối tới Post Service thất bại: %v", err)
+		panic(fmt.Errorf("kết nối tới Post Service thất bại: %w", err))
 	}
 	postClient := postpb.NewPostServiceClient(postConn)
 

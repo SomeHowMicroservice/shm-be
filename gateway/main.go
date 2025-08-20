@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/SomeHowMicroservice/shm-be/gateway/config"
@@ -22,7 +21,7 @@ var (
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Tải cấu hình Gateway thất bại: %v", err)
+		panic(fmt.Errorf("Tải cấu hình Gateway thất bại: %w", err))
 	}
 
 	authAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.AuthPort)

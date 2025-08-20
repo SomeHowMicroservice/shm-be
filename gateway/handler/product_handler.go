@@ -12,11 +12,10 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/SomeHowMicroservice/shm-be/gateway/request"
-	"github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
-	productpb "github.com/SomeHowMicroservice/shm-be/services/product/protobuf"
+	productpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/product"
 	"github.com/go-playground/validator/v10"
 
-	userpb "github.com/SomeHowMicroservice/shm-be/services/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -1711,7 +1710,7 @@ func (h *ProductHandler) GetDeletedProducts(c *gin.Context) {
 		return
 	}
 
-	res, err := h.productClient.GetDeletedProducts(ctx, &protobuf.GetAllProductsAdminRequest{
+	res, err := h.productClient.GetDeletedProducts(ctx, &productpb.GetAllProductsAdminRequest{
 		Page:       query.Page,
 		Limit:      query.Limit,
 		Sort:       query.Sort,
@@ -1767,7 +1766,7 @@ func (h *ProductHandler) GetDeletedColors(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetDeletedColors(ctx, &protobuf.GetManyRequest{})
+	res, err := h.productClient.GetDeletedColors(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -1791,7 +1790,7 @@ func (h *ProductHandler) GetDeletedSizes(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetDeletedSizes(ctx, &protobuf.GetManyRequest{})
+	res, err := h.productClient.GetDeletedSizes(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -1815,7 +1814,7 @@ func (h *ProductHandler) GetDeletedTags(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	res, err := h.productClient.GetDeletedTags(ctx, &protobuf.GetManyRequest{})
+	res, err := h.productClient.GetDeletedTags(ctx, &productpb.GetManyRequest{})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
