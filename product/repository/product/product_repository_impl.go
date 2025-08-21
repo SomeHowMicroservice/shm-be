@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/product/common"
 	"github.com/SomeHowMicroservice/shm-be/product/model"
 	"gorm.io/gorm"
@@ -97,7 +96,7 @@ func (r *productRepositoryImpl) Delete(ctx context.Context, id string) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return customErr.ErrProductNotFound
+		return common.ErrProductNotFound
 	}
 
 	return nil
@@ -151,7 +150,7 @@ func (r *productRepositoryImpl) Update(ctx context.Context, id string, updateDat
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return customErr.ErrProductNotFound
+		return common.ErrProductNotFound
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	userpb "github.com/SomeHowMicroservice/shm-be/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/product/protobuf/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

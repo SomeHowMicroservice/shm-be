@@ -2,12 +2,55 @@ syntax = "proto3";
 
 package post;
 option java_multiple_files=true;
-option java_package = "com.service.post.protobuf";
+option java_package = "com.service.post";
 option java_outer_classname = "PostProtobuf";
 
 service PostService{
   rpc CreateTopic(CreateTopicRequest) returns (CreatedResponse);
+
+  rpc GetAllTopicsAdmin(GetManyRequest) returns (TopicsAdminResponse);
+
+  rpc UpdateTopic(UpdateTopicRequest) returns (UpdatedResponse);
 }
+
+message UpdatedResponse {
+  bool success = 1;
+}
+
+message UpdateTopicRequest {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string user_id = 4;
+}
+
+message TopicsAdminResponse {
+  repeated TopicAdminResponse topics = 1;
+}
+
+message TopicAdminResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  BaseUserResponse created_by = 6;
+  BaseUserResponse updated_by = 7;
+}
+
+message BaseUserResponse {
+  string id = 1;
+  string username = 2;
+  BaseProfileResponse profile = 3;
+}
+
+message BaseProfileResponse {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+}
+
+message GetManyRequest {}
 
 message CreateTopicRequest {
   string name = 1;

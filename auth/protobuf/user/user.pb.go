@@ -65,27 +65,27 @@ func (x *UsersPublicResponse) GetUsers() []*UserPublicResponse {
 	return nil
 }
 
-type GetUsersByIdsRequest struct {
+type GetUsersByIdRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetUsersByIdsRequest) Reset() {
-	*x = GetUsersByIdsRequest{}
+func (x *GetUsersByIdRequest) Reset() {
+	*x = GetUsersByIdRequest{}
 	mi := &file_protobuf_user_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetUsersByIdsRequest) String() string {
+func (x *GetUsersByIdRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetUsersByIdsRequest) ProtoMessage() {}
+func (*GetUsersByIdRequest) ProtoMessage() {}
 
-func (x *GetUsersByIdsRequest) ProtoReflect() protoreflect.Message {
+func (x *GetUsersByIdRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_protobuf_user_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -97,12 +97,12 @@ func (x *GetUsersByIdsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetUsersByIdsRequest.ProtoReflect.Descriptor instead.
-func (*GetUsersByIdsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetUsersByIdRequest.ProtoReflect.Descriptor instead.
+func (*GetUsersByIdRequest) Descriptor() ([]byte, []int) {
 	return file_protobuf_user_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetUsersByIdsRequest) GetIds() []string {
+func (x *GetUsersByIdRequest) GetIds() []string {
 	if x != nil {
 		return x.Ids
 	}
@@ -1559,8 +1559,8 @@ const file_protobuf_user_proto_rawDesc = "" +
 	"\n" +
 	"\x13protobuf/user.proto\x12\x04user\"E\n" +
 	"\x13UsersPublicResponse\x12.\n" +
-	"\x05users\x18\x01 \x03(\v2\x18.user.UserPublicResponseR\x05users\"(\n" +
-	"\x14GetUsersByIdsRequest\x12\x10\n" +
+	"\x05users\x18\x01 \x03(\v2\x18.user.UserPublicResponseR\x05users\"'\n" +
+	"\x13GetUsersByIdRequest\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\tR\x03ids\"2\n" +
 	"\x16AddressDeletedResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"?\n" +
@@ -1669,7 +1669,7 @@ const file_protobuf_user_proto_rawDesc = "" +
 	"\x11CreateUserRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword2\xd0\t\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword2\xce\t\n" +
 	"\vUserService\x12L\n" +
 	"\x10CheckEmailExists\x12\x1d.user.CheckEmailExistsRequest\x1a\x19.user.UserCheckedResponse\x12R\n" +
 	"\x13CheckUsernameExists\x12 .user.CheckUsernameExistsRequest\x1a\x19.user.UserCheckedResponse\x12G\n" +
@@ -1686,8 +1686,8 @@ const file_protobuf_user_proto_rawDesc = "" +
 	"\x14GetAddressesByUserId\x12!.user.GetAddressesByUserIdRequest\x1a\x17.user.AddressesResponse\x12B\n" +
 	"\rCreateAddress\x12\x1a.user.CreateAddressRequest\x1a\x15.user.AddressResponse\x12B\n" +
 	"\rUpdateAddress\x12\x1a.user.UpdateAddressRequest\x1a\x15.user.AddressResponse\x12I\n" +
-	"\rDeleteAddress\x12\x1a.user.DeleteAddressRequest\x1a\x1c.user.AddressDeletedResponse\x12F\n" +
-	"\rGetUsersByIds\x12\x1a.user.GetUsersByIdsRequest\x1a\x19.user.UsersPublicResponseB\x03Z\x01.b\x06proto3"
+	"\rDeleteAddress\x12\x1a.user.DeleteAddressRequest\x1a\x1c.user.AddressDeletedResponse\x12D\n" +
+	"\fGetUsersById\x12\x19.user.GetUsersByIdRequest\x1a\x19.user.UsersPublicResponseB\x03Z\x01.b\x06proto3"
 
 var (
 	file_protobuf_user_proto_rawDescOnce sync.Once
@@ -1704,7 +1704,7 @@ func file_protobuf_user_proto_rawDescGZIP() []byte {
 var file_protobuf_user_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_protobuf_user_proto_goTypes = []any{
 	(*UsersPublicResponse)(nil),           // 0: user.UsersPublicResponse
-	(*GetUsersByIdsRequest)(nil),          // 1: user.GetUsersByIdsRequest
+	(*GetUsersByIdRequest)(nil),           // 1: user.GetUsersByIdRequest
 	(*AddressDeletedResponse)(nil),        // 2: user.AddressDeletedResponse
 	(*DeleteAddressRequest)(nil),          // 3: user.DeleteAddressRequest
 	(*AddressesResponse)(nil),             // 4: user.AddressesResponse
@@ -1749,7 +1749,7 @@ var file_protobuf_user_proto_depIdxs = []int32{
 	6,  // 16: user.UserService.CreateAddress:input_type -> user.CreateAddressRequest
 	7,  // 17: user.UserService.UpdateAddress:input_type -> user.UpdateAddressRequest
 	3,  // 18: user.UserService.DeleteAddress:input_type -> user.DeleteAddressRequest
-	1,  // 19: user.UserService.GetUsersByIds:input_type -> user.GetUsersByIdsRequest
+	1,  // 19: user.UserService.GetUsersById:input_type -> user.GetUsersByIdRequest
 	18, // 20: user.UserService.CheckEmailExists:output_type -> user.UserCheckedResponse
 	18, // 21: user.UserService.CheckUsernameExists:output_type -> user.UserCheckedResponse
 	21, // 22: user.UserService.GetUserPublicById:output_type -> user.UserPublicResponse
@@ -1765,7 +1765,7 @@ var file_protobuf_user_proto_depIdxs = []int32{
 	5,  // 32: user.UserService.CreateAddress:output_type -> user.AddressResponse
 	5,  // 33: user.UserService.UpdateAddress:output_type -> user.AddressResponse
 	2,  // 34: user.UserService.DeleteAddress:output_type -> user.AddressDeletedResponse
-	0,  // 35: user.UserService.GetUsersByIds:output_type -> user.UsersPublicResponse
+	0,  // 35: user.UserService.GetUsersById:output_type -> user.UsersPublicResponse
 	20, // [20:36] is the sub-list for method output_type
 	4,  // [4:20] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name

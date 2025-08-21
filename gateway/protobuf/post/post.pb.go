@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v6.31.1
-// source: post.proto
+// source: protobuf/post.proto
 
 package __
 
@@ -21,6 +21,410 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type UpdatedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatedResponse) Reset() {
+	*x = UpdatedResponse{}
+	mi := &file_protobuf_post_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatedResponse) ProtoMessage() {}
+
+func (x *UpdatedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_post_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatedResponse.ProtoReflect.Descriptor instead.
+func (*UpdatedResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_post_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *UpdatedResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+type UpdateTopicRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Slug          string                 `protobuf:"bytes,3,opt,name=slug,proto3" json:"slug,omitempty"`
+	UserId        string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateTopicRequest) Reset() {
+	*x = UpdateTopicRequest{}
+	mi := &file_protobuf_post_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateTopicRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateTopicRequest) ProtoMessage() {}
+
+func (x *UpdateTopicRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_post_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateTopicRequest.ProtoReflect.Descriptor instead.
+func (*UpdateTopicRequest) Descriptor() ([]byte, []int) {
+	return file_protobuf_post_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *UpdateTopicRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateTopicRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateTopicRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *UpdateTopicRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type TopicsAdminResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Topics        []*TopicAdminResponse  `protobuf:"bytes,1,rep,name=topics,proto3" json:"topics,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TopicsAdminResponse) Reset() {
+	*x = TopicsAdminResponse{}
+	mi := &file_protobuf_post_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TopicsAdminResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TopicsAdminResponse) ProtoMessage() {}
+
+func (x *TopicsAdminResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_post_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TopicsAdminResponse.ProtoReflect.Descriptor instead.
+func (*TopicsAdminResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_post_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *TopicsAdminResponse) GetTopics() []*TopicAdminResponse {
+	if x != nil {
+		return x.Topics
+	}
+	return nil
+}
+
+type TopicAdminResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Slug          string                 `protobuf:"bytes,3,opt,name=slug,proto3" json:"slug,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CreatedBy     *BaseUserResponse      `protobuf:"bytes,6,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	UpdatedBy     *BaseUserResponse      `protobuf:"bytes,7,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TopicAdminResponse) Reset() {
+	*x = TopicAdminResponse{}
+	mi := &file_protobuf_post_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TopicAdminResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TopicAdminResponse) ProtoMessage() {}
+
+func (x *TopicAdminResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_post_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TopicAdminResponse.ProtoReflect.Descriptor instead.
+func (*TopicAdminResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_post_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *TopicAdminResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *TopicAdminResponse) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *TopicAdminResponse) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *TopicAdminResponse) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *TopicAdminResponse) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *TopicAdminResponse) GetCreatedBy() *BaseUserResponse {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return nil
+}
+
+func (x *TopicAdminResponse) GetUpdatedBy() *BaseUserResponse {
+	if x != nil {
+		return x.UpdatedBy
+	}
+	return nil
+}
+
+type BaseUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Profile       *BaseProfileResponse   `protobuf:"bytes,3,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BaseUserResponse) Reset() {
+	*x = BaseUserResponse{}
+	mi := &file_protobuf_post_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BaseUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BaseUserResponse) ProtoMessage() {}
+
+func (x *BaseUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_post_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BaseUserResponse.ProtoReflect.Descriptor instead.
+func (*BaseUserResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_post_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *BaseUserResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BaseUserResponse) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *BaseUserResponse) GetProfile() *BaseProfileResponse {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+type BaseProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FirstName     string                 `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName      string                 `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BaseProfileResponse) Reset() {
+	*x = BaseProfileResponse{}
+	mi := &file_protobuf_post_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BaseProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BaseProfileResponse) ProtoMessage() {}
+
+func (x *BaseProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_post_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BaseProfileResponse.ProtoReflect.Descriptor instead.
+func (*BaseProfileResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_post_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *BaseProfileResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BaseProfileResponse) GetFirstName() string {
+	if x != nil {
+		return x.FirstName
+	}
+	return ""
+}
+
+func (x *BaseProfileResponse) GetLastName() string {
+	if x != nil {
+		return x.LastName
+	}
+	return ""
+}
+
+type GetManyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetManyRequest) Reset() {
+	*x = GetManyRequest{}
+	mi := &file_protobuf_post_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetManyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetManyRequest) ProtoMessage() {}
+
+func (x *GetManyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_post_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetManyRequest.ProtoReflect.Descriptor instead.
+func (*GetManyRequest) Descriptor() ([]byte, []int) {
+	return file_protobuf_post_proto_rawDescGZIP(), []int{6}
+}
+
 type CreateTopicRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -32,7 +436,7 @@ type CreateTopicRequest struct {
 
 func (x *CreateTopicRequest) Reset() {
 	*x = CreateTopicRequest{}
-	mi := &file_post_proto_msgTypes[0]
+	mi := &file_protobuf_post_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +448,7 @@ func (x *CreateTopicRequest) String() string {
 func (*CreateTopicRequest) ProtoMessage() {}
 
 func (x *CreateTopicRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_post_proto_msgTypes[0]
+	mi := &file_protobuf_post_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +461,7 @@ func (x *CreateTopicRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTopicRequest.ProtoReflect.Descriptor instead.
 func (*CreateTopicRequest) Descriptor() ([]byte, []int) {
-	return file_post_proto_rawDescGZIP(), []int{0}
+	return file_protobuf_post_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateTopicRequest) GetName() string {
@@ -90,7 +494,7 @@ type CreatedResponse struct {
 
 func (x *CreatedResponse) Reset() {
 	*x = CreatedResponse{}
-	mi := &file_post_proto_msgTypes[1]
+	mi := &file_protobuf_post_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -102,7 +506,7 @@ func (x *CreatedResponse) String() string {
 func (*CreatedResponse) ProtoMessage() {}
 
 func (x *CreatedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_post_proto_msgTypes[1]
+	mi := &file_protobuf_post_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -115,7 +519,7 @@ func (x *CreatedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatedResponse.ProtoReflect.Descriptor instead.
 func (*CreatedResponse) Descriptor() ([]byte, []int) {
-	return file_post_proto_rawDescGZIP(), []int{1}
+	return file_protobuf_post_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreatedResponse) GetId() string {
@@ -125,71 +529,117 @@ func (x *CreatedResponse) GetId() string {
 	return ""
 }
 
-var File_post_proto protoreflect.FileDescriptor
+var File_protobuf_post_proto protoreflect.FileDescriptor
 
-const file_post_proto_rawDesc = "" +
+const file_protobuf_post_proto_rawDesc = "" +
 	"\n" +
+	"\x13protobuf/post.proto\x12\x04post\"+\n" +
+	"\x0fUpdatedResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"e\n" +
+	"\x12UpdateTopicRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04slug\x18\x03 \x01(\tR\x04slug\x12\x17\n" +
+	"\auser_id\x18\x04 \x01(\tR\x06userId\"G\n" +
+	"\x13TopicsAdminResponse\x120\n" +
+	"\x06topics\x18\x01 \x03(\v2\x18.post.TopicAdminResponseR\x06topics\"\xf8\x01\n" +
+	"\x12TopicAdminResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04slug\x18\x03 \x01(\tR\x04slug\x12\x1d\n" +
 	"\n" +
-	"post.proto\x12\x04post\"c\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x05 \x01(\tR\tupdatedAt\x125\n" +
+	"\n" +
+	"created_by\x18\x06 \x01(\v2\x16.post.BaseUserResponseR\tcreatedBy\x125\n" +
+	"\n" +
+	"updated_by\x18\a \x01(\v2\x16.post.BaseUserResponseR\tupdatedBy\"s\n" +
+	"\x10BaseUserResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x123\n" +
+	"\aprofile\x18\x03 \x01(\v2\x19.post.BaseProfileResponseR\aprofile\"a\n" +
+	"\x13BaseProfileResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"first_name\x18\x02 \x01(\tR\tfirstName\x12\x1b\n" +
+	"\tlast_name\x18\x03 \x01(\tR\blastName\"\x10\n" +
+	"\x0eGetManyRequest\"c\n" +
 	"\x12CreateTopicRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x17\n" +
 	"\x04slug\x18\x02 \x01(\tH\x00R\x04slug\x88\x01\x01\x12\x17\n" +
 	"\auser_id\x18\x03 \x01(\tR\x06userIdB\a\n" +
 	"\x05_slug\"!\n" +
 	"\x0fCreatedResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id2M\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id2\xd3\x01\n" +
 	"\vPostService\x12>\n" +
-	"\vCreateTopic\x12\x18.post.CreateTopicRequest\x1a\x15.post.CreatedResponseB.\n" +
-	"\x19com.service.post.protobufB\fPostProtobufP\x01Z\x01.b\x06proto3"
+	"\vCreateTopic\x12\x18.post.CreateTopicRequest\x1a\x15.post.CreatedResponse\x12D\n" +
+	"\x11GetAllTopicsAdmin\x12\x14.post.GetManyRequest\x1a\x19.post.TopicsAdminResponse\x12>\n" +
+	"\vUpdateTopic\x12\x18.post.UpdateTopicRequest\x1a\x15.post.UpdatedResponseB\x03Z\x01.b\x06proto3"
 
 var (
-	file_post_proto_rawDescOnce sync.Once
-	file_post_proto_rawDescData []byte
+	file_protobuf_post_proto_rawDescOnce sync.Once
+	file_protobuf_post_proto_rawDescData []byte
 )
 
-func file_post_proto_rawDescGZIP() []byte {
-	file_post_proto_rawDescOnce.Do(func() {
-		file_post_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_post_proto_rawDesc), len(file_post_proto_rawDesc)))
+func file_protobuf_post_proto_rawDescGZIP() []byte {
+	file_protobuf_post_proto_rawDescOnce.Do(func() {
+		file_protobuf_post_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_protobuf_post_proto_rawDesc), len(file_protobuf_post_proto_rawDesc)))
 	})
-	return file_post_proto_rawDescData
+	return file_protobuf_post_proto_rawDescData
 }
 
-var file_post_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_post_proto_goTypes = []any{
-	(*CreateTopicRequest)(nil), // 0: post.CreateTopicRequest
-	(*CreatedResponse)(nil),    // 1: post.CreatedResponse
+var file_protobuf_post_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_protobuf_post_proto_goTypes = []any{
+	(*UpdatedResponse)(nil),     // 0: post.UpdatedResponse
+	(*UpdateTopicRequest)(nil),  // 1: post.UpdateTopicRequest
+	(*TopicsAdminResponse)(nil), // 2: post.TopicsAdminResponse
+	(*TopicAdminResponse)(nil),  // 3: post.TopicAdminResponse
+	(*BaseUserResponse)(nil),    // 4: post.BaseUserResponse
+	(*BaseProfileResponse)(nil), // 5: post.BaseProfileResponse
+	(*GetManyRequest)(nil),      // 6: post.GetManyRequest
+	(*CreateTopicRequest)(nil),  // 7: post.CreateTopicRequest
+	(*CreatedResponse)(nil),     // 8: post.CreatedResponse
 }
-var file_post_proto_depIdxs = []int32{
-	0, // 0: post.PostService.CreateTopic:input_type -> post.CreateTopicRequest
-	1, // 1: post.PostService.CreateTopic:output_type -> post.CreatedResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+var file_protobuf_post_proto_depIdxs = []int32{
+	3, // 0: post.TopicsAdminResponse.topics:type_name -> post.TopicAdminResponse
+	4, // 1: post.TopicAdminResponse.created_by:type_name -> post.BaseUserResponse
+	4, // 2: post.TopicAdminResponse.updated_by:type_name -> post.BaseUserResponse
+	5, // 3: post.BaseUserResponse.profile:type_name -> post.BaseProfileResponse
+	7, // 4: post.PostService.CreateTopic:input_type -> post.CreateTopicRequest
+	6, // 5: post.PostService.GetAllTopicsAdmin:input_type -> post.GetManyRequest
+	1, // 6: post.PostService.UpdateTopic:input_type -> post.UpdateTopicRequest
+	8, // 7: post.PostService.CreateTopic:output_type -> post.CreatedResponse
+	2, // 8: post.PostService.GetAllTopicsAdmin:output_type -> post.TopicsAdminResponse
+	0, // 9: post.PostService.UpdateTopic:output_type -> post.UpdatedResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_post_proto_init() }
-func file_post_proto_init() {
-	if File_post_proto != nil {
+func init() { file_protobuf_post_proto_init() }
+func file_protobuf_post_proto_init() {
+	if File_protobuf_post_proto != nil {
 		return
 	}
-	file_post_proto_msgTypes[0].OneofWrappers = []any{}
+	file_protobuf_post_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_post_proto_rawDesc), len(file_post_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protobuf_post_proto_rawDesc), len(file_protobuf_post_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_post_proto_goTypes,
-		DependencyIndexes: file_post_proto_depIdxs,
-		MessageInfos:      file_post_proto_msgTypes,
+		GoTypes:           file_protobuf_post_proto_goTypes,
+		DependencyIndexes: file_protobuf_post_proto_depIdxs,
+		MessageInfos:      file_protobuf_post_proto_msgTypes,
 	}.Build()
-	File_post_proto = out.File
-	file_post_proto_goTypes = nil
-	file_post_proto_depIdxs = nil
+	File_protobuf_post_proto = out.File
+	file_protobuf_post_proto_goTypes = nil
+	file_protobuf_post_proto_depIdxs = nil
 }

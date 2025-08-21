@@ -10,7 +10,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/product/container"
 	"github.com/SomeHowMicroservice/shm-be/product/imagekit"
 	"github.com/SomeHowMicroservice/shm-be/product/initialization"
-	protobuf "github.com/SomeHowMicroservice/shm-be/product/protobuf"
+	productpb "github.com/SomeHowMicroservice/shm-be/product/protobuf/product"
 	"google.golang.org/grpc"
 )
 
@@ -40,7 +40,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	productContainer := container.NewContainer(cfg, db, mqc.Chann, grpcServer, clients.UserClient)
-	protobuf.RegisterProductServiceServer(grpcServer, productContainer.GRPCHandler)
+	productpb.RegisterProductServiceServer(grpcServer, productContainer.GRPCHandler)
 
 	imagekit := imagekit.NewImageKitService(cfg)
 	go consumers.StartUploadImageConsumer(mqc, imagekit, productContainer.ImageRepo)

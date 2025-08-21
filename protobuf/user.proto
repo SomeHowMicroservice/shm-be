@@ -34,7 +34,7 @@ service UserService {
 
   rpc DeleteAddress(DeleteAddressRequest) returns (AddressDeletedResponse);
 
-  rpc GetUsersByIds(GetUsersByIdsRequest) returns (UsersPublicResponse);
+  rpc GetUsersById(GetUsersByIdRequest) returns (UsersPublicResponse);
 
   // rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
 }
@@ -43,7 +43,7 @@ message UsersPublicResponse {
   repeated UserPublicResponse users = 1;
 }
 
-message GetUsersByIdsRequest {
+message GetUsersByIdRequest {
   repeated string ids = 1;
 }
 

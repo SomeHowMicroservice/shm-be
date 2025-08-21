@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SomeHowMicroservice/shm-be/common/smtp"
 	"github.com/SomeHowMicroservice/shm-be/auth/common"
 	"github.com/SomeHowMicroservice/shm-be/auth/config"
 	"github.com/SomeHowMicroservice/shm-be/auth/mq"
-	protobuf "github.com/SomeHowMicroservice/shm-be/auth/protobuf"
+	authpb "github.com/SomeHowMicroservice/shm-be/auth/protobuf/auth"
+	userpb "github.com/SomeHowMicroservice/shm-be/auth/protobuf/user"
 	"github.com/SomeHowMicroservice/shm-be/auth/repository"
 	"github.com/SomeHowMicroservice/shm-be/auth/security"
-	userpb "github.com/SomeHowMicroservice/shm-be/user/protobuf"
+	"github.com/SomeHowMicroservice/shm-be/auth/smtp"
 	"github.com/google/uuid"
 	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/codes"
@@ -23,12 +23,12 @@ import (
 type authServiceImpl struct {
 	cacheRepo  repository.CacheRepository
 	userClient userpb.UserServiceClient
-	mailer     smtp.Mailer
+	mailer     smtp.SMTPService
 	cfg        *config.Config
 	mqChannel  *amqp091.Channel
 }
 
-func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.Mailer, cfg *config.Config, mqChannel *amqp091.Channel) AuthService {
+func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.UserServiceClient, mailer smtp.SMTPService, cfg *config.Config, mqChannel *amqp091.Channel) AuthService {
 	return &authServiceImpl{
 		cacheRepo,
 		userClient,
@@ -38,8 +38,7 @@ func NewAuthService(cacheRepo repository.CacheRepository, userClient userpb.User
 	}
 }
 
-func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpRequest) (string, error) {
-	// Kiểm tra Username và Email đã tồn tại chưa
+func (s *authServiceImpl) SignUp(ctx context.Context, req *authpb.SignUpRequest) (string, error) {
 	uRes, err := s.userClient.CheckUsernameExists(ctx, &userpb.CheckUsernameExistsRequest{Username: req.Username})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
@@ -62,17 +61,14 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 		return "", common.ErrEmailAlreadyExists
 	}
 
-	// Tạo OTP và Registration Token trả ra cho FE
 	otp := common.GenerateOTP(6)
 	registrationToken := uuid.NewString()
 
-	// Băm mật khẩu
 	hashedPassword, err := common.HashPassword(req.Password)
 	if err != nil {
 		return "", fmt.Errorf("băm mật khẩu thất bại: %w", err)
 	}
 
-	// Tạo object dữ liệu người dùng đăng ký lưu vào Redis
 	registrationData := &common.RegistrationData{
 		Email:    req.Email,
 		Username: req.Username,
@@ -81,25 +77,21 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 		Attempts: 0,
 	}
 
-	// Lưu vô Redis
 	if err = s.cacheRepo.SaveRegistrationData(ctx, registrationToken, registrationData, 3*time.Minute); err != nil {
 		return "", err
 	}
 
-	// Tạo struct dữ liệu cần đẩy vào RabbitMQ
 	emailMsg := common.AuthEmailMessage{
 		To:      req.Email,
 		Subject: "Xác thực đăng ký tài khoản tại SomeHow",
 		Otp:     otp,
 	}
 
-	// Chuyển dổi
 	body, err := json.Marshal(emailMsg)
 	if err != nil {
 		return "", fmt.Errorf("chuyển đổi EmailMessage thất bại: %w", err)
 	}
 
-	// Publish lên RabbitMQ
 	if err := mq.PublishMessage(s.mqChannel, "", "email.send", body); err != nil {
 		return "", fmt.Errorf("publish email msg thất bại: %w", err)
 	}
@@ -107,59 +99,53 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *protobuf.SignUpReques
 	return registrationToken, nil
 }
 
-func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.VerifySignUpRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error) {
-	// Lấy dữ liệu người dùng đăng ký từ redis ra
+func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *authpb.VerifySignUpRequest) (*authpb.LoggedInResponse, error) {
 	regData, err := s.cacheRepo.GetRegistrationData(ctx, req.RegistrationToken)
 	if err != nil {
-		return nil, "", 0, "", 0, err
+		return nil, err
 	}
 	if regData == nil {
-		return nil, "", 0, "", 0, common.ErrAuthDataNotFound
+		return nil, common.ErrAuthDataNotFound
 	}
 
-	// Thử quá 3 lần thì xóa dữ liệu khỏi redis và báo lỗi
 	if regData.Attempts >= 3 {
 		if err = s.cacheRepo.DeleteAuthData(ctx, "sign-up", req.RegistrationToken); err != nil {
-			return nil, "", 0, "", 0, err
+			return nil, err
 		}
-		return nil, "", 0, "", 0, common.ErrTooManyAttempts
+		return nil, common.ErrTooManyAttempts
 	}
 
-	// Thêm số lần thử và lưu lại vào redis
 	regData.Attempts++
 	if err = s.cacheRepo.SaveRegistrationData(ctx, req.RegistrationToken, regData, 3*time.Minute); err != nil {
-		return nil, "", 0, "", 0, err
+		return nil, err
 	}
 
-	// Kiểm tra OTP có khơp không
 	if regData.Otp != req.Otp {
-		return nil, "", 0, "", 0, common.ErrInvalidOTP
+		return nil, common.ErrInvalidOTP
 	}
 
-	// Kiểm tra lại tồn tại Username và Email cho nó chắc lỡ trong quá xác thực OTP thì có tạo tài khoản ở chỗ khác rồi
 	uRes, err := s.userClient.CheckUsernameExists(ctx, &userpb.CheckUsernameExistsRequest{Username: regData.Username})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
-			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
-		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
 	}
 	if uRes.Exists {
-		return nil, "", 0, "", 0, common.ErrUsernameAlreadyExists
+		return nil, common.ErrUsernameAlreadyExists
 	}
 
 	eRes, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{Email: regData.Email})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
-			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
-		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
 	}
 	if eRes.Exists {
-		return nil, "", 0, "", 0, common.ErrEmailAlreadyExists
+		return nil, common.ErrEmailAlreadyExists
 	}
 
-	// Tạo struct và gửi tới User Service bằng gRPC
 	newUser := &userpb.CreateUserRequest{
 		Username: regData.Username,
 		Email:    regData.Email,
@@ -168,32 +154,30 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 	userRes, err := s.userClient.CreateUser(ctx, newUser)
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
-			return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+			return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 		}
-		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
 	}
 
-	// Tạo Access Token và Refresh Token
 	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
 	if err != nil {
-		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+		return nil, fmt.Errorf("tạo token xác thực thất bại")
 	}
 	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
 	if err != nil {
-		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+		return nil, fmt.Errorf("tạo token xác thực thất bại")
 	}
 
-	// Xóa dữ liệu trong redis
 	if err = s.cacheRepo.DeleteAuthData(ctx, "sign-up", req.RegistrationToken); err != nil {
-		return nil, "", 0, "", 0, err
+		return nil, err
 	}
-	// Tạo struct phản hồi
-	authRes := &protobuf.AuthResponse{
+
+	authRes := &authpb.AuthResponse{
 		Id:        userRes.Id,
 		Username:  userRes.Username,
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
-		Profile: &protobuf.ProfileResponse{
+		Profile: &authpb.ProfileResponse{
 			Id:        userRes.Profile.Id,
 			FirstName: userRes.Profile.FirstName,
 			LastName:  userRes.Profile.LastName,
@@ -202,49 +186,46 @@ func (s *authServiceImpl) VerifySignUp(ctx context.Context, req *protobuf.Verify
 		},
 	}
 
-	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+	return toLoggedInResponse(authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn), nil
 }
 
-func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error) {
-	// Tìm người dùng theo username
+func (s *authServiceImpl) SignIn(ctx context.Context, req *authpb.SignInRequest) (*authpb.LoggedInResponse, error) {
 	userRes, err := s.userClient.GetUserByUsername(ctx, &userpb.GetUserByUsernameRequest{Username: req.Username})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, "", 0, "", 0, common.ErrUserNotFound
+				return nil, common.ErrUserNotFound
 			default:
-				return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
 		}
-		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
 	}
-	// Kiểm tra mật khẩu
+
 	isCorrectPassword := common.VerifyPassword(req.Password, userRes.Password)
 	if !isCorrectPassword {
-		return nil, "", 0, "", 0, common.ErrInvalidPassword
+		return nil, common.ErrInvalidPassword
 	}
 
-	// Kiểm tra quyền
 	if !hasRoleUser("user", userRes.Roles) {
-		return nil, "", 0, "", 0, common.ErrForbidden
+		return nil, common.ErrForbidden
 	}
 
-	// Tạo Access Token và Refresh Token
 	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
 	if err != nil {
-		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+		return nil, fmt.Errorf("tạo token xác thực thất bại")
 	}
 	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
 	if err != nil {
-		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+		return nil, fmt.Errorf("tạo token xác thực thất bại")
 	}
-	authRes := &protobuf.AuthResponse{
+	authRes := &authpb.AuthResponse{
 		Id:        userRes.Id,
 		Username:  userRes.Username,
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
-		Profile: &protobuf.ProfileResponse{
+		Profile: &authpb.ProfileResponse{
 			Id:        userRes.Profile.Id,
 			FirstName: userRes.Profile.FirstName,
 			LastName:  userRes.Profile.LastName,
@@ -252,10 +233,10 @@ func (s *authServiceImpl) SignIn(ctx context.Context, req *protobuf.SignInReques
 			Dob:       userRes.Profile.Dob,
 		},
 	}
-	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+	return toLoggedInResponse(authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn), nil
 }
 
-func (s *authServiceImpl) RefreshToken(ctx context.Context, req *protobuf.RefreshTokenRequest) (string, time.Duration, string, time.Duration, error) {
+func (s *authServiceImpl) RefreshToken(ctx context.Context, req *authpb.RefreshTokenRequest) (string, time.Duration, string, time.Duration, error) {
 	accessToken, err := security.GenerateToken(req.Id, req.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
 	if err != nil {
 		return "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
@@ -269,8 +250,7 @@ func (s *authServiceImpl) RefreshToken(ctx context.Context, req *protobuf.Refres
 	return accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }
 
-func (s *authServiceImpl) ChangePassword(ctx context.Context, req *protobuf.ChangePasswordRequest) (string, time.Duration, string, time.Duration, error) {
-	// Lấy user theo id có mật khẩu
+func (s *authServiceImpl) ChangePassword(ctx context.Context, req *authpb.ChangePasswordRequest) (string, time.Duration, string, time.Duration, error) {
 	userRes, err := s.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: req.Id})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
@@ -283,7 +263,7 @@ func (s *authServiceImpl) ChangePassword(ctx context.Context, req *protobuf.Chan
 		}
 		return "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
 	}
-	// Kiểm tra mật khẩu
+
 	isCorrectPassword := common.VerifyPassword(req.OldPassword, userRes.Password)
 	if !isCorrectPassword {
 		return "", 0, "", 0, common.ErrInvalidPassword
@@ -320,8 +300,7 @@ func (s *authServiceImpl) ChangePassword(ctx context.Context, req *protobuf.Chan
 	return accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
 }
 
-func (s *authServiceImpl) ForgotPassword(ctx context.Context, req *protobuf.ForgotPasswordRequest) (string, error) {
-	// Kiểm tra email có tồn tại không
+func (s *authServiceImpl) ForgotPassword(ctx context.Context, req *authpb.ForgotPasswordRequest) (string, error) {
 	res, err := s.userClient.CheckEmailExists(ctx, &userpb.CheckEmailExistsRequest{
 		Email: req.Email,
 	})
@@ -335,36 +314,30 @@ func (s *authServiceImpl) ForgotPassword(ctx context.Context, req *protobuf.Forg
 		return "", common.ErrUserNotFound
 	}
 
-	// Tạo OTP và Forgot Password Token trả ra cho FE
 	otp := common.GenerateOTP(6)
 	forgotPasswordToken := uuid.NewString()
 
-	// Tạo struct dữ liệu quên mật khẩu
 	forgotPasswordData := &common.ForgotPasswordData{
 		Email:    req.Email,
 		Otp:      otp,
 		Attempts: 0,
 	}
 
-	// Lưu vào redis
 	if err = s.cacheRepo.SaveForgotPasswordData(ctx, forgotPasswordToken, forgotPasswordData, 3*time.Minute); err != nil {
 		return "", err
 	}
 
-	// Tạo struct dữ liệu cần đẩy vào RabbitMQ
 	emailMsg := common.AuthEmailMessage{
 		To:      req.Email,
 		Subject: "Xác thực quên mật khẩu tại SomeHow",
 		Otp:     otp,
 	}
 
-	// Chuyển dổi sang json
 	body, err := json.Marshal(emailMsg)
 	if err != nil {
 		return "", fmt.Errorf("chuyển đổi EmailMessage thất bại: %w", err)
 	}
 
-	// Publish lên RabbitMQ
 	if err := mq.PublishMessage(s.mqChannel, "", "email.send", body); err != nil {
 		return "", fmt.Errorf("publish email msg thất bại: %w", err)
 	}
@@ -372,8 +345,7 @@ func (s *authServiceImpl) ForgotPassword(ctx context.Context, req *protobuf.Forg
 	return forgotPasswordToken, nil
 }
 
-func (s *authServiceImpl) VerifyForgotPassword(ctx context.Context, req *protobuf.VerifyForgotPasswordRequest) (string, error) {
-	// Lấy dữ liệu quên mạt khẩu từ Redis
+func (s *authServiceImpl) VerifyForgotPassword(ctx context.Context, req *authpb.VerifyForgotPasswordRequest) (string, error) {
 	forgData, err := s.cacheRepo.GetForgotPasswordData(ctx, req.ForgotPasswordToken)
 	if err != nil {
 		return "", err
@@ -382,7 +354,6 @@ func (s *authServiceImpl) VerifyForgotPassword(ctx context.Context, req *protobu
 		return "", common.ErrAuthDataNotFound
 	}
 
-	// Thử quá 3 lần thì xóa dữ liệu khỏi redis và báo lỗi
 	if forgData.Attempts >= 3 {
 		if err = s.cacheRepo.DeleteAuthData(ctx, "forgot-password", req.ForgotPasswordToken); err != nil {
 			return "", err
@@ -407,8 +378,7 @@ func (s *authServiceImpl) VerifyForgotPassword(ctx context.Context, req *protobu
 	return resetPasswordToken, nil
 }
 
-func (s *authServiceImpl) ResetPassword(ctx context.Context, req *protobuf.ResetPasswordRequest) error {
-	// Lấy dữ liệu làm mới mật khẩu từ Redis
+func (s *authServiceImpl) ResetPassword(ctx context.Context, req *authpb.ResetPasswordRequest) error {
 	email, err := s.cacheRepo.GetResetPasswordData(ctx, req.ResetPasswordToken)
 	if err != nil {
 		return err
@@ -437,11 +407,10 @@ func (s *authServiceImpl) ResetPassword(ctx context.Context, req *protobuf.Reset
 		return fmt.Errorf("băm mật khẩu thất bại: %w", err)
 	}
 
-	_, err = s.userClient.UpdateUserPassword(ctx, &userpb.UpdateUserPasswordRequest{
+	if _, err = s.userClient.UpdateUserPassword(ctx, &userpb.UpdateUserPasswordRequest{
 		Id:          userRes.Id,
 		NewPassword: hashedNewPassword,
-	})
-	if err != nil {
+	}); err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
@@ -453,49 +422,50 @@ func (s *authServiceImpl) ResetPassword(ctx context.Context, req *protobuf.Reset
 		return fmt.Errorf("lỗi không xác định: %w", err)
 	}
 
+	if err = s.cacheRepo.DeleteAuthData(ctx, "reset-password", req.ResetPasswordToken); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (s *authServiceImpl) AdminSignIn(ctx context.Context, req *protobuf.SignInRequest) (*protobuf.AuthResponse, string, time.Duration, string, time.Duration, error) {
-	// Tìm người dùng theo username
+func (s *authServiceImpl) AdminSignIn(ctx context.Context, req *authpb.SignInRequest) (*authpb.LoggedInResponse, error) {
 	userRes, err := s.userClient.GetUserByUsername(ctx, &userpb.GetUserByUsernameRequest{Username: req.Username})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.NotFound:
-				return nil, "", 0, "", 0, common.ErrUserNotFound
+				return nil, common.ErrUserNotFound
 			default:
-				return nil, "", 0, "", 0, fmt.Errorf("lỗi từ user service: %s", st.Message())
+				return nil, fmt.Errorf("lỗi từ user service: %s", st.Message())
 			}
 		}
-		return nil, "", 0, "", 0, fmt.Errorf("lỗi không xác định: %w", err)
+		return nil, fmt.Errorf("lỗi không xác định: %w", err)
 	}
-	// Kiểm tra mật khẩu
+
 	isCorrectPassword := common.VerifyPassword(req.Password, userRes.Password)
 	if !isCorrectPassword {
-		return nil, "", 0, "", 0, common.ErrInvalidPassword
+		return nil, common.ErrInvalidPassword
 	}
 
-	// Kiểm tra quyền
 	if !isAdmin("user", userRes.Roles) {
-		return nil, "", 0, "", 0, common.ErrForbidden
+		return nil, common.ErrForbidden
 	}
 
-	// Tạo Access Token và Refresh Token
 	accessToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.AccessExpiresIn)
 	if err != nil {
-		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+		return nil, fmt.Errorf("tạo token xác thực thất bại")
 	}
 	refreshToken, err := security.GenerateToken(userRes.Id, userRes.Roles, s.cfg.Jwt.SecretKey, s.cfg.Jwt.RefreshExpiresIn)
 	if err != nil {
-		return nil, "", 0, "", 0, fmt.Errorf("tạo token xác thực thất bại")
+		return nil, fmt.Errorf("tạo token xác thực thất bại")
 	}
-	authRes := &protobuf.AuthResponse{
+	authRes := &authpb.AuthResponse{
 		Id:        userRes.Id,
 		Username:  userRes.Username,
 		Email:     userRes.Email,
 		CreatedAt: userRes.CreatedAt,
-		Profile: &protobuf.ProfileResponse{
+		Profile: &authpb.ProfileResponse{
 			Id:        userRes.Profile.Id,
 			FirstName: userRes.Profile.FirstName,
 			LastName:  userRes.Profile.LastName,
@@ -503,7 +473,18 @@ func (s *authServiceImpl) AdminSignIn(ctx context.Context, req *protobuf.SignInR
 			Dob:       userRes.Profile.Dob,
 		},
 	}
-	return authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn, nil
+
+	return toLoggedInResponse(authRes, accessToken, s.cfg.Jwt.AccessExpiresIn, refreshToken, s.cfg.Jwt.RefreshExpiresIn), nil
+}
+
+func toLoggedInResponse(user *authpb.AuthResponse, accessToken string, accessExpiresIn time.Duration, refreshToken string, refreshExpiresIn time.Duration) *authpb.LoggedInResponse {
+	return &authpb.LoggedInResponse{
+		User:             user,
+		AccessToken:      accessToken,
+		AccessExpiresIn:  int64(accessExpiresIn),
+		RefreshToken:     refreshToken,
+		RefreshExpiresIn: int64(refreshExpiresIn),
+	}
 }
 
 func hasRoleUser(role string, roles []string) bool {

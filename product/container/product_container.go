@@ -12,7 +12,7 @@ import (
 	tagRepo "github.com/SomeHowMicroservice/shm-be/product/repository/tag"
 	variantRepo "github.com/SomeHowMicroservice/shm-be/product/repository/variant"
 	"github.com/SomeHowMicroservice/shm-be/product/service"
-	userpb "github.com/SomeHowMicroservice/shm-be/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/product/protobuf/user"
 	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"

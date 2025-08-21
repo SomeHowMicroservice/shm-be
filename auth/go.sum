@@ -1,5 +1,3 @@
-github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250817150637-5f82186bf360 h1:KRYZrglsHiKTqN+0KHWDwS37g2A4Lw2ZOGGBwC3XrjE=
-github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250817150637-5f82186bf360/go.mod h1:rawT2nJ0vHDovCoL+frmPORjej4AUPUUG2BxyLU8Qjw=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
 github.com/bsm/ginkgo/v2 v2.12.0/go.mod h1:SwYbGRRDovPVboqFv0tPTcG1sN61LM1Z4ARdbAV9g4c=
 github.com/bsm/gomega v1.27.10 h1:yeMWxP2pV2fG3FgAODIY8EiRE3dy0aeFYt4l7wh6yKA=

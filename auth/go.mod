@@ -2,11 +2,7 @@ module github.com/SomeHowMicroservice/shm-be/auth
 
 go 1.23.4
 
-replace github.com/SomeHowMicroservice/shm-be/user => ../user
-
 require (
-	github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250817150637-5f82186bf360
-	github.com/SomeHowMicroservice/shm-be/user v0.0.0-00010101000000-000000000000
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 	github.com/rabbitmq/amqp091-go v1.10.0

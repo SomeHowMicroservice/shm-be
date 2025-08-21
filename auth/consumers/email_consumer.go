@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/SomeHowMicroservice/shm-be/common/smtp"
+	"github.com/SomeHowMicroservice/shm-be/auth/smtp"
 	"github.com/SomeHowMicroservice/shm-be/auth/common"
 	"github.com/SomeHowMicroservice/shm-be/auth/initialization"
 	"github.com/SomeHowMicroservice/shm-be/auth/mq"
 )
 
-func StartEmailConsumer(mqc *initialization.MQConnection, mailer smtp.Mailer) {
+func StartEmailConsumer(mqc *initialization.MQConnection, mailer smtp.SMTPService) {
 	if err := mq.ConsumeMessage(mqc.Chann, "email.send", func(body []byte) error {
 		var emailMsg common.AuthEmailMessage
 		if err := json.Unmarshal(body, &emailMsg); err != nil {

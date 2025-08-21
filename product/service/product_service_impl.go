@@ -14,7 +14,8 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/product/config"
 	"github.com/SomeHowMicroservice/shm-be/product/model"
 	"github.com/SomeHowMicroservice/shm-be/product/mq"
-	protobuf "github.com/SomeHowMicroservice/shm-be/product/protobuf"
+	productpb "github.com/SomeHowMicroservice/shm-be/product/protobuf/product"
+	userpb "github.com/SomeHowMicroservice/shm-be/product/protobuf/user"
 	categoryRepo "github.com/SomeHowMicroservice/shm-be/product/repository/category"
 	colorRepo "github.com/SomeHowMicroservice/shm-be/product/repository/color"
 	imageRepo "github.com/SomeHowMicroservice/shm-be/product/repository/image"
@@ -23,7 +24,6 @@ import (
 	sizeRepo "github.com/SomeHowMicroservice/shm-be/product/repository/size"
 	tagRepo "github.com/SomeHowMicroservice/shm-be/product/repository/tag"
 	variantRepo "github.com/SomeHowMicroservice/shm-be/product/repository/variant"
-	userpb "github.com/SomeHowMicroservice/shm-be/user/protobuf"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/rabbitmq/amqp091-go"
@@ -65,7 +65,7 @@ func NewProductService(cfg *config.Config, db *gorm.DB, userClient userpb.UserSe
 	}
 }
 
-func (s *productServiceImpl) CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (string, error) {
+func (s *productServiceImpl) CreateCategory(ctx context.Context, req *productpb.CreateCategoryRequest) (string, error) {
 	if req.Slug == nil {
 		slug := common.GenerateSlug(req.Name)
 		req.Slug = &slug
@@ -161,7 +161,7 @@ func (s *productServiceImpl) GetProductBySlug(ctx context.Context, productSlug s
 	return product, nil
 }
 
-func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (string, error) {
+func (s *productServiceImpl) CreateColor(ctx context.Context, req *productpb.CreateColorRequest) (string, error) {
 	slug := common.GenerateSlug(req.Name)
 
 	color := &model.Color{
@@ -181,7 +181,7 @@ func (s *productServiceImpl) CreateColor(ctx context.Context, req *protobuf.Crea
 	return color.ID, nil
 }
 
-func (s *productServiceImpl) CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (string, error) {
+func (s *productServiceImpl) CreateSize(ctx context.Context, req *productpb.CreateSizeRequest) (string, error) {
 	slug := common.GenerateSlug(req.Name)
 
 	size := &model.Size{
@@ -218,7 +218,7 @@ func (s *productServiceImpl) GetProductsByCategory(ctx context.Context, category
 	return products, nil
 }
 
-func (s *productServiceImpl) CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (string, error) {
+func (s *productServiceImpl) CreateTag(ctx context.Context, req *productpb.CreateTagRequest) (string, error) {
 	slug := common.GenerateSlug(req.Name)
 
 	tag := &model.Tag{
@@ -247,7 +247,7 @@ func (s *productServiceImpl) GetAllCategories(ctx context.Context) ([]*model.Cat
 	return categories, nil
 }
 
-func (s *productServiceImpl) GetCategoryByID(ctx context.Context, categoryID string) (*protobuf.CategoryAdminDetailsResponse, error) {
+func (s *productServiceImpl) GetCategoryByID(ctx context.Context, categoryID string) (*productpb.CategoryAdminDetailsResponse, error) {
 	category, err := s.categoryRepo.FindByIDWithParentsAndProducts(ctx, categoryID)
 	if err != nil {
 		return nil, fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
@@ -291,7 +291,7 @@ func (s *productServiceImpl) GetCategoryByID(ctx context.Context, categoryID str
 	return toCategoryAdminDetailsResponse(category, productResponses, cRes, uRes), nil
 }
 
-func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error) {
+func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *productpb.UpdateCategoryRequest) (*productpb.CategoryAdminDetailsResponse, error) {
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		category, err := s.categoryRepo.FindByIDWithParentsTx(ctx, tx, req.Id)
 		if err != nil {
@@ -395,7 +395,7 @@ func (s *productServiceImpl) UpdateCategory(ctx context.Context, req *protobuf.U
 	return toCategoryAdminDetailsResponse(category, productResponses, cRes, uRes), nil
 }
 
-func (s *productServiceImpl) GetAllColorsAdmin(ctx context.Context) (*protobuf.ColorsAdminResponse, error) {
+func (s *productServiceImpl) GetAllColorsAdmin(ctx context.Context) (*productpb.ColorsAdminResponse, error) {
 	colors, err := s.colorRepo.FindAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách màu sắc sản phẩm thất bại: %w", err)
@@ -412,7 +412,7 @@ func (s *productServiceImpl) GetAllColorsAdmin(ctx context.Context) (*protobuf.C
 		userIDs = append(userIDs, id)
 	}
 
-	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+	userRes, err := s.userClient.GetUsersById(ctx, &userpb.GetUsersByIdRequest{
 		Ids: userIDs,
 	})
 	if err != nil {
@@ -433,26 +433,26 @@ func (s *productServiceImpl) GetAllColorsAdmin(ctx context.Context) (*protobuf.C
 		userMap[user.Id] = user
 	}
 
-	var colorResponses []*protobuf.ColorAdminResponse
+	var colorResponses []*productpb.ColorAdminResponse
 	for _, color := range colors {
-		colorResponses = append(colorResponses, &protobuf.ColorAdminResponse{
+		colorResponses = append(colorResponses, &productpb.ColorAdminResponse{
 			Id:        color.ID,
 			Name:      color.Name,
 			CreatedAt: color.CreatedAt.Format(time.RFC3339),
-			CreatedBy: &protobuf.BaseUserResponse{
+			CreatedBy: &productpb.BaseUserResponse{
 				Id:       color.CreatedByID,
 				Username: userMap[color.CreatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[color.CreatedByID].Profile.Id,
 					FirstName: userMap[color.CreatedByID].Profile.FirstName,
 					LastName:  userMap[color.CreatedByID].Profile.LastName,
 				},
 			},
 			UpdatedAt: color.UpdatedAt.Format(time.RFC3339),
-			UpdatedBy: &protobuf.BaseUserResponse{
+			UpdatedBy: &productpb.BaseUserResponse{
 				Id:       color.UpdatedByID,
 				Username: userMap[color.UpdatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[color.UpdatedByID].Profile.Id,
 					FirstName: userMap[color.UpdatedByID].Profile.FirstName,
 					LastName:  userMap[color.UpdatedByID].Profile.LastName,
@@ -461,12 +461,12 @@ func (s *productServiceImpl) GetAllColorsAdmin(ctx context.Context) (*protobuf.C
 		})
 	}
 
-	return &protobuf.ColorsAdminResponse{
+	return &productpb.ColorsAdminResponse{
 		Colors: colorResponses,
 	}, nil
 }
 
-func (s *productServiceImpl) GetAllSizesAdmin(ctx context.Context) (*protobuf.SizesAdminResponse, error) {
+func (s *productServiceImpl) GetAllSizesAdmin(ctx context.Context) (*productpb.SizesAdminResponse, error) {
 	sizes, err := s.sizeRepo.FindAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách size sản phẩm thất bại: %w", err)
@@ -483,7 +483,7 @@ func (s *productServiceImpl) GetAllSizesAdmin(ctx context.Context) (*protobuf.Si
 		userIDs = append(userIDs, id)
 	}
 
-	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+	userRes, err := s.userClient.GetUsersById(ctx, &userpb.GetUsersByIdRequest{
 		Ids: userIDs,
 	})
 	if err != nil {
@@ -504,26 +504,26 @@ func (s *productServiceImpl) GetAllSizesAdmin(ctx context.Context) (*protobuf.Si
 		userMap[user.Id] = user
 	}
 
-	var sizeResponses []*protobuf.SizeAdminResponse
+	var sizeResponses []*productpb.SizeAdminResponse
 	for _, size := range sizes {
-		sizeResponses = append(sizeResponses, &protobuf.SizeAdminResponse{
+		sizeResponses = append(sizeResponses, &productpb.SizeAdminResponse{
 			Id:        size.ID,
 			Name:      size.Name,
 			CreatedAt: size.CreatedAt.Format(time.RFC3339),
-			CreatedBy: &protobuf.BaseUserResponse{
+			CreatedBy: &productpb.BaseUserResponse{
 				Id:       size.CreatedByID,
 				Username: userMap[size.CreatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[size.CreatedByID].Profile.Id,
 					FirstName: userMap[size.CreatedByID].Profile.FirstName,
 					LastName:  userMap[size.CreatedByID].Profile.LastName,
 				},
 			},
 			UpdatedAt: size.UpdatedAt.Format(time.RFC3339),
-			UpdatedBy: &protobuf.BaseUserResponse{
+			UpdatedBy: &productpb.BaseUserResponse{
 				Id:       size.UpdatedByID,
 				Username: userMap[size.UpdatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[size.UpdatedByID].Profile.Id,
 					FirstName: userMap[size.UpdatedByID].Profile.FirstName,
 					LastName:  userMap[size.UpdatedByID].Profile.LastName,
@@ -532,12 +532,12 @@ func (s *productServiceImpl) GetAllSizesAdmin(ctx context.Context) (*protobuf.Si
 		})
 	}
 
-	return &protobuf.SizesAdminResponse{
+	return &productpb.SizesAdminResponse{
 		Sizes: sizeResponses,
 	}, nil
 }
 
-func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*protobuf.TagsAdminResponse, error) {
+func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*productpb.TagsAdminResponse, error) {
 	tags, err := s.tagRepo.FindAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách tag sản phẩm thất bại: %w", err)
@@ -554,7 +554,7 @@ func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*protobuf.Tag
 		userIDs = append(userIDs, id)
 	}
 
-	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+	userRes, err := s.userClient.GetUsersById(ctx, &userpb.GetUsersByIdRequest{
 		Ids: userIDs,
 	})
 	if err != nil {
@@ -575,26 +575,26 @@ func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*protobuf.Tag
 		userMap[user.Id] = user
 	}
 
-	var tagResponses []*protobuf.TagAdminResponse
+	var tagResponses []*productpb.TagAdminResponse
 	for _, tag := range tags {
-		tagResponses = append(tagResponses, &protobuf.TagAdminResponse{
+		tagResponses = append(tagResponses, &productpb.TagAdminResponse{
 			Id:        tag.ID,
 			Name:      tag.Name,
 			CreatedAt: tag.CreatedAt.Format(time.RFC3339),
-			CreatedBy: &protobuf.BaseUserResponse{
+			CreatedBy: &productpb.BaseUserResponse{
 				Id:       tag.CreatedByID,
 				Username: userMap[tag.CreatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[tag.CreatedByID].Profile.Id,
 					FirstName: userMap[tag.CreatedByID].Profile.FirstName,
 					LastName:  userMap[tag.CreatedByID].Profile.LastName,
 				},
 			},
 			UpdatedAt: tag.UpdatedAt.Format(time.RFC3339),
-			UpdatedBy: &protobuf.BaseUserResponse{
+			UpdatedBy: &productpb.BaseUserResponse{
 				Id:       tag.UpdatedByID,
 				Username: userMap[tag.UpdatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[tag.UpdatedByID].Profile.Id,
 					FirstName: userMap[tag.UpdatedByID].Profile.FirstName,
 					LastName:  userMap[tag.UpdatedByID].Profile.LastName,
@@ -603,12 +603,12 @@ func (s *productServiceImpl) GetAllTagsAdmin(ctx context.Context) (*protobuf.Tag
 		})
 	}
 
-	return &protobuf.TagsAdminResponse{
+	return &productpb.TagsAdminResponse{
 		Tags: tagResponses,
 	}, nil
 }
 
-func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequest) error {
+func (s *productServiceImpl) UpdateTag(ctx context.Context, req *productpb.UpdateTagRequest) error {
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		tag, err := s.tagRepo.FindByIDTx(ctx, tx, req.Id)
 		if err != nil {
@@ -644,7 +644,7 @@ func (s *productServiceImpl) UpdateTag(ctx context.Context, req *protobuf.Update
 	return nil
 }
 
-func (s *productServiceImpl) UpdateColor(ctx context.Context, req *protobuf.UpdateColorRequest) error {
+func (s *productServiceImpl) UpdateColor(ctx context.Context, req *productpb.UpdateColorRequest) error {
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		color, err := s.colorRepo.FindByIDTx(ctx, tx, req.Id)
 		if err != nil {
@@ -683,7 +683,7 @@ func (s *productServiceImpl) UpdateColor(ctx context.Context, req *protobuf.Upda
 	return nil
 }
 
-func (s *productServiceImpl) UpdateSize(ctx context.Context, req *protobuf.UpdateSizeRequest) error {
+func (s *productServiceImpl) UpdateSize(ctx context.Context, req *productpb.UpdateSizeRequest) error {
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		size, err := s.sizeRepo.FindByIDTx(ctx, tx, req.Id)
 		if err != nil {
@@ -765,7 +765,7 @@ func (s *productServiceImpl) GetCategoriesNoChild(ctx context.Context) ([]*model
 	return noChildCategories, nil
 }
 
-func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (string, error) {
+func (s *productServiceImpl) CreateProduct(ctx context.Context, req *productpb.CreateProductRequest) (string, error) {
 	slug := common.GenerateSlug(req.Title)
 
 	var categories []*model.Category
@@ -846,8 +846,8 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 			ColorID:   v.ColorId,
 			SizeID:    v.SizeId,
 			Inventory: &model.Inventory{
-				ID:          uuid.NewString(),
-				Quantity:    int(v.Quantity),
+				ID:       uuid.NewString(),
+				Quantity: int(v.Quantity),
 			},
 		}
 		variant.Inventory.SetStock()
@@ -904,7 +904,7 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *protobuf.Cr
 	return product.ID, nil
 }
 
-func (s *productServiceImpl) GetProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error) {
+func (s *productServiceImpl) GetProductByID(ctx context.Context, productID string) (*productpb.ProductAdminDetailsResponse, error) {
 	product, err := s.productRepo.FindByIDWithDetails(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
@@ -946,7 +946,7 @@ func (s *productServiceImpl) GetProductByID(ctx context.Context, productID strin
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
-func (s *productServiceImpl) GetAllProductsAdmin(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error) {
+func (s *productServiceImpl) GetAllProductsAdmin(ctx context.Context, req *productpb.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error) {
 	if req.Page == 0 {
 		req.Page = 1
 	}
@@ -990,7 +990,7 @@ func (s *productServiceImpl) GetAllProductsAdmin(ctx context.Context, req *proto
 	return products, meta, nil
 }
 
-func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error) {
+func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *productpb.UpdateProductRequest) (*productpb.ProductAdminDetailsResponse, error) {
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		product, err := s.productRepo.FindByIDWithCategoriesAndTagsTx(ctx, tx, req.Id)
 		if err != nil {
@@ -1221,9 +1221,9 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 
 				if variant.Quantity != nil {
 					updateData := map[string]interface{}{
-						"quantity":      int(*variant.Quantity),
-						"stock":         gorm.Expr("quantity - sold_quantity"),
-						"is_stock":      gorm.Expr("CASE WHEN (quantity - sold_quantity) <= 5 THEN false ELSE true END"),
+						"quantity": int(*variant.Quantity),
+						"stock":    gorm.Expr("quantity - sold_quantity"),
+						"is_stock": gorm.Expr("CASE WHEN (quantity - sold_quantity) <= 5 THEN false ELSE true END"),
 					}
 					if err = s.inventoryRepo.UpdateByVariantIDTx(ctx, tx, variant.Id, updateData); err != nil {
 						if errors.Is(err, common.ErrInventoryNotFound) {
@@ -1246,8 +1246,8 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 					ColorID:   v.ColorId,
 					SizeID:    v.SizeId,
 					Inventory: &model.Inventory{
-						ID:          uuid.NewString(),
-						Quantity:    int(v.Quantity),
+						ID:       uuid.NewString(),
+						Quantity: int(v.Quantity),
 					},
 				}
 				variant.Inventory.SetStock()
@@ -1308,7 +1308,7 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *protobuf.Up
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
-func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *productpb.DeleteOneRequest) error {
 	updateData := map[string]interface{}{
 		"is_deleted":    true,
 		"updated_by_id": req.UserId,
@@ -1323,7 +1323,7 @@ func (s *productServiceImpl) DeleteProduct(ctx context.Context, req *protobuf.De
 	return nil
 }
 
-func (s *productServiceImpl) DeleteProducts(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+func (s *productServiceImpl) DeleteProducts(ctx context.Context, req *productpb.DeleteManyRequest) error {
 	products, err := s.productRepo.FindAllByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
@@ -1343,7 +1343,7 @@ func (s *productServiceImpl) DeleteProducts(ctx context.Context, req *protobuf.D
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteCategory(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteCategory(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error {
 	if err := s.categoryRepo.Delete(ctx, req.Id); err != nil {
 		if errors.Is(err, common.ErrCategoryNotFound) {
 			return err
@@ -1354,7 +1354,7 @@ func (s *productServiceImpl) PermanentlyDeleteCategory(ctx context.Context, req 
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteCategories(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteCategories(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error {
 	categories, err := s.categoryRepo.FindAllByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm danh mục sản phẩm thất bại: %w", err)
@@ -1370,7 +1370,7 @@ func (s *productServiceImpl) PermanentlyDeleteCategories(ctx context.Context, re
 	return nil
 }
 
-func (s *productServiceImpl) DeleteColor(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+func (s *productServiceImpl) DeleteColor(ctx context.Context, req *productpb.DeleteOneRequest) error {
 	updateData := map[string]interface{}{
 		"is_deleted":    true,
 		"updated_by_id": req.UserId,
@@ -1385,7 +1385,7 @@ func (s *productServiceImpl) DeleteColor(ctx context.Context, req *protobuf.Dele
 	return nil
 }
 
-func (s *productServiceImpl) DeleteSize(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+func (s *productServiceImpl) DeleteSize(ctx context.Context, req *productpb.DeleteOneRequest) error {
 	updateData := map[string]interface{}{
 		"is_deleted":    true,
 		"updated_by_id": req.UserId,
@@ -1400,7 +1400,7 @@ func (s *productServiceImpl) DeleteSize(ctx context.Context, req *protobuf.Delet
 	return nil
 }
 
-func (s *productServiceImpl) DeleteColors(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+func (s *productServiceImpl) DeleteColors(ctx context.Context, req *productpb.DeleteManyRequest) error {
 	colors, err := s.colorRepo.FindAllByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
@@ -1420,7 +1420,7 @@ func (s *productServiceImpl) DeleteColors(ctx context.Context, req *protobuf.Del
 	return nil
 }
 
-func (s *productServiceImpl) DeleteSizes(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+func (s *productServiceImpl) DeleteSizes(ctx context.Context, req *productpb.DeleteManyRequest) error {
 	sizes, err := s.sizeRepo.FindAllByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
@@ -1440,7 +1440,7 @@ func (s *productServiceImpl) DeleteSizes(ctx context.Context, req *protobuf.Dele
 	return nil
 }
 
-func (s *productServiceImpl) GetDeletedProducts(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error) {
+func (s *productServiceImpl) GetDeletedProducts(ctx context.Context, req *productpb.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error) {
 	if req.Page == 0 {
 		req.Page = 1
 	}
@@ -1484,7 +1484,7 @@ func (s *productServiceImpl) GetDeletedProducts(ctx context.Context, req *protob
 	return products, meta, nil
 }
 
-func (s *productServiceImpl) GetDeletedProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error) {
+func (s *productServiceImpl) GetDeletedProductByID(ctx context.Context, productID string) (*productpb.ProductAdminDetailsResponse, error) {
 	product, err := s.productRepo.FindDeletedByIDWithDetails(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
@@ -1526,7 +1526,7 @@ func (s *productServiceImpl) GetDeletedProductByID(ctx context.Context, productI
 	return toProductAdminDetailsResponse(product, cRes, uRes), nil
 }
 
-func (s *productServiceImpl) GetDeletedColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error) {
+func (s *productServiceImpl) GetDeletedColors(ctx context.Context) (*productpb.ColorsAdminResponse, error) {
 	colors, err := s.colorRepo.FindAllDeleted(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách màu sắc sản phẩm thất bại: %w", err)
@@ -1543,7 +1543,7 @@ func (s *productServiceImpl) GetDeletedColors(ctx context.Context) (*protobuf.Co
 		userIDs = append(userIDs, id)
 	}
 
-	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+	userRes, err := s.userClient.GetUsersById(ctx, &userpb.GetUsersByIdRequest{
 		Ids: userIDs,
 	})
 	if err != nil {
@@ -1564,26 +1564,26 @@ func (s *productServiceImpl) GetDeletedColors(ctx context.Context) (*protobuf.Co
 		userMap[user.Id] = user
 	}
 
-	var colorResponses []*protobuf.ColorAdminResponse
+	var colorResponses []*productpb.ColorAdminResponse
 	for _, color := range colors {
-		colorResponses = append(colorResponses, &protobuf.ColorAdminResponse{
+		colorResponses = append(colorResponses, &productpb.ColorAdminResponse{
 			Id:        color.ID,
 			Name:      color.Name,
 			CreatedAt: color.CreatedAt.Format(time.RFC3339),
-			CreatedBy: &protobuf.BaseUserResponse{
+			CreatedBy: &productpb.BaseUserResponse{
 				Id:       color.CreatedByID,
 				Username: userMap[color.CreatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[color.CreatedByID].Profile.Id,
 					FirstName: userMap[color.CreatedByID].Profile.FirstName,
 					LastName:  userMap[color.CreatedByID].Profile.LastName,
 				},
 			},
 			UpdatedAt: color.UpdatedAt.Format(time.RFC3339),
-			UpdatedBy: &protobuf.BaseUserResponse{
+			UpdatedBy: &productpb.BaseUserResponse{
 				Id:       color.UpdatedByID,
 				Username: userMap[color.UpdatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[color.UpdatedByID].Profile.Id,
 					FirstName: userMap[color.UpdatedByID].Profile.FirstName,
 					LastName:  userMap[color.UpdatedByID].Profile.LastName,
@@ -1592,12 +1592,12 @@ func (s *productServiceImpl) GetDeletedColors(ctx context.Context) (*protobuf.Co
 		})
 	}
 
-	return &protobuf.ColorsAdminResponse{
+	return &productpb.ColorsAdminResponse{
 		Colors: colorResponses,
 	}, nil
 }
 
-func (s *productServiceImpl) GetDeletedSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error) {
+func (s *productServiceImpl) GetDeletedSizes(ctx context.Context) (*productpb.SizesAdminResponse, error) {
 	sizes, err := s.sizeRepo.FindAllDeleted(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách size sản phẩm thất bại: %w", err)
@@ -1614,7 +1614,7 @@ func (s *productServiceImpl) GetDeletedSizes(ctx context.Context) (*protobuf.Siz
 		userIDs = append(userIDs, id)
 	}
 
-	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+	userRes, err := s.userClient.GetUsersById(ctx, &userpb.GetUsersByIdRequest{
 		Ids: userIDs,
 	})
 	if err != nil {
@@ -1635,26 +1635,26 @@ func (s *productServiceImpl) GetDeletedSizes(ctx context.Context) (*protobuf.Siz
 		userMap[user.Id] = user
 	}
 
-	var sizeResponses []*protobuf.SizeAdminResponse
+	var sizeResponses []*productpb.SizeAdminResponse
 	for _, size := range sizes {
-		sizeResponses = append(sizeResponses, &protobuf.SizeAdminResponse{
+		sizeResponses = append(sizeResponses, &productpb.SizeAdminResponse{
 			Id:        size.ID,
 			Name:      size.Name,
 			CreatedAt: size.CreatedAt.Format(time.RFC3339),
-			CreatedBy: &protobuf.BaseUserResponse{
+			CreatedBy: &productpb.BaseUserResponse{
 				Id:       size.CreatedByID,
 				Username: userMap[size.CreatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[size.CreatedByID].Profile.Id,
 					FirstName: userMap[size.CreatedByID].Profile.FirstName,
 					LastName:  userMap[size.CreatedByID].Profile.LastName,
 				},
 			},
 			UpdatedAt: size.UpdatedAt.Format(time.RFC3339),
-			UpdatedBy: &protobuf.BaseUserResponse{
+			UpdatedBy: &productpb.BaseUserResponse{
 				Id:       size.UpdatedByID,
 				Username: userMap[size.UpdatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[size.UpdatedByID].Profile.Id,
 					FirstName: userMap[size.UpdatedByID].Profile.FirstName,
 					LastName:  userMap[size.UpdatedByID].Profile.LastName,
@@ -1663,12 +1663,12 @@ func (s *productServiceImpl) GetDeletedSizes(ctx context.Context) (*protobuf.Siz
 		})
 	}
 
-	return &protobuf.SizesAdminResponse{
+	return &productpb.SizesAdminResponse{
 		Sizes: sizeResponses,
 	}, nil
 }
 
-func (s *productServiceImpl) GetDeletedTags(ctx context.Context) (*protobuf.TagsAdminResponse, error) {
+func (s *productServiceImpl) GetDeletedTags(ctx context.Context) (*productpb.TagsAdminResponse, error) {
 	tags, err := s.tagRepo.FindAllDeleted(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lấy danh sách tag sản phẩm thất bại: %w", err)
@@ -1685,7 +1685,7 @@ func (s *productServiceImpl) GetDeletedTags(ctx context.Context) (*protobuf.Tags
 		userIDs = append(userIDs, id)
 	}
 
-	userRes, err := s.userClient.GetUsersByIds(ctx, &userpb.GetUsersByIdsRequest{
+	userRes, err := s.userClient.GetUsersById(ctx, &userpb.GetUsersByIdRequest{
 		Ids: userIDs,
 	})
 	if err != nil {
@@ -1706,26 +1706,26 @@ func (s *productServiceImpl) GetDeletedTags(ctx context.Context) (*protobuf.Tags
 		userMap[user.Id] = user
 	}
 
-	var tagResponses []*protobuf.TagAdminResponse
+	var tagResponses []*productpb.TagAdminResponse
 	for _, tag := range tags {
-		tagResponses = append(tagResponses, &protobuf.TagAdminResponse{
+		tagResponses = append(tagResponses, &productpb.TagAdminResponse{
 			Id:        tag.ID,
 			Name:      tag.Name,
 			CreatedAt: tag.CreatedAt.Format(time.RFC3339),
-			CreatedBy: &protobuf.BaseUserResponse{
+			CreatedBy: &productpb.BaseUserResponse{
 				Id:       tag.CreatedByID,
 				Username: userMap[tag.CreatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[tag.CreatedByID].Profile.Id,
 					FirstName: userMap[tag.CreatedByID].Profile.FirstName,
 					LastName:  userMap[tag.CreatedByID].Profile.LastName,
 				},
 			},
 			UpdatedAt: tag.UpdatedAt.Format(time.RFC3339),
-			UpdatedBy: &protobuf.BaseUserResponse{
+			UpdatedBy: &productpb.BaseUserResponse{
 				Id:       tag.UpdatedByID,
 				Username: userMap[tag.UpdatedByID].Username,
-				Profile: &protobuf.BaseProfileResponse{
+				Profile: &productpb.BaseProfileResponse{
 					Id:        userMap[tag.UpdatedByID].Profile.Id,
 					FirstName: userMap[tag.UpdatedByID].Profile.FirstName,
 					LastName:  userMap[tag.UpdatedByID].Profile.LastName,
@@ -1734,12 +1734,12 @@ func (s *productServiceImpl) GetDeletedTags(ctx context.Context) (*protobuf.Tags
 		})
 	}
 
-	return &protobuf.TagsAdminResponse{
+	return &productpb.TagsAdminResponse{
 		Tags: tagResponses,
 	}, nil
 }
 
-func (s *productServiceImpl) DeleteTag(ctx context.Context, req *protobuf.DeleteOneRequest) error {
+func (s *productServiceImpl) DeleteTag(ctx context.Context, req *productpb.DeleteOneRequest) error {
 	updateData := map[string]interface{}{
 		"is_deleted":    true,
 		"updated_by_id": req.UserId,
@@ -1754,7 +1754,7 @@ func (s *productServiceImpl) DeleteTag(ctx context.Context, req *protobuf.Delete
 	return nil
 }
 
-func (s *productServiceImpl) DeleteTags(ctx context.Context, req *protobuf.DeleteManyRequest) error {
+func (s *productServiceImpl) DeleteTags(ctx context.Context, req *productpb.DeleteManyRequest) error {
 	tags, err := s.tagRepo.FindAllByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
@@ -1774,7 +1774,7 @@ func (s *productServiceImpl) DeleteTags(ctx context.Context, req *protobuf.Delet
 	return nil
 }
 
-func (s *productServiceImpl) RestoreProduct(ctx context.Context, req *protobuf.RestoreOneRequest) error {
+func (s *productServiceImpl) RestoreProduct(ctx context.Context, req *productpb.RestoreOneRequest) error {
 	product, err := s.productRepo.FindDeletedByID(ctx, req.Id)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
@@ -1797,7 +1797,7 @@ func (s *productServiceImpl) RestoreProduct(ctx context.Context, req *protobuf.R
 	return nil
 }
 
-func (s *productServiceImpl) RestoreProducts(ctx context.Context, req *protobuf.RestoreManyRequest) error {
+func (s *productServiceImpl) RestoreProducts(ctx context.Context, req *productpb.RestoreManyRequest) error {
 	products, err := s.productRepo.FindAllDeletedByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
@@ -1817,7 +1817,7 @@ func (s *productServiceImpl) RestoreProducts(ctx context.Context, req *protobuf.
 	return nil
 }
 
-func (s *productServiceImpl) RestoreColor(ctx context.Context, req *protobuf.RestoreOneRequest) error {
+func (s *productServiceImpl) RestoreColor(ctx context.Context, req *productpb.RestoreOneRequest) error {
 	color, err := s.colorRepo.FindDeletedByID(ctx, req.Id)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
@@ -1840,7 +1840,7 @@ func (s *productServiceImpl) RestoreColor(ctx context.Context, req *protobuf.Res
 	return nil
 }
 
-func (s *productServiceImpl) RestoreColors(ctx context.Context, req *protobuf.RestoreManyRequest) error {
+func (s *productServiceImpl) RestoreColors(ctx context.Context, req *productpb.RestoreManyRequest) error {
 	colors, err := s.colorRepo.FindAllDeletedByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
@@ -1860,7 +1860,7 @@ func (s *productServiceImpl) RestoreColors(ctx context.Context, req *protobuf.Re
 	return nil
 }
 
-func (s *productServiceImpl) RestoreSize(ctx context.Context, req *protobuf.RestoreOneRequest) error {
+func (s *productServiceImpl) RestoreSize(ctx context.Context, req *productpb.RestoreOneRequest) error {
 	size, err := s.sizeRepo.FindDeletedByID(ctx, req.Id)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
@@ -1883,7 +1883,7 @@ func (s *productServiceImpl) RestoreSize(ctx context.Context, req *protobuf.Rest
 	return nil
 }
 
-func (s *productServiceImpl) RestoreSizes(ctx context.Context, req *protobuf.RestoreManyRequest) error {
+func (s *productServiceImpl) RestoreSizes(ctx context.Context, req *productpb.RestoreManyRequest) error {
 	sizes, err := s.sizeRepo.FindAllDeletedByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
@@ -1903,7 +1903,7 @@ func (s *productServiceImpl) RestoreSizes(ctx context.Context, req *protobuf.Res
 	return nil
 }
 
-func (s *productServiceImpl) RestoreTag(ctx context.Context, req *protobuf.RestoreOneRequest) error {
+func (s *productServiceImpl) RestoreTag(ctx context.Context, req *productpb.RestoreOneRequest) error {
 	tag, err := s.tagRepo.FindDeletedByID(ctx, req.Id)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
@@ -1926,7 +1926,7 @@ func (s *productServiceImpl) RestoreTag(ctx context.Context, req *protobuf.Resto
 	return nil
 }
 
-func (s *productServiceImpl) RestoreTags(ctx context.Context, req *protobuf.RestoreManyRequest) error {
+func (s *productServiceImpl) RestoreTags(ctx context.Context, req *productpb.RestoreManyRequest) error {
 	tags, err := s.tagRepo.FindAllDeletedByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
@@ -1946,7 +1946,7 @@ func (s *productServiceImpl) RestoreTags(ctx context.Context, req *protobuf.Rest
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteProduct(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteProduct(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error {
 	product, err := s.productRepo.FindDeletedByIDWithImages(ctx, req.Id)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
@@ -1972,7 +1972,7 @@ func (s *productServiceImpl) PermanentlyDeleteProduct(ctx context.Context, req *
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteProducts(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteProducts(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error {
 	products, err := s.productRepo.FindAllDeletedByIDWithImages(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm sản phẩm thất bại: %w", err)
@@ -2006,7 +2006,7 @@ func (s *productServiceImpl) PermanentlyDeleteProducts(ctx context.Context, req 
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteColor(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteColor(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error {
 	if err := s.colorRepo.Delete(ctx, req.Id); err != nil {
 		if errors.Is(err, common.ErrColorNotFound) {
 			return err
@@ -2017,7 +2017,7 @@ func (s *productServiceImpl) PermanentlyDeleteColor(ctx context.Context, req *pr
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteColors(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteColors(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error {
 	colors, err := s.colorRepo.FindAllDeletedByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm màu sắc thất bại: %w", err)
@@ -2033,7 +2033,7 @@ func (s *productServiceImpl) PermanentlyDeleteColors(ctx context.Context, req *p
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteSize(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteSize(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error {
 	if err := s.sizeRepo.Delete(ctx, req.Id); err != nil {
 		if errors.Is(err, common.ErrSizeNotFound) {
 			return err
@@ -2044,7 +2044,7 @@ func (s *productServiceImpl) PermanentlyDeleteSize(ctx context.Context, req *pro
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteSizes(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteSizes(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error {
 	sizes, err := s.sizeRepo.FindAllDeletedByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm kích cỡ thất bại: %w", err)
@@ -2060,7 +2060,7 @@ func (s *productServiceImpl) PermanentlyDeleteSizes(ctx context.Context, req *pr
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteTag(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteTag(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error {
 	if err := s.tagRepo.Delete(ctx, req.Id); err != nil {
 		if errors.Is(err, common.ErrTagNotFound) {
 			return err
@@ -2071,7 +2071,7 @@ func (s *productServiceImpl) PermanentlyDeleteTag(ctx context.Context, req *prot
 	return nil
 }
 
-func (s *productServiceImpl) PermanentlyDeleteTags(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error {
+func (s *productServiceImpl) PermanentlyDeleteTags(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error {
 	tags, err := s.tagRepo.FindAllDeletedByID(ctx, req.Ids)
 	if err != nil {
 		return fmt.Errorf("tìm kiếm tag thất bại: %w", err)
@@ -2174,7 +2174,7 @@ func getIDsFromCategories(categories []*model.Category) []string {
 	return categoryIDs
 }
 
-func toProductAdminDetailsResponse(product *model.Product, cRes *userpb.UserResponse, uRes *userpb.UserResponse) *protobuf.ProductAdminDetailsResponse {
+func toProductAdminDetailsResponse(product *model.Product, cRes *userpb.UserResponse, uRes *userpb.UserResponse) *productpb.ProductAdminDetailsResponse {
 	var startSalePtr, endSalePtr *string
 	if product.StartSale != nil {
 		formatted := product.StartSale.Format("2006-01-02")
@@ -2185,7 +2185,7 @@ func toProductAdminDetailsResponse(product *model.Product, cRes *userpb.UserResp
 		endSalePtr = &formatted
 	}
 
-	return &protobuf.ProductAdminDetailsResponse{
+	return &productpb.ProductAdminDetailsResponse{
 		Id:          product.ID,
 		Title:       product.Title,
 		Slug:        product.Slug,
@@ -2202,19 +2202,19 @@ func toProductAdminDetailsResponse(product *model.Product, cRes *userpb.UserResp
 		Images:      toBaseImagesResponse(product.Images),
 		CreatedAt:   product.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:   product.UpdatedAt.Format(time.RFC3339),
-		CreatedBy: &protobuf.BaseUserResponse{
+		CreatedBy: &productpb.BaseUserResponse{
 			Id:       cRes.Id,
 			Username: cRes.Username,
-			Profile: &protobuf.BaseProfileResponse{
+			Profile: &productpb.BaseProfileResponse{
 				Id:        cRes.Profile.Id,
 				FirstName: cRes.Profile.FirstName,
 				LastName:  cRes.Profile.LastName,
 			},
 		},
-		UpdatedBy: &protobuf.BaseUserResponse{
+		UpdatedBy: &productpb.BaseUserResponse{
 			Id:       uRes.Id,
 			Username: uRes.Username,
-			Profile: &protobuf.BaseProfileResponse{
+			Profile: &productpb.BaseProfileResponse{
 				Id:        uRes.Profile.Id,
 				FirstName: uRes.Profile.FirstName,
 				LastName:  uRes.Profile.LastName,
@@ -2223,10 +2223,10 @@ func toProductAdminDetailsResponse(product *model.Product, cRes *userpb.UserResp
 	}
 }
 
-func toBaseTagsResponse(tags []*model.Tag) []*protobuf.BaseTagResponse {
-	var tagResponses []*protobuf.BaseTagResponse
+func toBaseTagsResponse(tags []*model.Tag) []*productpb.BaseTagResponse {
+	var tagResponses []*productpb.BaseTagResponse
 	for _, t := range tags {
-		tagResponses = append(tagResponses, &protobuf.BaseTagResponse{
+		tagResponses = append(tagResponses, &productpb.BaseTagResponse{
 			Id:   t.ID,
 			Name: t.Name,
 		})
@@ -2234,31 +2234,31 @@ func toBaseTagsResponse(tags []*model.Tag) []*protobuf.BaseTagResponse {
 	return tagResponses
 }
 
-func toBaseVariantsResponse(variants []*model.Variant) []*protobuf.BaseVariantResponse {
-	var variantResponses []*protobuf.BaseVariantResponse
+func toBaseVariantsResponse(variants []*model.Variant) []*productpb.BaseVariantResponse {
+	var variantResponses []*productpb.BaseVariantResponse
 	for _, v := range variants {
-		var color *protobuf.BaseColorResponse
+		var color *productpb.BaseColorResponse
 		if v.Color != nil {
-			color = &protobuf.BaseColorResponse{
+			color = &productpb.BaseColorResponse{
 				Id:   v.Color.ID,
 				Name: v.Color.Name,
 			}
 		}
 
-		var size *protobuf.BaseSizeResponse
+		var size *productpb.BaseSizeResponse
 		if v.Size != nil {
-			size = &protobuf.BaseSizeResponse{
+			size = &productpb.BaseSizeResponse{
 				Id:   v.Size.ID,
 				Name: v.Size.Name,
 			}
 		}
 
-		variantResponses = append(variantResponses, &protobuf.BaseVariantResponse{
+		variantResponses = append(variantResponses, &productpb.BaseVariantResponse{
 			Id:    v.ID,
 			Sku:   v.SKU,
 			Color: color,
 			Size:  size,
-			Inventory: &protobuf.BaseInventoryResponse{
+			Inventory: &productpb.BaseInventoryResponse{
 				Id:           v.Inventory.ID,
 				Quantity:     int64(v.Inventory.Quantity),
 				SoldQuantity: proto.Int64(int64(v.Inventory.SoldQuantity)),
@@ -2271,10 +2271,10 @@ func toBaseVariantsResponse(variants []*model.Variant) []*protobuf.BaseVariantRe
 	return variantResponses
 }
 
-func toBaseImagesResponse(images []*model.Image) []*protobuf.BaseImageResponse {
-	var imageResponses []*protobuf.BaseImageResponse
+func toBaseImagesResponse(images []*model.Image) []*productpb.BaseImageResponse {
+	var imageResponses []*productpb.BaseImageResponse
 	for _, img := range images {
-		imageResponses = append(imageResponses, &protobuf.BaseImageResponse{
+		imageResponses = append(imageResponses, &productpb.BaseImageResponse{
 			Id:          img.ID,
 			Url:         img.Url,
 			IsThumbnail: &img.IsThumbnail,
@@ -2284,27 +2284,27 @@ func toBaseImagesResponse(images []*model.Image) []*protobuf.BaseImageResponse {
 	return imageResponses
 }
 
-func toCategoryAdminDetailsResponse(category *model.Category, productResponses []*protobuf.BaseProductResponse, cRes *userpb.UserResponse, uRes *userpb.UserResponse) *protobuf.CategoryAdminDetailsResponse {
-	return &protobuf.CategoryAdminDetailsResponse{
+func toCategoryAdminDetailsResponse(category *model.Category, productResponses []*productpb.BaseProductResponse, cRes *userpb.UserResponse, uRes *userpb.UserResponse) *productpb.CategoryAdminDetailsResponse {
+	return &productpb.CategoryAdminDetailsResponse{
 		Id:        category.ID,
 		Name:      category.Name,
 		Slug:      category.Slug,
 		Parents:   toBaseCategoriesResponse(category.Parents),
 		CreatedAt: category.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: category.UpdatedAt.Format(time.RFC3339),
-		CreatedBy: &protobuf.BaseUserResponse{
+		CreatedBy: &productpb.BaseUserResponse{
 			Id:       cRes.Id,
 			Username: cRes.Username,
-			Profile: &protobuf.BaseProfileResponse{
+			Profile: &productpb.BaseProfileResponse{
 				Id:        cRes.Profile.Id,
 				FirstName: cRes.Profile.FirstName,
 				LastName:  cRes.Profile.LastName,
 			},
 		},
-		UpdatedBy: &protobuf.BaseUserResponse{
+		UpdatedBy: &productpb.BaseUserResponse{
 			Id:       uRes.Id,
 			Username: uRes.Username,
-			Profile: &protobuf.BaseProfileResponse{
+			Profile: &productpb.BaseProfileResponse{
 				Id:        uRes.Profile.Id,
 				FirstName: uRes.Profile.FirstName,
 				LastName:  uRes.Profile.LastName,
@@ -2314,13 +2314,13 @@ func toCategoryAdminDetailsResponse(category *model.Category, productResponses [
 	}
 }
 
-func toBaseProductResponse(category *model.Category) []*protobuf.BaseProductResponse {
-	var productResponses []*protobuf.BaseProductResponse
+func toBaseProductResponse(category *model.Category) []*productpb.BaseProductResponse {
+	var productResponses []*productpb.BaseProductResponse
 	for _, p := range category.Products {
-		var thumb *protobuf.BaseImageResponse
+		var thumb *productpb.BaseImageResponse
 		for _, img := range p.Images {
 			if img.IsThumbnail {
-				thumb = &protobuf.BaseImageResponse{
+				thumb = &productpb.BaseImageResponse{
 					Id:          img.ID,
 					Url:         img.Url,
 					IsThumbnail: &img.IsThumbnail,
@@ -2329,7 +2329,7 @@ func toBaseProductResponse(category *model.Category) []*protobuf.BaseProductResp
 			}
 		}
 
-		productResponses = append(productResponses, &protobuf.BaseProductResponse{
+		productResponses = append(productResponses, &productpb.BaseProductResponse{
 			Id:    p.ID,
 			Title: p.Title,
 			Slug:  p.Slug,
@@ -2340,10 +2340,10 @@ func toBaseProductResponse(category *model.Category) []*protobuf.BaseProductResp
 	return productResponses
 }
 
-func toBaseCategoriesResponse(categories []*model.Category) []*protobuf.BaseCategoryResponse {
-	var baseCategories []*protobuf.BaseCategoryResponse
+func toBaseCategoriesResponse(categories []*model.Category) []*productpb.BaseCategoryResponse {
+	var baseCategories []*productpb.BaseCategoryResponse
 	for _, category := range categories {
-		baseCategories = append(baseCategories, &protobuf.BaseCategoryResponse{
+		baseCategories = append(baseCategories, &productpb.BaseCategoryResponse{
 			Id:   category.ID,
 			Name: category.Name,
 			Slug: category.Slug,

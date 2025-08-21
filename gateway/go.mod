@@ -3,16 +3,13 @@ module github.com/SomeHowMicroservice/shm-be/gateway
 go 1.23.4
 
 require (
-	github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250728133821-ccea59d761d5
-	github.com/SomeHowMicroservice/shm-be/services/auth v0.0.0-20250728133821-ccea59d761d5
-	github.com/SomeHowMicroservice/shm-be/services/product v0.0.0-20250728133821-ccea59d761d5
-	github.com/SomeHowMicroservice/shm-be/services/user v0.0.0-20250728133821-ccea59d761d5
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/spf13/viper v1.20.1
 	google.golang.org/grpc v1.73.0
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -49,6 +46,5 @@ require (
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

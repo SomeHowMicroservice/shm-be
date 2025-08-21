@@ -34,7 +34,7 @@ const (
 	UserService_CreateAddress_FullMethodName          = "/user.UserService/CreateAddress"
 	UserService_UpdateAddress_FullMethodName          = "/user.UserService/UpdateAddress"
 	UserService_DeleteAddress_FullMethodName          = "/user.UserService/DeleteAddress"
-	UserService_GetUsersByIds_FullMethodName          = "/user.UserService/GetUsersByIds"
+	UserService_GetUsersById_FullMethodName           = "/user.UserService/GetUsersById"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -56,7 +56,7 @@ type UserServiceClient interface {
 	CreateAddress(ctx context.Context, in *CreateAddressRequest, opts ...grpc.CallOption) (*AddressResponse, error)
 	UpdateAddress(ctx context.Context, in *UpdateAddressRequest, opts ...grpc.CallOption) (*AddressResponse, error)
 	DeleteAddress(ctx context.Context, in *DeleteAddressRequest, opts ...grpc.CallOption) (*AddressDeletedResponse, error)
-	GetUsersByIds(ctx context.Context, in *GetUsersByIdsRequest, opts ...grpc.CallOption) (*UsersPublicResponse, error)
+	GetUsersById(ctx context.Context, in *GetUsersByIdRequest, opts ...grpc.CallOption) (*UsersPublicResponse, error)
 }
 
 type userServiceClient struct {
@@ -217,10 +217,10 @@ func (c *userServiceClient) DeleteAddress(ctx context.Context, in *DeleteAddress
 	return out, nil
 }
 
-func (c *userServiceClient) GetUsersByIds(ctx context.Context, in *GetUsersByIdsRequest, opts ...grpc.CallOption) (*UsersPublicResponse, error) {
+func (c *userServiceClient) GetUsersById(ctx context.Context, in *GetUsersByIdRequest, opts ...grpc.CallOption) (*UsersPublicResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UsersPublicResponse)
-	err := c.cc.Invoke(ctx, UserService_GetUsersByIds_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, UserService_GetUsersById_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ type UserServiceServer interface {
 	CreateAddress(context.Context, *CreateAddressRequest) (*AddressResponse, error)
 	UpdateAddress(context.Context, *UpdateAddressRequest) (*AddressResponse, error)
 	DeleteAddress(context.Context, *DeleteAddressRequest) (*AddressDeletedResponse, error)
-	GetUsersByIds(context.Context, *GetUsersByIdsRequest) (*UsersPublicResponse, error)
+	GetUsersById(context.Context, *GetUsersByIdRequest) (*UsersPublicResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -302,8 +302,8 @@ func (UnimplementedUserServiceServer) UpdateAddress(context.Context, *UpdateAddr
 func (UnimplementedUserServiceServer) DeleteAddress(context.Context, *DeleteAddressRequest) (*AddressDeletedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAddress not implemented")
 }
-func (UnimplementedUserServiceServer) GetUsersByIds(context.Context, *GetUsersByIdsRequest) (*UsersPublicResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUsersByIds not implemented")
+func (UnimplementedUserServiceServer) GetUsersById(context.Context, *GetUsersByIdRequest) (*UsersPublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsersById not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -596,20 +596,20 @@ func _UserService_DeleteAddress_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_GetUsersByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUsersByIdsRequest)
+func _UserService_GetUsersById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsersByIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).GetUsersByIds(ctx, in)
+		return srv.(UserServiceServer).GetUsersById(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_GetUsersByIds_FullMethodName,
+		FullMethod: UserService_GetUsersById_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetUsersByIds(ctx, req.(*GetUsersByIdsRequest))
+		return srv.(UserServiceServer).GetUsersById(ctx, req.(*GetUsersByIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -682,8 +682,8 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_DeleteAddress_Handler,
 		},
 		{
-			MethodName: "GetUsersByIds",
-			Handler:    _UserService_GetUsersByIds_Handler,
+			MethodName: "GetUsersById",
+			Handler:    _UserService_GetUsersById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

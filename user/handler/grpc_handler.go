@@ -6,7 +6,7 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/user/common"
 	"github.com/SomeHowMicroservice/shm-be/user/model"
-	protobuf "github.com/SomeHowMicroservice/shm-be/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/user/protobuf/user"
 	"github.com/SomeHowMicroservice/shm-be/user/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -14,7 +14,7 @@ import (
 )
 
 type GRPCHandler struct {
-	protobuf.UnimplementedUserServiceServer
+	userpb.UnimplementedUserServiceServer
 	svc service.UserService
 }
 
@@ -22,29 +22,29 @@ func NewGRPCHandler(grpcServer *grpc.Server, svc service.UserService) *GRPCHandl
 	return &GRPCHandler{svc: svc}
 }
 
-func (h *GRPCHandler) CheckEmailExists(ctx context.Context, req *protobuf.CheckEmailExistsRequest) (*protobuf.UserCheckedResponse, error) {
+func (h *GRPCHandler) CheckEmailExists(ctx context.Context, req *userpb.CheckEmailExistsRequest) (*userpb.UserCheckedResponse, error) {
 	exists, err := h.svc.CheckEmailExists(ctx, req.Email)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &protobuf.UserCheckedResponse{
+	return &userpb.UserCheckedResponse{
 		Exists: exists,
 	}, nil
 }
 
-func (h *GRPCHandler) CheckUsernameExists(ctx context.Context, req *protobuf.CheckUsernameExistsRequest) (*protobuf.UserCheckedResponse, error) {
+func (h *GRPCHandler) CheckUsernameExists(ctx context.Context, req *userpb.CheckUsernameExistsRequest) (*userpb.UserCheckedResponse, error) {
 	exists, err := h.svc.CheckUsernameExists(ctx, req.Username)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &protobuf.UserCheckedResponse{
+	return &userpb.UserCheckedResponse{
 		Exists: exists,
 	}, nil
 }
 
-func (h *GRPCHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*protobuf.UserPublicResponse, error) {
+func (h *GRPCHandler) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.UserPublicResponse, error) {
 	user, err := h.svc.CreateUser(ctx, req)
 	if err != nil {
 		switch err {
@@ -58,7 +58,7 @@ func (h *GRPCHandler) CreateUser(ctx context.Context, req *protobuf.CreateUserRe
 	return toUserPublicResponse(user), nil
 }
 
-func (h *GRPCHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUserByUsernameRequest) (*protobuf.UserResponse, error) {
+func (h *GRPCHandler) GetUserByUsername(ctx context.Context, req *userpb.GetUserByUsernameRequest) (*userpb.UserResponse, error) {
 	user, err := h.svc.GetUserByUsername(ctx, req.Username)
 	if err != nil {
 		switch err {
@@ -72,7 +72,7 @@ func (h *GRPCHandler) GetUserByUsername(ctx context.Context, req *protobuf.GetUs
 	return toUserResponse(user), nil
 }
 
-func (h *GRPCHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserPublicResponse, error) {
+func (h *GRPCHandler) GetUserPublicById(ctx context.Context, req *userpb.GetUserByIdRequest) (*userpb.UserPublicResponse, error) {
 	user, err := h.svc.GetUserByID(ctx, req.Id)
 	if err != nil {
 		switch err {
@@ -86,7 +86,7 @@ func (h *GRPCHandler) GetUserPublicById(ctx context.Context, req *protobuf.GetUs
 	return toUserPublicResponse(user), nil
 }
 
-func (h *GRPCHandler) GetUserPublicByEmail(ctx context.Context, req *protobuf.GetUserByEmailRequest) (*protobuf.UserPublicResponse, error) {
+func (h *GRPCHandler) GetUserPublicByEmail(ctx context.Context, req *userpb.GetUserByEmailRequest) (*userpb.UserPublicResponse, error) {
 	user, err := h.svc.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		switch err {
@@ -100,7 +100,7 @@ func (h *GRPCHandler) GetUserPublicByEmail(ctx context.Context, req *protobuf.Ge
 	return toUserPublicResponse(user), nil
 }
 
-func (h *GRPCHandler) GetUserById(ctx context.Context, req *protobuf.GetUserByIdRequest) (*protobuf.UserResponse, error) {
+func (h *GRPCHandler) GetUserById(ctx context.Context, req *userpb.GetUserByIdRequest) (*userpb.UserResponse, error) {
 	user, err := h.svc.GetUserByID(ctx, req.Id)
 	if err != nil {
 		switch err {
@@ -114,7 +114,7 @@ func (h *GRPCHandler) GetUserById(ctx context.Context, req *protobuf.GetUserById
 	return toUserResponse(user), nil
 }
 
-func (h *GRPCHandler) UpdateUserPassword(ctx context.Context, req *protobuf.UpdateUserPasswordRequest) (*protobuf.UserUpdatedResponse, error) {
+func (h *GRPCHandler) UpdateUserPassword(ctx context.Context, req *userpb.UpdateUserPasswordRequest) (*userpb.UserUpdatedResponse, error) {
 	if err := h.svc.UpdateUserPassword(ctx, req); err != nil {
 		switch err {
 		case common.ErrUserNotFound:
@@ -124,12 +124,12 @@ func (h *GRPCHandler) UpdateUserPassword(ctx context.Context, req *protobuf.Upda
 		}
 	}
 
-	return &protobuf.UserUpdatedResponse{
+	return &userpb.UserUpdatedResponse{
 		Success: true,
 	}, nil
 }
 
-func (h *GRPCHandler) UpdateUserProfile(ctx context.Context, req *protobuf.UpdateUserProfileRequest) (*protobuf.UserPublicResponse, error) {
+func (h *GRPCHandler) UpdateUserProfile(ctx context.Context, req *userpb.UpdateUserProfileRequest) (*userpb.UserPublicResponse, error) {
 	user, err := h.svc.UpdateUserProfile(ctx, req)
 	if err != nil {
 		switch err {
@@ -143,7 +143,7 @@ func (h *GRPCHandler) UpdateUserProfile(ctx context.Context, req *protobuf.Updat
 	return toUserPublicResponse(user), nil
 }
 
-func (h *GRPCHandler) GetAddressesByUserId(ctx context.Context, req *protobuf.GetAddressesByUserIdRequest) (*protobuf.AddressesResponse, error) {
+func (h *GRPCHandler) GetAddressesByUserId(ctx context.Context, req *userpb.GetAddressesByUserIdRequest) (*userpb.AddressesResponse, error) {
 	addresses, err := h.svc.GetAddressesByUserID(ctx, req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -151,7 +151,7 @@ func (h *GRPCHandler) GetAddressesByUserId(ctx context.Context, req *protobuf.Ge
 	return toAddressesResponse(addresses), nil
 }
 
-func (h *GRPCHandler) GetMeasurementByUserId(ctx context.Context, req *protobuf.GetMeasurementByUserIdRequest) (*protobuf.MeasurementResponse, error) {
+func (h *GRPCHandler) GetMeasurementByUserId(ctx context.Context, req *userpb.GetMeasurementByUserIdRequest) (*userpb.MeasurementResponse, error) {
 	measurement, err := h.svc.GetMeasurementByUserID(ctx, req.UserId)
 	if err != nil {
 		switch err {
@@ -165,7 +165,7 @@ func (h *GRPCHandler) GetMeasurementByUserId(ctx context.Context, req *protobuf.
 	return toMeasurementResponse(measurement), nil
 }
 
-func (h *GRPCHandler) UpdateUserMeasurement(ctx context.Context, req *protobuf.UpdateUserMeasurementRequest) (*protobuf.MeasurementResponse, error) {
+func (h *GRPCHandler) UpdateUserMeasurement(ctx context.Context, req *userpb.UpdateUserMeasurementRequest) (*userpb.MeasurementResponse, error) {
 	measurement, err := h.svc.UpdateUserMeasurement(ctx, req)
 	if err != nil {
 		switch err {
@@ -181,7 +181,7 @@ func (h *GRPCHandler) UpdateUserMeasurement(ctx context.Context, req *protobuf.U
 	return toMeasurementResponse(measurement), nil
 }
 
-func (h *GRPCHandler) CreateAddress(ctx context.Context, req *protobuf.CreateAddressRequest) (*protobuf.AddressResponse, error) {
+func (h *GRPCHandler) CreateAddress(ctx context.Context, req *userpb.CreateAddressRequest) (*userpb.AddressResponse, error) {
 	address, err := h.svc.CreateAddress(ctx, req)
 	if err != nil {
 		switch err {
@@ -196,7 +196,7 @@ func (h *GRPCHandler) CreateAddress(ctx context.Context, req *protobuf.CreateAdd
 
 }
 
-func (h *GRPCHandler) UpdateAddress(ctx context.Context, req *protobuf.UpdateAddressRequest) (*protobuf.AddressResponse, error) {
+func (h *GRPCHandler) UpdateAddress(ctx context.Context, req *userpb.UpdateAddressRequest) (*userpb.AddressResponse, error) {
 	address, err := h.svc.UpdateAddress(ctx, req)
 	if err != nil {
 		switch err {
@@ -212,7 +212,7 @@ func (h *GRPCHandler) UpdateAddress(ctx context.Context, req *protobuf.UpdateAdd
 	return toAddressResponse(address), nil
 }
 
-func (h *GRPCHandler) DeleteAddress(ctx context.Context, req *protobuf.DeleteAddressRequest) (*protobuf.AddressDeletedResponse, error) {
+func (h *GRPCHandler) DeleteAddress(ctx context.Context, req *userpb.DeleteAddressRequest) (*userpb.AddressDeletedResponse, error) {
 	if err := h.svc.DeleteAddress(ctx, req); err != nil {
 		switch err {
 		case common.ErrAddressNotFound:
@@ -224,13 +224,13 @@ func (h *GRPCHandler) DeleteAddress(ctx context.Context, req *protobuf.DeleteAdd
 		}
 	}
 
-	return &protobuf.AddressDeletedResponse{
+	return &userpb.AddressDeletedResponse{
 		Success: true,
 	}, nil
 }
 
-func (h *GRPCHandler) GetUsersByIds(ctx context.Context, req *protobuf.GetUsersByIdsRequest) (*protobuf.UsersPublicResponse, error) {
-	users, err := h.svc.GetUsersByIDs(ctx, req.Ids)
+func (h *GRPCHandler) GetUsersById(ctx context.Context, req *userpb.GetUsersByIdRequest) (*userpb.UsersPublicResponse, error) {
+	users, err := h.svc.GetUsersByID(ctx, req.Ids)
 	if err != nil {
 		switch err {
 		case common.ErrHasUserNotFound:
@@ -243,19 +243,19 @@ func (h *GRPCHandler) GetUsersByIds(ctx context.Context, req *protobuf.GetUsersB
 	return toUsersPublicResponse(users), nil
 }
 
-func toUsersPublicResponse(users []*model.User) *protobuf.UsersPublicResponse {
-	var userResponses []*protobuf.UserPublicResponse
+func toUsersPublicResponse(users []*model.User) *userpb.UsersPublicResponse {
+	var userResponses []*userpb.UserPublicResponse
 	for _, user := range users {
 		userResponses = append(userResponses, toUserPublicResponse(user))
 	}
 
-	return &protobuf.UsersPublicResponse{
+	return &userpb.UsersPublicResponse{
 		Users: userResponses,
 	}
 }
 
-func toAddressResponse(address *model.Address) *protobuf.AddressResponse {
-	return &protobuf.AddressResponse{
+func toAddressResponse(address *model.Address) *userpb.AddressResponse {
+	return &userpb.AddressResponse{
 		Id:          address.ID,
 		FullName:    address.FullName,
 		PhoneNumber: address.PhoneNumber,
@@ -266,19 +266,19 @@ func toAddressResponse(address *model.Address) *protobuf.AddressResponse {
 	}
 }
 
-func toAddressesResponse(addresses []*model.Address) *protobuf.AddressesResponse {
-	var addressResponses []*protobuf.AddressResponse
+func toAddressesResponse(addresses []*model.Address) *userpb.AddressesResponse {
+	var addressResponses []*userpb.AddressResponse
 	for _, addr := range addresses {
 		addressResponses = append(addressResponses, toAddressResponse(addr))
 	}
 
-	return &protobuf.AddressesResponse{
+	return &userpb.AddressesResponse{
 		Addresses: addressResponses,
 	}
 }
 
-func toMeasurementResponse(measurement *model.Measurement) *protobuf.MeasurementResponse {
-	return &protobuf.MeasurementResponse{
+func toMeasurementResponse(measurement *model.Measurement) *userpb.MeasurementResponse {
+	return &userpb.MeasurementResponse{
 		Id:     measurement.ID,
 		Height: int32(measurement.Height),
 		Weight: int32(measurement.Weight),
@@ -288,7 +288,7 @@ func toMeasurementResponse(measurement *model.Measurement) *protobuf.Measurement
 	}
 }
 
-func toUserResponse(user *model.User) *protobuf.UserResponse {
+func toUserResponse(user *model.User) *userpb.UserResponse {
 	roles := []string{}
 	for _, r := range user.Roles {
 		roles = append(roles, r.Name)
@@ -304,14 +304,14 @@ func toUserResponse(user *model.User) *protobuf.UserResponse {
 		gender = *user.Profile.Gender
 	}
 
-	return &protobuf.UserResponse{
+	return &userpb.UserResponse{
 		Id:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
 		Roles:     roles,
 		Password:  user.Password,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		Profile: &protobuf.ProfileResponse{
+		Profile: &userpb.ProfileResponse{
 			Id:        user.Profile.ID,
 			FirstName: user.Profile.FirstName,
 			LastName:  user.Profile.LastName,
@@ -321,7 +321,7 @@ func toUserResponse(user *model.User) *protobuf.UserResponse {
 	}
 }
 
-func toUserPublicResponse(user *model.User) *protobuf.UserPublicResponse {
+func toUserPublicResponse(user *model.User) *userpb.UserPublicResponse {
 	roles := []string{}
 	for _, r := range user.Roles {
 		roles = append(roles, r.Name)
@@ -337,13 +337,13 @@ func toUserPublicResponse(user *model.User) *protobuf.UserPublicResponse {
 		gender = *user.Profile.Gender
 	}
 
-	return &protobuf.UserPublicResponse{
+	return &userpb.UserPublicResponse{
 		Id:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
 		Roles:     roles,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		Profile: &protobuf.ProfileResponse{
+		Profile: &userpb.ProfileResponse{
 			Id:        user.Profile.ID,
 			FirstName: user.Profile.FirstName,
 			LastName:  user.Profile.LastName,

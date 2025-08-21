@@ -8,7 +8,7 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/user/common"
 	"github.com/SomeHowMicroservice/shm-be/user/model"
-	protobuf "github.com/SomeHowMicroservice/shm-be/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/user/protobuf/user"
 	addressRepo "github.com/SomeHowMicroservice/shm-be/user/repository/address"
 	measurementRepo "github.com/SomeHowMicroservice/shm-be/user/repository/measurement"
 	profileRepo "github.com/SomeHowMicroservice/shm-be/user/repository/profile"
@@ -51,7 +51,7 @@ func (s *userServiceImpl) CheckUsernameExists(ctx context.Context, username stri
 	return exists, nil
 }
 
-func (s *userServiceImpl) CreateUser(ctx context.Context, req *protobuf.CreateUserRequest) (*model.User, error) {
+func (s *userServiceImpl) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*model.User, error) {
 	userID := uuid.NewString();
 	user := &model.User{
 		ID:       uuid.NewString(),
@@ -123,7 +123,7 @@ func (s *userServiceImpl) GetUserByEmail(ctx context.Context, email string) (*mo
 	return user, nil
 }
 
-func (s *userServiceImpl) UpdateUserPassword(ctx context.Context, req *protobuf.UpdateUserPasswordRequest) error {
+func (s *userServiceImpl) UpdateUserPassword(ctx context.Context, req *userpb.UpdateUserPasswordRequest) error {
 	if err := s.userRepo.UpdatePassword(ctx, req.Id, req.NewPassword); err != nil {
 		if errors.Is(err, common.ErrUserNotFound) {
 			return err
@@ -133,7 +133,7 @@ func (s *userServiceImpl) UpdateUserPassword(ctx context.Context, req *protobuf.
 	return nil
 }
 
-func (s *userServiceImpl) UpdateUserProfile(ctx context.Context, req *protobuf.UpdateUserProfileRequest) (*model.User, error) {
+func (s *userServiceImpl) UpdateUserProfile(ctx context.Context, req *userpb.UpdateUserProfileRequest) (*model.User, error) {
 	updateData := map[string]interface{}{}
 	if req.FirstName != "" {
 		updateData["first_name"] = req.FirstName
@@ -160,7 +160,7 @@ func (s *userServiceImpl) UpdateUserProfile(ctx context.Context, req *protobuf.U
 			return nil, fmt.Errorf("cập nhật hồ sơ người dùng thất bại: %w", err)
 		}
 	}
-	// Lấy lại user đã cập nhật
+
 	updatedUser, err := s.userRepo.FindByIDWithProfileAndRoles(ctx, req.UserId)
 	if err != nil {
 		return nil, fmt.Errorf("lấy thông tin người dùng thất bại: %w", err)
@@ -184,7 +184,7 @@ func (s *userServiceImpl) GetMeasurementByUserID(ctx context.Context, userID str
 	return measurement, nil
 }
 
-func (s *userServiceImpl) UpdateUserMeasurement(ctx context.Context, req *protobuf.UpdateUserMeasurementRequest) (*model.Measurement, error) {
+func (s *userServiceImpl) UpdateUserMeasurement(ctx context.Context, req *userpb.UpdateUserMeasurementRequest) (*model.Measurement, error) {
 	measurement, err := s.measurementRepo.FindByID(ctx, req.Id)
 	if err != nil {
 		return nil, fmt.Errorf("lấy độ đo người dùng thất bại: %w", err)
@@ -242,7 +242,7 @@ func (s *userServiceImpl) GetAddressesByUserID(ctx context.Context, userID strin
 	return addresses, nil
 }
 
-func (s *userServiceImpl) CreateAddress(ctx context.Context, req *protobuf.CreateAddressRequest) (*model.Address, error) {
+func (s *userServiceImpl) CreateAddress(ctx context.Context, req *userpb.CreateAddressRequest) (*model.Address, error) {
 	countAddreses, err := s.addressRepo.CountByUserID(ctx, req.UserId)
 	if err != nil {
 		return nil, fmt.Errorf("lấy địa chỉ người dùng thất bại: %w", err)
@@ -283,7 +283,7 @@ func (s *userServiceImpl) CreateAddress(ctx context.Context, req *protobuf.Creat
 	return address, nil
 }
 
-func (s *userServiceImpl) UpdateAddress(ctx context.Context, req *protobuf.UpdateAddressRequest) (*model.Address, error) {
+func (s *userServiceImpl) UpdateAddress(ctx context.Context, req *userpb.UpdateAddressRequest) (*model.Address, error) {
 	address, err := s.addressRepo.FindByID(ctx, req.Id)
 	if err != nil {
 		return nil, fmt.Errorf("tìm địa chỉ thất bại: %w", err)
@@ -369,7 +369,7 @@ func (s *userServiceImpl) UpdateAddress(ctx context.Context, req *protobuf.Updat
 	return address, nil
 }
 
-func (s *userServiceImpl) DeleteAddress(ctx context.Context, req *protobuf.DeleteAddressRequest) error {
+func (s *userServiceImpl) DeleteAddress(ctx context.Context, req *userpb.DeleteAddressRequest) error {
 	address, err := s.addressRepo.FindByID(ctx, req.Id)
 	if err != nil {
 		return fmt.Errorf("tìm địa chỉ thất bại: %w", err)
@@ -405,7 +405,7 @@ func (s *userServiceImpl) DeleteAddress(ctx context.Context, req *protobuf.Delet
 	return nil
 }
 
-func (s *userServiceImpl) GetUsersByIDs(ctx context.Context, ids []string) ([]*model.User, error) {
+func (s *userServiceImpl) GetUsersByID(ctx context.Context, ids []string) ([]*model.User, error) {
 	users, err := s.userRepo.FindAllByID(ctx, ids)
 	if err != nil {
 		return nil, fmt.Errorf("lấy dữ liệu người dùng thất bại: %w", err)

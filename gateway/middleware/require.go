@@ -7,7 +7,6 @@ import (
 	"slices"
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
-	"github.com/SomeHowMicroservice/shm-be/services/user/model"
 	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
@@ -121,7 +120,7 @@ func RequireAuth(accessName string, secretKey string, userClient userpb.UserServ
 			return
 		}
 
-		if !hasRoleUser(model.RoleUser, userRes.Roles) {
+		if !hasRoleUser("user", userRes.Roles) {
 			c.AbortWithStatusJSON(http.StatusForbidden, common.ApiResponse{
 				Message: "không có quyền truy cập",
 			})

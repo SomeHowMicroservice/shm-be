@@ -5,11 +5,11 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/product/common"
 	"github.com/SomeHowMicroservice/shm-be/product/model"
-	protobuf "github.com/SomeHowMicroservice/shm-be/product/protobuf"
+	productpb "github.com/SomeHowMicroservice/shm-be/product/protobuf/product"
 )
 
 type ProductService interface {
-	CreateCategory(ctx context.Context, req *protobuf.CreateCategoryRequest) (string, error)
+	CreateCategory(ctx context.Context, req *productpb.CreateCategoryRequest) (string, error)
 
 	GetCategoryTree(ctx context.Context) ([]*model.Category, error)
 
@@ -19,27 +19,27 @@ type ProductService interface {
 
 	GetProductBySlug(ctx context.Context, productSlug string) (*model.Product, error)
 
-	CreateColor(ctx context.Context, req *protobuf.CreateColorRequest) (string, error)
+	CreateColor(ctx context.Context, req *productpb.CreateColorRequest) (string, error)
 
-	CreateSize(ctx context.Context, req *protobuf.CreateSizeRequest) (string, error)
+	CreateSize(ctx context.Context, req *productpb.CreateSizeRequest) (string, error)
 
 	GetProductsByCategory(ctx context.Context, categorySlug string) ([]*model.Product, error)
 
-	CreateTag(ctx context.Context, req *protobuf.CreateTagRequest) (string, error)
+	CreateTag(ctx context.Context, req *productpb.CreateTagRequest) (string, error)
 
 	GetAllCategories(ctx context.Context) ([]*model.Category, error)
 
-	GetCategoryByID(ctx context.Context, categoryID string) (*protobuf.CategoryAdminDetailsResponse, error)
+	GetCategoryByID(ctx context.Context, categoryID string) (*productpb.CategoryAdminDetailsResponse, error)
 
-	UpdateCategory(ctx context.Context, req *protobuf.UpdateCategoryRequest) (*protobuf.CategoryAdminDetailsResponse, error)
+	UpdateCategory(ctx context.Context, req *productpb.UpdateCategoryRequest) (*productpb.CategoryAdminDetailsResponse, error)
 
-	GetAllColorsAdmin(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
+	GetAllColorsAdmin(ctx context.Context) (*productpb.ColorsAdminResponse, error)
 
-	GetAllSizesAdmin(ctx context.Context) (*protobuf.SizesAdminResponse, error)
+	GetAllSizesAdmin(ctx context.Context) (*productpb.SizesAdminResponse, error)
 
-	GetAllTagsAdmin(ctx context.Context) (*protobuf.TagsAdminResponse, error)
+	GetAllTagsAdmin(ctx context.Context) (*productpb.TagsAdminResponse, error)
 
-	UpdateTag(ctx context.Context, req *protobuf.UpdateTagRequest) error
+	UpdateTag(ctx context.Context, req *productpb.UpdateTagRequest) error
 
 	GetAllColors(ctx context.Context) ([]*model.Color, error)
 
@@ -47,77 +47,77 @@ type ProductService interface {
 
 	GetAllTags(ctx context.Context) ([]*model.Tag, error)
 
-	CreateProduct(ctx context.Context, req *protobuf.CreateProductRequest) (string, error)
+	CreateProduct(ctx context.Context, req *productpb.CreateProductRequest) (string, error)
 
-	GetProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error)
+	GetProductByID(ctx context.Context, productID string) (*productpb.ProductAdminDetailsResponse, error)
 
-	GetAllProductsAdmin(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error)
+	GetAllProductsAdmin(ctx context.Context, req *productpb.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error)
 
-	UpdateProduct(ctx context.Context, req *protobuf.UpdateProductRequest) (*protobuf.ProductAdminDetailsResponse, error)
+	UpdateProduct(ctx context.Context, req *productpb.UpdateProductRequest) (*productpb.ProductAdminDetailsResponse, error)
 
-	DeleteProduct(ctx context.Context, req *protobuf.DeleteOneRequest) error
+	DeleteProduct(ctx context.Context, req *productpb.DeleteOneRequest) error
 
-	DeleteProducts(ctx context.Context, req *protobuf.DeleteManyRequest) error
+	DeleteProducts(ctx context.Context, req *productpb.DeleteManyRequest) error
 
-	PermanentlyDeleteCategory(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+	PermanentlyDeleteCategory(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error
 
-	PermanentlyDeleteCategories(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
+	PermanentlyDeleteCategories(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error
 
-	UpdateColor(ctx context.Context, req *protobuf.UpdateColorRequest) error
+	UpdateColor(ctx context.Context, req *productpb.UpdateColorRequest) error
 
-	UpdateSize(ctx context.Context, req *protobuf.UpdateSizeRequest) error
+	UpdateSize(ctx context.Context, req *productpb.UpdateSizeRequest) error
 
-	DeleteColor(ctx context.Context, req *protobuf.DeleteOneRequest) error
+	DeleteColor(ctx context.Context, req *productpb.DeleteOneRequest) error
 
-	DeleteSize(ctx context.Context, req *protobuf.DeleteOneRequest) error
+	DeleteSize(ctx context.Context, req *productpb.DeleteOneRequest) error
 
-	DeleteColors(ctx context.Context, req *protobuf.DeleteManyRequest) error
+	DeleteColors(ctx context.Context, req *productpb.DeleteManyRequest) error
 
-	DeleteSizes(ctx context.Context, req *protobuf.DeleteManyRequest) error
+	DeleteSizes(ctx context.Context, req *productpb.DeleteManyRequest) error
 
-	GetDeletedProducts(ctx context.Context, req *protobuf.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error)
+	GetDeletedProducts(ctx context.Context, req *productpb.GetAllProductsAdminRequest) ([]*model.Product, *common.PaginationMeta, error)
 
-	GetDeletedProductByID(ctx context.Context, productID string) (*protobuf.ProductAdminDetailsResponse, error)
+	GetDeletedProductByID(ctx context.Context, productID string) (*productpb.ProductAdminDetailsResponse, error)
 
-	GetDeletedColors(ctx context.Context) (*protobuf.ColorsAdminResponse, error)
+	GetDeletedColors(ctx context.Context) (*productpb.ColorsAdminResponse, error)
 
-	GetDeletedSizes(ctx context.Context) (*protobuf.SizesAdminResponse, error)
+	GetDeletedSizes(ctx context.Context) (*productpb.SizesAdminResponse, error)
 
-	GetDeletedTags(ctx context.Context) (*protobuf.TagsAdminResponse, error)
+	GetDeletedTags(ctx context.Context) (*productpb.TagsAdminResponse, error)
 
-	DeleteTag(ctx context.Context, req *protobuf.DeleteOneRequest) error
+	DeleteTag(ctx context.Context, req *productpb.DeleteOneRequest) error
 
-	DeleteTags(ctx context.Context, req *protobuf.DeleteManyRequest) error
+	DeleteTags(ctx context.Context, req *productpb.DeleteManyRequest) error
 
-	RestoreProduct(ctx context.Context, req *protobuf.RestoreOneRequest) error
+	RestoreProduct(ctx context.Context, req *productpb.RestoreOneRequest) error
 
-	RestoreProducts(ctx context.Context, req *protobuf.RestoreManyRequest) error
+	RestoreProducts(ctx context.Context, req *productpb.RestoreManyRequest) error
 
-	RestoreColor(ctx context.Context, req *protobuf.RestoreOneRequest) error
+	RestoreColor(ctx context.Context, req *productpb.RestoreOneRequest) error
 
-	RestoreColors(ctx context.Context, req *protobuf.RestoreManyRequest) error
+	RestoreColors(ctx context.Context, req *productpb.RestoreManyRequest) error
 
-	RestoreSize(ctx context.Context, req *protobuf.RestoreOneRequest) error
+	RestoreSize(ctx context.Context, req *productpb.RestoreOneRequest) error
 
-	RestoreSizes(ctx context.Context, req *protobuf.RestoreManyRequest) error
+	RestoreSizes(ctx context.Context, req *productpb.RestoreManyRequest) error
 
-	RestoreTag(ctx context.Context, req *protobuf.RestoreOneRequest) error
+	RestoreTag(ctx context.Context, req *productpb.RestoreOneRequest) error
 
-	RestoreTags(ctx context.Context, req *protobuf.RestoreManyRequest) error
+	RestoreTags(ctx context.Context, req *productpb.RestoreManyRequest) error
 
-	PermanentlyDeleteProduct(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+	PermanentlyDeleteProduct(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error
 
-	PermanentlyDeleteProducts(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
+	PermanentlyDeleteProducts(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error
 
-	PermanentlyDeleteColor(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+	PermanentlyDeleteColor(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error
 
-	PermanentlyDeleteColors(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
+	PermanentlyDeleteColors(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error
 
-	PermanentlyDeleteSize(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+	PermanentlyDeleteSize(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error
 
-	PermanentlyDeleteSizes(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
+	PermanentlyDeleteSizes(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error
 
-	PermanentlyDeleteTag(ctx context.Context, req *protobuf.PermanentlyDeleteOneRequest) error
+	PermanentlyDeleteTag(ctx context.Context, req *productpb.PermanentlyDeleteOneRequest) error
 
-	PermanentlyDeleteTags(ctx context.Context, req *protobuf.PermanentlyDeleteManyRequest) error
+	PermanentlyDeleteTags(ctx context.Context, req *productpb.PermanentlyDeleteManyRequest) error
 }

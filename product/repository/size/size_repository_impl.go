@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/product/common"
 	"github.com/SomeHowMicroservice/shm-be/product/model"
 	"gorm.io/gorm"
@@ -55,7 +54,7 @@ func (r *sizeRepositoryImpl) Update(ctx context.Context, id string, updateData m
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return customErr.ErrSizeNotFound
+		return common.ErrSizeNotFound
 	}
 
 	return nil
@@ -101,7 +100,7 @@ func (r *sizeRepositoryImpl) Delete(ctx context.Context, id string) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return customErr.ErrSizeNotFound
+		return common.ErrSizeNotFound
 	}
 
 	return nil

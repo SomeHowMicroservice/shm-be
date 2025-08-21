@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 
-	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
+	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -15,22 +15,22 @@ func ParseToken(tokenStr string, secretKey string) (jwt.MapClaims, error) {
 		return []byte(secretKey), nil
 	})
 	if err != nil {
-		return nil, customErr.ErrInvalidToken
+		return nil, common.ErrInvalidToken
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return claims, nil
 	}
-	return nil, customErr.ErrInvalidToken
+	return nil, common.ErrInvalidToken
 }
 
 func ExtractToken(claims jwt.MapClaims) (string, []string, error) {
 	userID, ok := claims["sub"].(string)
 	if !ok {
-		return "", nil, customErr.ErrUserIdNotFound
+		return "", nil, common.ErrUserIdNotFound
 	}
 	rawRoles, ok := claims["roles"].([]interface{}) 
 	if !ok {
-		return "", nil, customErr.ErrRolesNotFound
+		return "", nil, common.ErrRolesNotFound
 	}
 	userRoles := make([]string, len(rawRoles)) 
 	for i, r := range rawRoles {

@@ -1,11 +1,3 @@
-github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250728133821-ccea59d761d5 h1:0n2GKeeKNcMlxo5dt2Eq0RTwFwu2+JhGj4rISttTtCQ=
-github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250728133821-ccea59d761d5/go.mod h1:rawT2nJ0vHDovCoL+frmPORjej4AUPUUG2BxyLU8Qjw=
-github.com/SomeHowMicroservice/shm-be/services/auth v0.0.0-20250728133821-ccea59d761d5 h1:YoNpABPtk/NNpoC827vrYyRwQLjPexv8L6ANtWCFNUw=
-github.com/SomeHowMicroservice/shm-be/services/auth v0.0.0-20250728133821-ccea59d761d5/go.mod h1:uCVvjbDXgMo5TbixwfABqqRry6aCvHYEuxP6/D113A0=
-github.com/SomeHowMicroservice/shm-be/services/product v0.0.0-20250728133821-ccea59d761d5 h1:TegIaExGRunkmlJh30KsJjEW38h8dDmHtRE7VUgFq+U=
-github.com/SomeHowMicroservice/shm-be/services/product v0.0.0-20250728133821-ccea59d761d5/go.mod h1:qwkczz60RmJ6hb4K2Bj7ruN+lbiRUCdcugIuAW3Daqw=
-github.com/SomeHowMicroservice/shm-be/services/user v0.0.0-20250728133821-ccea59d761d5 h1:1imTyKKqbmYibzG6NVa3yMvL4KDjGwitX6K9XDK+Zy4=
-github.com/SomeHowMicroservice/shm-be/services/user v0.0.0-20250728133821-ccea59d761d5/go.mod h1:wJ6mTQXI+luvziklq77LTTMLws79f03RrRykkLQWXaE=
 github.com/bytedance/sonic v1.13.3 h1:MS8gmaH16Gtirygw7jV91pDCN33NyMrPbN7qiYhEsF0=
 github.com/bytedance/sonic v1.13.3/go.mod h1:o68xyaF9u2gvVBuGHPlUVCy+ZfmNNO5ETf1+KgkJhz4=
 github.com/bytedance/sonic/loader v0.1.1/go.mod h1:ncP89zfokxS5LZrJxl5z0UJcsk4M4yY2JpfqGeCtNLU=

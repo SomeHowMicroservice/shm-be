@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.31.1
-// source: post.proto
+// source: protobuf/post.proto
 
 package __
 
@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PostService_CreateTopic_FullMethodName = "/post.PostService/CreateTopic"
+	PostService_CreateTopic_FullMethodName       = "/post.PostService/CreateTopic"
+	PostService_GetAllTopicsAdmin_FullMethodName = "/post.PostService/GetAllTopicsAdmin"
+	PostService_UpdateTopic_FullMethodName       = "/post.PostService/UpdateTopic"
 )
 
 // PostServiceClient is the client API for PostService service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PostServiceClient interface {
 	CreateTopic(ctx context.Context, in *CreateTopicRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	GetAllTopicsAdmin(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*TopicsAdminResponse, error)
+	UpdateTopic(ctx context.Context, in *UpdateTopicRequest, opts ...grpc.CallOption) (*UpdatedResponse, error)
 }
 
 type postServiceClient struct {
@@ -47,11 +51,33 @@ func (c *postServiceClient) CreateTopic(ctx context.Context, in *CreateTopicRequ
 	return out, nil
 }
 
+func (c *postServiceClient) GetAllTopicsAdmin(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*TopicsAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TopicsAdminResponse)
+	err := c.cc.Invoke(ctx, PostService_GetAllTopicsAdmin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) UpdateTopic(ctx context.Context, in *UpdateTopicRequest, opts ...grpc.CallOption) (*UpdatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatedResponse)
+	err := c.cc.Invoke(ctx, PostService_UpdateTopic_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostServiceServer is the server API for PostService service.
 // All implementations must embed UnimplementedPostServiceServer
 // for forward compatibility.
 type PostServiceServer interface {
 	CreateTopic(context.Context, *CreateTopicRequest) (*CreatedResponse, error)
+	GetAllTopicsAdmin(context.Context, *GetManyRequest) (*TopicsAdminResponse, error)
+	UpdateTopic(context.Context, *UpdateTopicRequest) (*UpdatedResponse, error)
 	mustEmbedUnimplementedPostServiceServer()
 }
 
@@ -64,6 +90,12 @@ type UnimplementedPostServiceServer struct{}
 
 func (UnimplementedPostServiceServer) CreateTopic(context.Context, *CreateTopicRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTopic not implemented")
+}
+func (UnimplementedPostServiceServer) GetAllTopicsAdmin(context.Context, *GetManyRequest) (*TopicsAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTopicsAdmin not implemented")
+}
+func (UnimplementedPostServiceServer) UpdateTopic(context.Context, *UpdateTopicRequest) (*UpdatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTopic not implemented")
 }
 func (UnimplementedPostServiceServer) mustEmbedUnimplementedPostServiceServer() {}
 func (UnimplementedPostServiceServer) testEmbeddedByValue()                     {}
@@ -104,6 +136,42 @@ func _PostService_CreateTopic_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostService_GetAllTopicsAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetAllTopicsAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_GetAllTopicsAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetAllTopicsAdmin(ctx, req.(*GetManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_UpdateTopic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTopicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).UpdateTopic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_UpdateTopic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).UpdateTopic(ctx, req.(*UpdateTopicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostService_ServiceDesc is the grpc.ServiceDesc for PostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,7 +183,15 @@ var PostService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "CreateTopic",
 			Handler:    _PostService_CreateTopic_Handler,
 		},
+		{
+			MethodName: "GetAllTopicsAdmin",
+			Handler:    _PostService_GetAllTopicsAdmin_Handler,
+		},
+		{
+			MethodName: "UpdateTopic",
+			Handler:    _PostService_UpdateTopic_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "post.proto",
+	Metadata: "protobuf/post.proto",
 }

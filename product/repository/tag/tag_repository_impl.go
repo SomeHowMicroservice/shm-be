@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	customErr "github.com/SomeHowMicroservice/shm-be/common/errors"
 	"github.com/SomeHowMicroservice/shm-be/product/common"
 	"github.com/SomeHowMicroservice/shm-be/product/model"
 	"gorm.io/gorm"
@@ -59,7 +58,7 @@ func (r *tagRepositoryImpl) Update(ctx context.Context, id string, updateData ma
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return customErr.ErrTagNotFound
+		return common.ErrTagNotFound
 	}
 
 	return nil
@@ -134,7 +133,7 @@ func (r *tagRepositoryImpl) Delete(ctx context.Context, id string) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return customErr.ErrTagNotFound
+		return common.ErrTagNotFound
 	}
 
 	return nil

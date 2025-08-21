@@ -8,7 +8,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/user/config"
 	"github.com/SomeHowMicroservice/shm-be/user/container"
 	"github.com/SomeHowMicroservice/shm-be/user/initialization"
-	protobuf "github.com/SomeHowMicroservice/shm-be/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/user/protobuf/user"
 	"google.golang.org/grpc"
 )
 
@@ -25,7 +25,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	userContainer := container.NewContainer(db, grpcServer)
-	protobuf.RegisterUserServiceServer(grpcServer, userContainer.GRPCHandler)
+	userpb.RegisterUserServiceServer(grpcServer, userContainer.GRPCHandler)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {

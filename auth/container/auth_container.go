@@ -6,7 +6,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/auth/repository"
 	"github.com/SomeHowMicroservice/shm-be/auth/service"
 	"github.com/SomeHowMicroservice/shm-be/auth/smtp"
-	userpb "github.com/SomeHowMicroservice/shm-be/user/protobuf"
+	userpb "github.com/SomeHowMicroservice/shm-be/auth/protobuf/user"
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"

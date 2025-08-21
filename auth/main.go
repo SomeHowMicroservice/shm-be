@@ -9,7 +9,7 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/auth/consumers"
 	"github.com/SomeHowMicroservice/shm-be/auth/container"
 	"github.com/SomeHowMicroservice/shm-be/auth/initialization"
-	protobuf "github.com/SomeHowMicroservice/shm-be/auth/protobuf"
+	authpb "github.com/SomeHowMicroservice/shm-be/auth/protobuf/auth"
 	"google.golang.org/grpc"
 )
 
@@ -39,7 +39,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	authContainer := container.NewContainer(cfg, rdb, mqc.Chann, grpcServer, clients.UserClient)
-	protobuf.RegisterAuthServiceServer(grpcServer, authContainer.GRPCHandler)
+	authpb.RegisterAuthServiceServer(grpcServer, authContainer.GRPCHandler)
 
 	go consumers.StartEmailConsumer(mqc, authContainer.SMTPService)
 

@@ -2,11 +2,7 @@ module github.com/SomeHowMicroservice/shm-be/product
 
 go 1.23.4
 
-replace github.com/SomeHowMicroservice/shm-be/user => ../user
-
 require (
-	github.com/SomeHowMicroservice/shm-be/common v0.0.0-20250817150637-5f82186bf360
-	github.com/SomeHowMicroservice/shm-be/user v0.0.0-00010101000000-000000000000
 	github.com/google/uuid v1.6.0
 	github.com/gosimple/slug v1.15.0
 	github.com/imagekit-developer/imagekit-go v0.0.0-20240521071536-1d7e6e67fcd7
