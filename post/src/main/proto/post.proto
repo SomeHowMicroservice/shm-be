@@ -11,6 +11,54 @@ service PostService{
   rpc GetAllTopicsAdmin(GetManyRequest) returns (TopicsAdminResponse);
 
   rpc UpdateTopic(UpdateTopicRequest) returns (UpdatedResponse);
+
+  rpc DeleteTopic(DeleteOneRequest) returns (DeletedResponse);
+
+  rpc DeleteTopics(DeleteManyRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteTopic(PermanentlyDeleteOneRequest) returns (DeletedResponse);
+
+  rpc PermanentlyDeleteTopics(PermanentlyDeleteManyRequest) returns (DeletedResponse);
+
+  rpc RestoreTopic(RestoreOneRequest) returns (RestoredResponse);
+
+  rpc RestoreTopics(RestoreManyRequest) returns (RestoredResponse);
+}
+
+message RestoreManyRequest {
+  repeated string ids = 1;
+  string user_id = 2;
+}
+
+message RestoredResponse {
+  bool success = 1;
+}
+
+message RestoreOneRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message PermanentlyDeleteManyRequest {
+  repeated string ids = 1;
+}
+
+message PermanentlyDeleteOneRequest {
+  string id = 1;
+}
+
+message DeleteManyRequest {
+  repeated string ids = 1;
+  string user_id = 2;
+}
+
+message DeleteOneRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message DeletedResponse {
+  bool success = 1;
 }
 
 message UpdatedResponse {

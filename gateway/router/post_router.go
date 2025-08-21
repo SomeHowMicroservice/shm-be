@@ -17,5 +17,9 @@ func PostRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 		admin.POST("/topics", postHandler.CreateTopic)
 		admin.GET("/topics", postHandler.GetAllTopicsAdmin)
 		admin.PUT("/topics/:id", postHandler.UpdateTopic)
+		admin.DELETE("/topics/:id", postHandler.DeleteTopic)
+		admin.DELETE("/topics", postHandler.DeleteTopics)
+		admin.PUT("/topics/:id/restore", postHandler.RestoreTopic)
+		admin.PUT("/topics/restore", postHandler.RestoreTopics)
 	}
 }

@@ -13,11 +13,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
-import lombok.Setter;
 
 @MappedSuperclass
 @Getter
-@Setter
 @EntityListeners(AuditingEntityListener.class)
 public class BaseEntity {
   @Id

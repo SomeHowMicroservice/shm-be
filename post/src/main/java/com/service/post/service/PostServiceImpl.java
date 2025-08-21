@@ -12,6 +12,9 @@ import org.springframework.grpc.server.service.GrpcService;
 import com.service.post.BaseProfileResponse;
 import com.service.post.BaseUserResponse;
 import com.service.post.GetManyRequest;
+import com.service.post.RestoreManyRequest;
+import com.service.post.RestoreOneRequest;
+import com.service.post.RestoredResponse;
 import com.service.post.TopicAdminResponse;
 import com.service.post.TopicsAdminResponse;
 import com.service.post.UpdateTopicRequest;
@@ -23,6 +26,9 @@ import com.service.post.exceptions.ResourceNotFoundException;
 import com.service.post.grpc_clients.UserClient;
 import com.service.post.CreateTopicRequest;
 import com.service.post.CreatedResponse;
+import com.service.post.DeleteManyRequest;
+import com.service.post.DeleteOneRequest;
+import com.service.post.DeletedResponse;
 import com.service.post.PostServiceGrpc.PostServiceImplBase;
 import com.service.post.repository.TopicRepository;
 import com.service.user.UserPublicResponse;
@@ -31,6 +37,7 @@ import com.service.user.UsersPublicResponse;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -119,9 +126,10 @@ public class PostServiceImpl extends PostServiceImplBase {
   }
 
   @Override
+  @Transactional
   public void updateTopic(UpdateTopicRequest request, StreamObserver<UpdatedResponse> responseObserver) {
     try {
-      TopicEntity topic = topicRepository.findById(request.getId())
+      TopicEntity topic = topicRepository.findByIdAndDeletedTopicFalse(request.getId())
           .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy chủ đề"));
 
       if (!topic.getName().equals(request.getName())) {
@@ -150,6 +158,108 @@ public class PostServiceImpl extends PostServiceImplBase {
     } catch (Exception e) {
       responseObserver.onError(
           Status.INTERNAL.withDescription("cập nhật chủ đề bài viết thất bại: " + e.getMessage()).asRuntimeException());
+    }
+  }
+
+  @Override
+  public void deleteTopic(DeleteOneRequest request, StreamObserver<DeletedResponse> responseObserver) {
+    try {
+      TopicEntity topic = topicRepository.findByIdAndDeletedTopicFalse(request.getId())
+          .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy chủ đề bài viết"));
+
+      topic.setDeletedTopic(true);
+
+      if (!topic.getUpdatedById().equals(request.getUserId())) {
+        topic.setUpdatedById(request.getUserId());
+      }
+
+      topicRepository.save(topic);
+
+      DeletedResponse response = DeletedResponse.newBuilder().setSuccess(true).build();
+
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (ResourceNotFoundException e) {
+      responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+    } catch (Exception e) {
+      responseObserver.onError(
+          Status.INTERNAL.withDescription("chuyển chủ đề bài viết vào thùng rác thất bại: " + e.getMessage())
+              .asRuntimeException());
+    }
+  }
+
+  @Override
+  @Transactional
+  public void deleteTopics(DeleteManyRequest request, StreamObserver<DeletedResponse> responseObserver) {
+    try {
+      List<TopicEntity> topics = topicRepository.findAllByIdInAndDeletedTopicFalse(request.getIdsList());
+      if (topics.size() != request.getIdsCount()) {
+        throw new ResourceNotFoundException("Có chủ đề không tìm thấy");
+      }
+
+      topicRepository.updateIsDeletedAllById(request.getIdsList(), true, request.getUserId());
+
+      DeletedResponse response = DeletedResponse.newBuilder().setSuccess(true).build();
+
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (ResourceNotFoundException e) {
+      responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+    } catch (Exception e) {
+      responseObserver.onError(
+          Status.INTERNAL.withDescription("chuyển danh sách chủ đề vào thùng rác thất bại: " + e.getMessage())
+              .asRuntimeException());
+    }
+  }
+
+  @Override
+  public void restoreTopic(RestoreOneRequest request, StreamObserver<RestoredResponse> responseObserver) {
+    try {
+      TopicEntity topic = topicRepository.findByIdAndDeletedTopicTrue(request.getId())
+          .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy chủ đề bài viết"));
+
+      topic.setDeletedTopic(false);
+
+      if (!topic.getUpdatedById().equals(request.getUserId())) {
+        topic.setUpdatedById(request.getUserId());
+      }
+
+      topicRepository.save(topic);
+
+      RestoredResponse response = RestoredResponse.newBuilder().setSuccess(true).build();
+
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (ResourceNotFoundException e) {
+      responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+    } catch (Exception e) {
+      responseObserver.onError(
+          Status.INTERNAL.withDescription("khôi phục chủ đề bài viết thất bại: " + e.getMessage())
+              .asRuntimeException());
+    }
+  }
+
+  @Override
+  @Transactional
+  public void restoreTopics(RestoreManyRequest request, StreamObserver<RestoredResponse> responseObserver) {
+    try {
+      List<TopicEntity> topics = topicRepository.findAllByIdInAndDeletedTopicTrue(request.getIdsList());
+      if (topics.size() != request.getIdsCount()) {
+        throw new ResourceNotFoundException("Có chủ đề không tìm thấy");
+      }
+
+      topicRepository.updateIsDeletedAllById(request.getIdsList(), false, request.getUserId());
+
+      RestoredResponse response = RestoredResponse.newBuilder().setSuccess(true).build();
+
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (ResourceNotFoundException e) {
+      responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+    } catch (Exception e) {
+      responseObserver.onError(
+          Status.INTERNAL.withDescription("khôi phục danh sách chủ đề thất bại: " + e.getMessage())
+              .asRuntimeException());
     }
   }
 
