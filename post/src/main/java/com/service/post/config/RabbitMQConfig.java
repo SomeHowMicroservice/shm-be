@@ -12,22 +12,20 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMQConfig {
-  public static final String UPLOAD_QUEUE = "upload_queue";
-  public static final String DELETE_QUEUE = "delete_queue";
-
-  public static final String EXCHANGE = "image_exchange";
-
-  public static final String UPLOAD_ROUTING_KEY = "image.upload";
-  public static final String DELETE_ROUTING_KEY = "image.delete";
+  public static final String UPLOAD_QUEUE_NAME = "post.image.upload";
+  public static final String DELETE_QUEUE_NAME = "post.image.delete";
+  public static final String EXCHANGE = "post.image";
+  public static final String UPLOAD_ROUTING_KEY = "post.image.upload";
+  public static final String DELETE_ROUTING_KEY = "post.image.delete";
 
   @Bean
   public Queue uploadQueue() {
-    return new Queue(UPLOAD_QUEUE);
+    return new Queue(UPLOAD_QUEUE_NAME);
   }
 
   @Bean
   public Queue deleteQueue() {
-    return new Queue(DELETE_QUEUE);
+    return new Queue(DELETE_QUEUE_NAME);
   }
 
   @Bean

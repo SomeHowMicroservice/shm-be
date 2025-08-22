@@ -21,7 +21,7 @@ public class Consumer {
   private final ImageKitService imageKitService;
   private final ImageRepository imageRepository;
 
-  @RabbitListener(queues = RabbitMQConfig.UPLOAD_QUEUE)
+  @RabbitListener(queues = RabbitMQConfig.UPLOAD_QUEUE_NAME)
   public void uploadImageConsumer(Base64UploadDto message) {
     Result result = imageKitService.uploadFromBase64(message);
     log.info("Tải lên hình ảnh thành công: {}", result.getUrl());

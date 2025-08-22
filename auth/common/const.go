@@ -1,7 +1,7 @@
 package common
 
 const (
-	QueueName  = "send_queue"
-	Exchange   = "email_exchange"
-	RoutingKey = "email.send"
+	QueueName  = "auth.email.send"
+	Exchange   = "auth.email"
+	RoutingKey = "auth.email.send"
 )

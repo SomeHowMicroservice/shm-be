@@ -1,9 +1,9 @@
 package common
 
 const (
-	UploadQueueName  = "upload_queue"
-	DeleteQueueName  = "delete_queue"
-	Exchange         = "image_exchange"
-	UploadRoutingKey = "image.upload"
-	DeleteRoutingKey = "image.delete"
+	UploadQueueName  = "product.image.upload"
+	DeleteQueueName  = "product.image.delete"
+	Exchange         = "product.image"
+	UploadRoutingKey = "product.image.upload"
+	DeleteRoutingKey = "product.image.delete"
 )

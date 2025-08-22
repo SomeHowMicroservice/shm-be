@@ -7,7 +7,7 @@ func ConsumeMessage(ch *amqp091.Channel, queueName, exchange, routingKey string,
 		return err
 	}
 
-	if err := ch.ExchangeDeclare(exchange, "direct", true, false, false, false, nil); err != nil {
+	if err := ch.ExchangeDeclare(exchange, "topic", true, false, false, false, nil); err != nil {
 		return err
 	}
 
