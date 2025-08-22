@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	"github.com/SomeHowMicroservice/shm-be/gateway/config"
 	"github.com/SomeHowMicroservice/shm-be/gateway/handler"
 	"github.com/SomeHowMicroservice/shm-be/gateway/middleware"
@@ -12,7 +13,7 @@ func PostRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 	accessName := cfg.Jwt.AccessName
 	secretKey := cfg.Jwt.SecretKey
 
-	admin := rg.Group("/admin", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{"contributor"}))
+	admin := rg.Group("/admin", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{common.ContributorRole}))
 	{
 		admin.POST("/topics", postHandler.CreateTopic)
 		admin.GET("/topics", postHandler.GetAllTopicsAdmin)
@@ -21,5 +22,8 @@ func PostRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 		admin.DELETE("/topics", postHandler.DeleteTopics)
 		admin.PUT("/topics/:id/restore", postHandler.RestoreTopic)
 		admin.PUT("/topics/restore", postHandler.RestoreTopics)
+		admin.DELETE("/topics/:id/permanent", postHandler.PermanentlyDeleteTopic)
+		admin.DELETE("/topics/permanent", postHandler.PermanentlyDeleteTopics)
+		admin.POST("/posts", postHandler.CreatePost)
 	}
 }

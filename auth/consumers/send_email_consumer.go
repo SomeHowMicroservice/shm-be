@@ -11,15 +11,15 @@ import (
 	"github.com/SomeHowMicroservice/shm-be/auth/mq"
 )
 
-func StartEmailConsumer(mqc *initialization.MQConnection, mailer smtp.SMTPService) {
-	if err := mq.ConsumeMessage(mqc.Chann, "email.send", func(body []byte) error {
+func StartSendEmailConsumer(mqc *initialization.MQConnection, mailer smtp.SMTPService) {
+	if err := mq.ConsumeMessage(mqc.Chann, common.QueueName, common.Exchange, common.RoutingKey, func(body []byte) error {
 		var emailMsg common.AuthEmailMessage
 		if err := json.Unmarshal(body, &emailMsg); err != nil {
-			return fmt.Errorf("unmarshal email message: %w", err)
+			return fmt.Errorf("chuyển đổi tin nhắn email thất bại: %w", err)
 		}
 		
 		if err := mailer.SendAuthEmail(emailMsg.To, emailMsg.Subject, emailMsg.Otp); err != nil {
-			return fmt.Errorf("gửi email: %w", err)
+			return fmt.Errorf("gửi email thất bại: %w", err)
 		}
 
 		log.Printf("Đã gửi email thành công tới: %s", emailMsg.To)

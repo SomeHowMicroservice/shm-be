@@ -14,7 +14,7 @@ import (
 )
 
 func StartUploadImageConsumer(mqc *initialization.MQConnection, imagekit imagekit.ImageKitService, imageRepo imageRepo.ImageRepository) {
-	if err := mq.ConsumeMessage(mqc.Chann, "image.upload", func(body []byte) error {
+	if err := mq.ConsumeMessage(mqc.Chann, common.UploadQueueName, common.Exchange, common.UploadRoutingKey, func(body []byte) error {
 		var imageMsg common.Base64UploadRequest
 		if err := json.Unmarshal(body, &imageMsg); err != nil {
 			return fmt.Errorf("unmarshal json thất bại: %w", err)
@@ -31,7 +31,7 @@ func StartUploadImageConsumer(mqc *initialization.MQConnection, imagekit imageki
 		if err = imageRepo.UpdateFileID(ctx, imageMsg.ImageID, fileID); err != nil {
 			return err
 		}
-		log.Printf("Cập nhật FileID ảnh thành công: %s", fileID)
+		log.Printf("Cập nhật ảnh có FileID: %s thành công", fileID)
 		
 		return nil
 	}); err != nil {

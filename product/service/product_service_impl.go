@@ -886,8 +886,8 @@ func (s *productServiceImpl) CreateProduct(ctx context.Context, req *productpb.C
 			return "", fmt.Errorf("marshal json thất bại: %w", err)
 		}
 
-		if err = mq.PublishMessage(s.mqChannel, "", "image.upload", body); err != nil {
-			return "", fmt.Errorf("publish upload image msg thất bại: %w", err)
+		if err = mq.PublishMessage(s.mqChannel, common.Exchange, common.UploadRoutingKey, body); err != nil {
+			return "", fmt.Errorf("đẩy tin nhắn upload ảnh thất bại: %w", err)
 		}
 
 		images = append(images, image)
@@ -1115,8 +1115,8 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *productpb.U
 
 			for _, image := range images {
 				body := []byte(image.FileID)
-				if err := mq.PublishMessage(s.mqChannel, "", "image.delete", body); err != nil {
-					return fmt.Errorf("publish delete image msg thất bại: %w", err)
+				if err := mq.PublishMessage(s.mqChannel, common.Exchange, common.DeleteRoutingKey, body); err != nil {
+					return fmt.Errorf("đẩy tin nhắn xóa hình ảnh thất bại: %w", err)
 				}
 			}
 		}
@@ -1171,8 +1171,8 @@ func (s *productServiceImpl) UpdateProduct(ctx context.Context, req *productpb.U
 					return fmt.Errorf("marshal json thất bại: %w", err)
 				}
 
-				if err = mq.PublishMessage(s.mqChannel, "", "image.upload", body); err != nil {
-					return fmt.Errorf("publish upload image msg thất bại: %w", err)
+				if err = mq.PublishMessage(s.mqChannel, common.Exchange, common.UploadRoutingKey, body); err != nil {
+					return fmt.Errorf("đẩy tin nhắn upload ảnh thất bại: %w", err)
 				}
 
 				newImages = append(newImages, image)
@@ -1964,7 +1964,7 @@ func (s *productServiceImpl) PermanentlyDeleteProduct(ctx context.Context, req *
 
 	for _, image := range product.Images {
 		body := []byte(image.FileID)
-		if err := mq.PublishMessage(s.mqChannel, "", "image.delete", body); err != nil {
+		if err := mq.PublishMessage(s.mqChannel, common.Exchange, common.DeleteRoutingKey, body); err != nil {
 			return fmt.Errorf("publish delete image msg thất bại: %w", err)
 		}
 	}
@@ -1998,7 +1998,7 @@ func (s *productServiceImpl) PermanentlyDeleteProducts(ctx context.Context, req 
 
 	for _, fileID := range imageFileIDs {
 		body := []byte(fileID)
-		if err := mq.PublishMessage(s.mqChannel, "", "image.delete", body); err != nil {
+		if err := mq.PublishMessage(s.mqChannel, common.Exchange, common.DeleteRoutingKey, body); err != nil {
 			return fmt.Errorf("publish delete image msg thất bại: %w", err)
 		}
 	}

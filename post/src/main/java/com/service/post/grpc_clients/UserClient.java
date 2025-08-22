@@ -23,7 +23,7 @@ public class UserClient extends BaseClient<UserServiceGrpc.UserServiceBlockingSt
   @Value("${spring.grpc.server.host}")
   private String grpcHost;
 
-  @Value("${spring.grpc.services.user-port}")
+  @Value("${spring.grpc.services.user.port}")
   private int userPort;
 
   private String target;

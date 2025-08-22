@@ -120,7 +120,7 @@ func RequireAuth(accessName string, secretKey string, userClient userpb.UserServ
 			return
 		}
 
-		if !hasRoleUser("user", userRes.Roles) {
+		if !hasRoleUser(common.UserRole, userRes.Roles) {
 			c.AbortWithStatusJSON(http.StatusForbidden, common.ApiResponse{
 				Message: "không có quyền truy cập",
 			})
@@ -128,7 +128,7 @@ func RequireAuth(accessName string, secretKey string, userClient userpb.UserServ
 		}
 
 		// Gán vào Context đẻ sử dụng trong Handler
-		c.Set("user", userRes)
+		c.Set(common.UserRole, userRes)
 		c.Next()
 	}
 }
@@ -136,7 +136,7 @@ func RequireAuth(accessName string, secretKey string, userClient userpb.UserServ
 func RequireMultiRoles(allowedRoles []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Lấy User từ Context đã gán ở RequireAuth
-		userAny, exists := c.Get("user")
+		userAny, exists := c.Get(common.UserRole)
 		if !exists {
 			common.JSON(c, http.StatusUnauthorized, "không có thông tin người dùng", nil)
 			return

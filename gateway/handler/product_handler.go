@@ -189,7 +189,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	req.CategoryIDs = form.Value["category_ids"]
 	req.TagIDs = form.Value["tag_ids"]
 
-	req.Variants = []request.CreateVariantForm{}
+	req.Variants = []request.CreateProductVariantForm{}
 	i := 0
 	for {
 		skuKey := fmt.Sprintf("variants[%d][sku]", i)
@@ -212,7 +212,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 			quantity, _ = strconv.Atoi(quantityStr)
 		}
 
-		variant := request.CreateVariantForm{
+		variant := request.CreateProductVariantForm{
 			SKU:      sku,
 			ColorID:  colorID,
 			SizeID:   sizeID,
@@ -223,7 +223,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		i++
 	}
 
-	req.Images = []request.CreateImageForm{}
+	req.Images = []request.CreateProductImageForm{}
 	j := 0
 	for {
 		colorIDKey := fmt.Sprintf("images[%d][color_id]", j)
@@ -255,7 +255,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 			return
 		}
 
-		image := request.CreateImageForm{
+		image := request.CreateProductImageForm{
 			ColorID:     colorID,
 			IsThumbnail: &isThumbnail,
 			SortOrder:   sortOrder,
@@ -477,7 +477,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		i++
 	}
 
-	req.NewImages = []request.CreateImageForm{}
+	req.NewImages = []request.CreateProductImageForm{}
 	j := 0
 	for {
 		colorIDKey := fmt.Sprintf("new_images[%d][color_id]", j)
@@ -509,7 +509,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 			return
 		}
 
-		newImage := request.CreateImageForm{
+		newImage := request.CreateProductImageForm{
 			ColorID:     colorID,
 			IsThumbnail: &isThumbnail,
 			SortOrder:   sortOrder,
@@ -560,7 +560,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		k++
 	}
 
-	req.NewVariants = []request.CreateVariantForm{}
+	req.NewVariants = []request.CreateProductVariantForm{}
 	l := 0
 	for {
 		skuKey := fmt.Sprintf("new_variants[%d][sku]", l)
@@ -582,7 +582,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 			quantity, _ = strconv.Atoi(quantityStr)
 		}
 
-		newVariant := request.CreateVariantForm{
+		newVariant := request.CreateProductVariantForm{
 			SKU:      sku,
 			ColorID:  colorID,
 			SizeID:   sizeID,

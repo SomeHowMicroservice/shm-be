@@ -41,7 +41,7 @@ type UpdateSizeRequest struct {
 	Name string `json:"name" binding:"required,max=20"`
 }
 
-type CreateImageForm struct {
+type CreateProductImageForm struct {
 	ColorID     string                `form:"color_id" validate:"required,uuid4"`
 	IsThumbnail *bool                 `form:"is_thumbnail" validate:"required"`
 	SortOrder   int                   `form:"sort_order" validate:"required,gt=0"`
@@ -59,11 +59,11 @@ type CreateProductForm struct {
 	EndSale     *time.Time          `form:"end_sale" validate:"omitempty"`
 	CategoryIDs []string            `form:"category_ids" validate:"required,dive,uuid4"`
 	TagIDs      []string            `form:"tag_ids" validate:"required,dive,uuid4"`
-	Variants    []CreateVariantForm `form:"variants" validate:"required,dive"`
-	Images      []CreateImageForm   `form:"images" validate:"required,dive"`
+	Variants    []CreateProductVariantForm `form:"variants" validate:"required,dive"`
+	Images      []CreateProductImageForm   `form:"images" validate:"required,dive"`
 }
 
-type CreateVariantForm struct {
+type CreateProductVariantForm struct {
 	SKU      string `form:"sku" validate:"required,max=50"`
 	ColorID  string `form:"color_id" validate:"required,uuid4"`
 	SizeID   string `form:"size_id" validate:"required,uuid4"`
@@ -83,10 +83,10 @@ type UpdateProductForm struct {
 	TagIDs           []string            `form:"tag_ids" validate:"omitempty,dive,uuid4"`
 	DeleteImageIDs   []string            `form:"delete_image_ids" validate:"omitempty,dive,uuid4"`
 	UpdateImages     []UpdateImageForm   `form:"update_images" validate:"omitempty,dive"`
-	NewImages        []CreateImageForm   `form:"new_images" validate:"omitempty,dive"`
+	NewImages        []CreateProductImageForm   `form:"new_images" validate:"omitempty,dive"`
 	DeleteVariantIDs []string            `form:"delete_variant_ids" validate:"omitempty,dive,uuid4"`
 	UpdateVariants   []UpdateVariantForm `form:"update_variants" validate:"omitempty,dive"`
-	NewVariants      []CreateVariantForm `form:"new_variants" validate:"omitempty,dive"`
+	NewVariants      []CreateProductVariantForm `form:"new_variants" validate:"omitempty,dive"`
 }
 
 type UpdateVariantForm struct {

@@ -92,7 +92,7 @@ func (s *authServiceImpl) SignUp(ctx context.Context, req *authpb.SignUpRequest)
 		return "", fmt.Errorf("chuyển đổi EmailMessage thất bại: %w", err)
 	}
 
-	if err := mq.PublishMessage(s.mqChannel, "", "email.send", body); err != nil {
+	if err := mq.PublishMessage(s.mqChannel, common.Exchange, common.RoutingKey, body); err != nil {
 		return "", fmt.Errorf("publish email msg thất bại: %w", err)
 	}
 
@@ -338,7 +338,7 @@ func (s *authServiceImpl) ForgotPassword(ctx context.Context, req *authpb.Forgot
 		return "", fmt.Errorf("chuyển đổi EmailMessage thất bại: %w", err)
 	}
 
-	if err := mq.PublishMessage(s.mqChannel, "", "email.send", body); err != nil {
+	if err := mq.PublishMessage(s.mqChannel, common.Exchange, common.RoutingKey, body); err != nil {
 		return "", fmt.Errorf("publish email msg thất bại: %w", err)
 	}
 

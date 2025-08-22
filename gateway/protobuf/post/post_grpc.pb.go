@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.31.1
-// source: protobuf/post.proto
+// source: proto/post.proto
 
 package __
 
@@ -28,6 +28,7 @@ const (
 	PostService_PermanentlyDeleteTopics_FullMethodName = "/post.PostService/PermanentlyDeleteTopics"
 	PostService_RestoreTopic_FullMethodName            = "/post.PostService/RestoreTopic"
 	PostService_RestoreTopics_FullMethodName           = "/post.PostService/RestoreTopics"
+	PostService_CreatePost_FullMethodName              = "/post.PostService/CreatePost"
 )
 
 // PostServiceClient is the client API for PostService service.
@@ -43,6 +44,7 @@ type PostServiceClient interface {
 	PermanentlyDeleteTopics(ctx context.Context, in *PermanentlyDeleteManyRequest, opts ...grpc.CallOption) (*DeletedResponse, error)
 	RestoreTopic(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
 	RestoreTopics(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
+	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
 }
 
 type postServiceClient struct {
@@ -143,6 +145,16 @@ func (c *postServiceClient) RestoreTopics(ctx context.Context, in *RestoreManyRe
 	return out, nil
 }
 
+func (c *postServiceClient) CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*CreatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatedResponse)
+	err := c.cc.Invoke(ctx, PostService_CreatePost_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostServiceServer is the server API for PostService service.
 // All implementations must embed UnimplementedPostServiceServer
 // for forward compatibility.
@@ -156,6 +168,7 @@ type PostServiceServer interface {
 	PermanentlyDeleteTopics(context.Context, *PermanentlyDeleteManyRequest) (*DeletedResponse, error)
 	RestoreTopic(context.Context, *RestoreOneRequest) (*RestoredResponse, error)
 	RestoreTopics(context.Context, *RestoreManyRequest) (*RestoredResponse, error)
+	CreatePost(context.Context, *CreatePostRequest) (*CreatedResponse, error)
 	mustEmbedUnimplementedPostServiceServer()
 }
 
@@ -192,6 +205,9 @@ func (UnimplementedPostServiceServer) RestoreTopic(context.Context, *RestoreOneR
 }
 func (UnimplementedPostServiceServer) RestoreTopics(context.Context, *RestoreManyRequest) (*RestoredResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RestoreTopics not implemented")
+}
+func (UnimplementedPostServiceServer) CreatePost(context.Context, *CreatePostRequest) (*CreatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePost not implemented")
 }
 func (UnimplementedPostServiceServer) mustEmbedUnimplementedPostServiceServer() {}
 func (UnimplementedPostServiceServer) testEmbeddedByValue()                     {}
@@ -376,6 +392,24 @@ func _PostService_RestoreTopics_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostService_CreatePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).CreatePost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_CreatePost_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).CreatePost(ctx, req.(*CreatePostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostService_ServiceDesc is the grpc.ServiceDesc for PostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -419,7 +453,11 @@ var PostService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "RestoreTopics",
 			Handler:    _PostService_RestoreTopics_Handler,
 		},
+		{
+			MethodName: "CreatePost",
+			Handler:    _PostService_CreatePost_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "protobuf/post.proto",
+	Metadata: "proto/post.proto",
 }

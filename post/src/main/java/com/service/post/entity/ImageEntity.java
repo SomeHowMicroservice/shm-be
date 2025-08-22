@@ -23,7 +23,7 @@ public class ImageEntity extends BaseEntity {
   @Column(nullable = false, length = 255)
   private String url;
 
-  @Column(nullable = false, columnDefinition = "CHAR(24)")
+  @Column(nullable = true, columnDefinition = "CHAR(24)")
   private String fileId;
 
   @Column(nullable = false)

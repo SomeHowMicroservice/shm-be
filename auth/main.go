@@ -41,7 +41,7 @@ func main() {
 	authContainer := container.NewContainer(cfg, rdb, mqc.Chann, grpcServer, clients.UserClient)
 	authpb.RegisterAuthServiceServer(grpcServer, authContainer.GRPCHandler)
 
-	go consumers.StartEmailConsumer(mqc, authContainer.SMTPService)
+	go consumers.StartSendEmailConsumer(mqc, authContainer.SMTPService)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.App.GRPCPort))
 	if err != nil {
