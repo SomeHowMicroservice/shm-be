@@ -1,0 +1,3 @@
+bun add ts-proto    (Generate Proto File Library)
+
+bun add @grpc/grpc-js    (gRPC Library)
