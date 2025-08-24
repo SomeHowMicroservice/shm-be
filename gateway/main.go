@@ -16,23 +16,26 @@ var (
 	userAddr = "localhost:8082"
 	productAddr = "localhost:8083"
 	postAddr = "localhost:8084"
+	chatAddr = "localhost:8085"
 )
 
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		panic(fmt.Errorf("Tải cấu hình Gateway thất bại: %w", err))
+		panic(fmt.Errorf("tải cấu hình Gateway thất bại: %w", err))
 	}
 
 	authAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.AuthPort)
 	userAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.UserPort)
 	productAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.ProductPort)
 	postAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.PostPort)
+	chatAddr = cfg.App.ServerHost + fmt.Sprintf(":%d", cfg.Services.ChatPort)
 	ca := &common.ClientAddresses{
 		AuthAddr: authAddr, 
 		UserAddr: userAddr, 
 		ProductAddr: productAddr, 
 		PostAddr: postAddr,
+		ChatAddr: chatAddr,
 	}
 
 	clients := initialization.InitClients(ca)
@@ -46,6 +49,7 @@ func main() {
 	router.UserRouter(api, cfg, clients.UserClient, appContainer.User.Handler)
 	router.ProductRouter(api, cfg, clients.UserClient, appContainer.Product.Handler)
 	router.PostRouter(api, cfg, clients.UserClient, appContainer.Post.Handler)
+	router.ChatRouter(api, cfg, clients.UserClient, appContainer.Chat.Handler)
 
 	r.Run(fmt.Sprintf(":%d", cfg.App.GRPCPort))
 }

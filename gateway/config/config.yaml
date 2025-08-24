@@ -1,0 +1,15 @@
+app:
+  server_host: localhost
+  grpc_port: 8080
+
+jwt:
+  secret_key: af697ec9-8b01-49cb-97d2-243fc3362e1a
+  access_name: access_token
+  refresh_name: refresh_token
+
+services:
+  auth_port: 8081
+  user_port: 8082
+  product_port: 8083
+  post_port: 8084
+  chat_port: 8085

@@ -7,6 +7,7 @@ import (
 
 	"github.com/SomeHowMicroservice/shm-be/gateway/common"
 	authpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/auth"
+	chatpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/chat"
 	postpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/post"
 	productpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/product"
 	userpb "github.com/SomeHowMicroservice/shm-be/gateway/protobuf/user"
@@ -19,6 +20,7 @@ type GRPCClients struct {
 	UserClient    userpb.UserServiceClient
 	ProductClient productpb.ProductServiceClient
 	PostClient    postpb.PostServiceClient
+	ChatClient    chatpb.ChatServiceClient
 }
 
 func InitClients(ca *common.ClientAddresses) *GRPCClients {
@@ -49,10 +51,17 @@ func InitClients(ca *common.ClientAddresses) *GRPCClients {
 	}
 	postClient := postpb.NewPostServiceClient(postConn)
 
+	chatConn, err := grpc.DialContext(ctx, ca.ChatAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	if err != nil {
+		panic(fmt.Errorf("kết nối tới Chat Service thất bại: %w", err))
+	}
+	chatClient := chatpb.NewChatServiceClient(chatConn)
+
 	return &GRPCClients{
 		authClient,
 		userClient,
 		productClient,
 		postClient,
+		chatClient,
 	}
 }

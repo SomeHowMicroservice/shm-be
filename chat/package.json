@@ -1,0 +1,15 @@
+{
+  "name": "chat",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.13.4",
+    "ts-proto": "^2.7.7"
+  }
+}

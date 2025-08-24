@@ -10,4 +10,5 @@ type ClientAddresses struct {
 	AuthAddr    string
 	ProductAddr string
 	PostAddr    string
+	ChatAddr    string
 }

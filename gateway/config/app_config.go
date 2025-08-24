@@ -19,6 +19,7 @@ type AppConfig struct {
 		UserPort int `mapstructure:"user_port"`
 		ProductPort int `mapstructure:"product_port"`
 		PostPort int `mapstructure:"post_port"`
+		ChatPort int `mapstructure:"chat_port"`
 	} `mapstructure:"services"`
 }
 

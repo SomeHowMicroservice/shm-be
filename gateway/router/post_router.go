@@ -13,7 +13,7 @@ func PostRouter(rg *gin.RouterGroup, cfg *config.AppConfig, userClient userpb.Us
 	accessName := cfg.Jwt.AccessName
 	secretKey := cfg.Jwt.SecretKey
 
-	admin := rg.Group("/admin", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{common.ContributorRole}))
+	admin := rg.Group("/admin", middleware.RequireAuth(accessName, secretKey, userClient), middleware.RequireMultiRoles([]string{common.RoleContributor}))
 	{
 		admin.POST("/topics", postHandler.CreateTopic)
 		admin.GET("/topics", postHandler.GetAllTopicsAdmin)

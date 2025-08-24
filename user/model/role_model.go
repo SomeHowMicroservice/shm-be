@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-var (
+const (
 	RoleAdmin       = "admin"
 	RoleUser        = "user"
 	RoleStaff       = "staff"

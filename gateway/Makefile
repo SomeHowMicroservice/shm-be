@@ -7,3 +7,5 @@ proto-gen:
 	        proto/product.proto
 	@protoc --go_out=protobuf/post --go-grpc_out=protobuf/post \
 	        proto/post.proto
+	@protoc --go_out=protobuf/chat --go-grpc_out=protobuf/chat \
+	        proto/chat.proto
