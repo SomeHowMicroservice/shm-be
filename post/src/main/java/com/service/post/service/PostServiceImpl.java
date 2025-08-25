@@ -73,7 +73,46 @@ public class PostServiceImpl implements PostService {
 
   @Override
   public TopicsAdminResponse getAllTopicsAdmin() {
-    List<TopicEntity> topics = topicRepository.findAll();
+    List<TopicEntity> topics = topicRepository.findAllByDeletedTopicIsFalse();
+
+    if (topics.isEmpty()) {
+      return TopicsAdminResponse.newBuilder().build();
+    }
+
+    Set<String> userIdSet = new HashSet<>();
+    for (TopicEntity t : topics) {
+      userIdSet.add(t.getCreatedById());
+      userIdSet.add(t.getUpdatedById());
+    }
+    List<String> userIds = new ArrayList<>(userIdSet);
+
+    UsersPublicResponse usersRes = userClient.getUsersById(userIds);
+
+    Map<String, UserPublicResponse> usersMap = usersRes.getUsersList().stream()
+        .collect(Collectors.toMap(UserPublicResponse::getId, u -> u));
+
+    TopicsAdminResponse.Builder responseBuilder = TopicsAdminResponse.newBuilder();
+    for (TopicEntity t : topics) {
+      TopicAdminResponse.Builder topicBuilder = TopicAdminResponse.newBuilder().setId(t.getId()).setName(t.getName())
+          .setSlug(t.getSlug()).setCreatedAt(t.getCreatedAt().toString()).setUpdatedAt(t.getUpdatedAt().toString());
+
+      if (usersMap.containsKey(t.getCreatedById())) {
+        topicBuilder.setCreatedBy(toBaseUserResponse(usersMap.get(t.getCreatedById())));
+      }
+
+      if (usersMap.containsKey(t.getUpdatedById())) {
+        topicBuilder.setUpdatedBy(toBaseUserResponse(usersMap.get(t.getUpdatedById())));
+      }
+
+      responseBuilder.addTopics(topicBuilder);
+    }
+
+    return responseBuilder.build();
+  }
+
+  @Override
+  public TopicsAdminResponse getDeletedTopics() {
+    List<TopicEntity> topics = topicRepository.findAllByDeletedTopicIsTrue();
 
     if (topics.isEmpty()) {
       return TopicsAdminResponse.newBuilder().build();
@@ -239,7 +278,7 @@ public class PostServiceImpl implements PostService {
     PostEntity post = PostEntity.builder().title(request.getTitle()).slug(slug).content(request.getContent())
         .publishedPost(request.getIsPublished()).publishedAt(publishedAt).createdById(request.getUserId())
         .updatedById(request.getUserId()).images(images).build();
-    
+
     postRepository.save(post);
 
     return post.getId();

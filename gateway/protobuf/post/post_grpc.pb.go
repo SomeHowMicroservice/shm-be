@@ -29,6 +29,7 @@ const (
 	PostService_RestoreTopic_FullMethodName            = "/post.PostService/RestoreTopic"
 	PostService_RestoreTopics_FullMethodName           = "/post.PostService/RestoreTopics"
 	PostService_CreatePost_FullMethodName              = "/post.PostService/CreatePost"
+	PostService_GetDeletedTopics_FullMethodName        = "/post.PostService/GetDeletedTopics"
 )
 
 // PostServiceClient is the client API for PostService service.
@@ -45,6 +46,7 @@ type PostServiceClient interface {
 	RestoreTopic(ctx context.Context, in *RestoreOneRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
 	RestoreTopics(ctx context.Context, in *RestoreManyRequest, opts ...grpc.CallOption) (*RestoredResponse, error)
 	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*CreatedResponse, error)
+	GetDeletedTopics(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*TopicsAdminResponse, error)
 }
 
 type postServiceClient struct {
@@ -155,6 +157,16 @@ func (c *postServiceClient) CreatePost(ctx context.Context, in *CreatePostReques
 	return out, nil
 }
 
+func (c *postServiceClient) GetDeletedTopics(ctx context.Context, in *GetManyRequest, opts ...grpc.CallOption) (*TopicsAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TopicsAdminResponse)
+	err := c.cc.Invoke(ctx, PostService_GetDeletedTopics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostServiceServer is the server API for PostService service.
 // All implementations must embed UnimplementedPostServiceServer
 // for forward compatibility.
@@ -169,6 +181,7 @@ type PostServiceServer interface {
 	RestoreTopic(context.Context, *RestoreOneRequest) (*RestoredResponse, error)
 	RestoreTopics(context.Context, *RestoreManyRequest) (*RestoredResponse, error)
 	CreatePost(context.Context, *CreatePostRequest) (*CreatedResponse, error)
+	GetDeletedTopics(context.Context, *GetManyRequest) (*TopicsAdminResponse, error)
 	mustEmbedUnimplementedPostServiceServer()
 }
 
@@ -208,6 +221,9 @@ func (UnimplementedPostServiceServer) RestoreTopics(context.Context, *RestoreMan
 }
 func (UnimplementedPostServiceServer) CreatePost(context.Context, *CreatePostRequest) (*CreatedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePost not implemented")
+}
+func (UnimplementedPostServiceServer) GetDeletedTopics(context.Context, *GetManyRequest) (*TopicsAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeletedTopics not implemented")
 }
 func (UnimplementedPostServiceServer) mustEmbedUnimplementedPostServiceServer() {}
 func (UnimplementedPostServiceServer) testEmbeddedByValue()                     {}
@@ -410,6 +426,24 @@ func _PostService_CreatePost_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostService_GetDeletedTopics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetDeletedTopics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_GetDeletedTopics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetDeletedTopics(ctx, req.(*GetManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostService_ServiceDesc is the grpc.ServiceDesc for PostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -456,6 +490,10 @@ var PostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePost",
 			Handler:    _PostService_CreatePost_Handler,
+		},
+		{
+			MethodName: "GetDeletedTopics",
+			Handler:    _PostService_GetDeletedTopics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

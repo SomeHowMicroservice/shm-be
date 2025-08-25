@@ -16,6 +16,8 @@ public interface PostService {
 
   TopicsAdminResponse getAllTopicsAdmin();
 
+  TopicsAdminResponse getDeletedTopics();
+
   void updateTopic(UpdateTopicRequest request);
 
   void deleteTopic(DeleteOneRequest request);

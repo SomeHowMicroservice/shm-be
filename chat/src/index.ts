@@ -1,15 +1,25 @@
 import { Server, ServerCredentials } from "@grpc/grpc-js";
+import config from "./config/config";
+import initDb from "./initialization/database";
 import { ChatServiceService } from "./protobuf/chat/chat";
 import { grpcController } from "./controller/grpc.controller";
-import config from "./config/config";
 
-const server = new Server();
-server.addService(ChatServiceService, grpcController)
+const main = async () => {
+  await initDb(config.mongoUri);
 
-server.bindAsync(`0.0.0.0:${config.port}`, ServerCredentials.createInsecure(), (err, port) => {
-  if (err) {
-    console.error("Server failed to bind:", err);
-    return;
-  }
-  console.log(`🚀 gRPC ChatService running at 0.0.0.0:${port}`);
-});
+  const server = new Server();
+  server.addService(ChatServiceService, grpcController);
+  server.bindAsync(
+    `${config.serverHost}:${config.serverPort}`,
+    ServerCredentials.createInsecure(),
+    (err) => {
+      if (err) {
+        console.error("Kết nối tới phục vụ thất bại:", err);
+        return;
+      }
+      console.log("Khởi chạy service thành công");
+    }
+  );
+};
+
+main();

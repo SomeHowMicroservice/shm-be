@@ -23,6 +23,10 @@ public interface TopicRepository extends JpaRepository<TopicEntity, String> {
 
   List<TopicEntity> findAllByIdInAndDeletedTopicFalse(List<String> ids);
 
+  List<TopicEntity> findAllByDeletedTopicIsFalse();
+
+  List<TopicEntity> findAllByDeletedTopicIsTrue();
+
   @Modifying
   @Query("UPDATE TopicEntity t SET t.deletedTopic = :isDeleted, t.updatedById = :updatedById WHERE t.id IN :ids")
   void updateIsDeletedAllById(@Param("ids") List<String> ids, @Param("isDeleted") boolean isDeleted, @Param("updatedById") String updatedById);

@@ -65,6 +65,18 @@ public class GrpcController extends PostServiceImplBase {
     }
   }
 
+  public void getDeletedTopics(GetManyRequest request, StreamObserver<TopicsAdminResponse> responseObserver) {
+    try {
+      TopicsAdminResponse convertedTopics = postService.getDeletedTopics();
+      responseObserver.onNext(convertedTopics);
+      responseObserver.onCompleted();
+      return;
+    } catch (Exception e) {
+      responseObserver.onError(Status.INTERNAL
+          .withDescription("lấy danh sách chủ đề đã xóa thất bại: " + e.getMessage()).asRuntimeException());
+    }
+  }
+
   @Override
   public void updateTopic(UpdateTopicRequest request, StreamObserver<UpdatedResponse> responseObserver) {
     try {

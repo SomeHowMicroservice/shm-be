@@ -1,3 +1,5 @@
 bun add ts-proto    (Generate Proto File Library)
 
 bun add @grpc/grpc-js    (gRPC Library)
+
+bun add mongoose    (MongoDB Library)

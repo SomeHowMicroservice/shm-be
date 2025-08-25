@@ -23,6 +23,8 @@ service PostService{
   rpc RestoreTopics(RestoreManyRequest) returns (RestoredResponse);
 
   rpc CreatePost(CreatePostRequest) returns (CreatedResponse);
+
+  rpc GetDeletedTopics(GetManyRequest) returns (TopicsAdminResponse);
 }
 
 message CreatePostRequest {

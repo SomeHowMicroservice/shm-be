@@ -104,6 +104,30 @@ func (h *PostHandler) GetAllTopicsAdmin(c *gin.Context) {
 	})
 }
 
+func (h *PostHandler) GetDeletedTopics(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	res, err := h.postClient.GetDeletedTopics(ctx, &postpb.GetManyRequest{})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				common.JSON(c, http.StatusNotFound, st.Message(), nil)
+			default:
+				common.JSON(c, http.StatusInternalServerError, st.Message(), nil)
+			}
+			return
+		}
+		common.JSON(c, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
+
+	common.JSON(c, http.StatusOK, "Lấy tất cả chủ đề đã xóa thành công", gin.H{
+		"topics": res.Topics,
+	})
+}
+
 func (h *PostHandler) UpdateTopic(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()

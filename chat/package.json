@@ -2,6 +2,9 @@
   "name": "chat",
   "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
@@ -10,6 +13,7 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.4",
+    "mongoose": "^8.18.0",
     "ts-proto": "^2.7.7"
   }
 }

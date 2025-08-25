@@ -1141,7 +1141,7 @@ const file_proto_post_proto_rawDesc = "" +
 	"\auser_id\x18\x03 \x01(\tR\x06userIdB\a\n" +
 	"\x05_slug\"!\n" +
 	"\x0fCreatedResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id2\xbd\x05\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id2\x82\x06\n" +
 	"\vPostService\x12>\n" +
 	"\vCreateTopic\x12\x18.post.CreateTopicRequest\x1a\x15.post.CreatedResponse\x12D\n" +
 	"\x11GetAllTopicsAdmin\x12\x14.post.GetManyRequest\x1a\x19.post.TopicsAdminResponse\x12>\n" +
@@ -1153,7 +1153,8 @@ const file_proto_post_proto_rawDesc = "" +
 	"\fRestoreTopic\x12\x17.post.RestoreOneRequest\x1a\x16.post.RestoredResponse\x12A\n" +
 	"\rRestoreTopics\x12\x18.post.RestoreManyRequest\x1a\x16.post.RestoredResponse\x12<\n" +
 	"\n" +
-	"CreatePost\x12\x17.post.CreatePostRequest\x1a\x15.post.CreatedResponseB\x03Z\x01.b\x06proto3"
+	"CreatePost\x12\x17.post.CreatePostRequest\x1a\x15.post.CreatedResponse\x12C\n" +
+	"\x10GetDeletedTopics\x12\x14.post.GetManyRequest\x1a\x19.post.TopicsAdminResponseB\x03Z\x01.b\x06proto3"
 
 var (
 	file_proto_post_proto_rawDescOnce sync.Once
@@ -1205,18 +1206,20 @@ var file_proto_post_proto_depIdxs = []int32{
 	4,  // 12: post.PostService.RestoreTopic:input_type -> post.RestoreOneRequest
 	2,  // 13: post.PostService.RestoreTopics:input_type -> post.RestoreManyRequest
 	0,  // 14: post.PostService.CreatePost:input_type -> post.CreatePostRequest
-	18, // 15: post.PostService.CreateTopic:output_type -> post.CreatedResponse
-	12, // 16: post.PostService.GetAllTopicsAdmin:output_type -> post.TopicsAdminResponse
-	10, // 17: post.PostService.UpdateTopic:output_type -> post.UpdatedResponse
-	9,  // 18: post.PostService.DeleteTopic:output_type -> post.DeletedResponse
-	9,  // 19: post.PostService.DeleteTopics:output_type -> post.DeletedResponse
-	9,  // 20: post.PostService.PermanentlyDeleteTopic:output_type -> post.DeletedResponse
-	9,  // 21: post.PostService.PermanentlyDeleteTopics:output_type -> post.DeletedResponse
-	3,  // 22: post.PostService.RestoreTopic:output_type -> post.RestoredResponse
-	3,  // 23: post.PostService.RestoreTopics:output_type -> post.RestoredResponse
-	18, // 24: post.PostService.CreatePost:output_type -> post.CreatedResponse
-	15, // [15:25] is the sub-list for method output_type
-	5,  // [5:15] is the sub-list for method input_type
+	16, // 15: post.PostService.GetDeletedTopics:input_type -> post.GetManyRequest
+	18, // 16: post.PostService.CreateTopic:output_type -> post.CreatedResponse
+	12, // 17: post.PostService.GetAllTopicsAdmin:output_type -> post.TopicsAdminResponse
+	10, // 18: post.PostService.UpdateTopic:output_type -> post.UpdatedResponse
+	9,  // 19: post.PostService.DeleteTopic:output_type -> post.DeletedResponse
+	9,  // 20: post.PostService.DeleteTopics:output_type -> post.DeletedResponse
+	9,  // 21: post.PostService.PermanentlyDeleteTopic:output_type -> post.DeletedResponse
+	9,  // 22: post.PostService.PermanentlyDeleteTopics:output_type -> post.DeletedResponse
+	3,  // 23: post.PostService.RestoreTopic:output_type -> post.RestoredResponse
+	3,  // 24: post.PostService.RestoreTopics:output_type -> post.RestoredResponse
+	18, // 25: post.PostService.CreatePost:output_type -> post.CreatedResponse
+	12, // 26: post.PostService.GetDeletedTopics:output_type -> post.TopicsAdminResponse
+	16, // [16:27] is the sub-list for method output_type
+	5,  // [5:16] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
