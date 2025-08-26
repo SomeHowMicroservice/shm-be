@@ -1,0 +1,18 @@
+[submodule "post"]
+	path = post
+	url = https://github.com/SomeHowMicroservice/post_service
+[submodule "gateway"]
+	path = gateway
+	url = https://github.com/SomeHowMicroservice/api_gateway
+[submodule "user"]
+	path = user
+	url = https://github.com/SomeHowMicroservice/user_service
+[submodule "auth"]
+	path = auth
+	url = https://github.com/SomeHowMicroservice/auth_service
+[submodule "product"]
+	path = product
+	url = https://github.com/SomeHowMicroservice/product_service
+[submodule "chat"]
+	path = chat
+	url = https://github.com/SomeHowMicroservice/chat_service
