@@ -29,3 +29,5 @@ go get go.mongodb.org/mongo-driver/v2/mongo    (MongoDB)
 go get -u github.com/gosimple/slug    (Slug Library)
 
 go get github.com/imagekit-developer/imagekit-go    (Image Cloud Service Library)
+
+go get github.com/gorilla/websocket    (WebSocket Library)
