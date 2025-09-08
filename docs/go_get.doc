@@ -22,12 +22,12 @@ go get -u github.com/golang-jwt/jwt/v5    (JWT Library)
 
 go get github.com/gin-contrib/cors    (Gin CORS Config Library)
 
-go get github.com/rabbitmq/amqp091-go    (RabbitMQ Library)
-
-go get go.mongodb.org/mongo-driver/v2/mongo    (MongoDB)
-
 go get -u github.com/gosimple/slug    (Slug Library)
 
 go get github.com/imagekit-developer/imagekit-go    (Image Cloud Service Library)
 
 go get github.com/gorilla/websocket    (WebSocket Library)
+
+go get -u github.com/ThreeDotsLabs/watermill    (Event-driven Library)
+
+go get github.com/ThreeDotsLabs/watermill-amqp/v3    (AMQP Event-driven Library)
