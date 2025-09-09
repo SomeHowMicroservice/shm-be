@@ -31,3 +31,5 @@ go get github.com/gorilla/websocket    (WebSocket Library)
 go get -u github.com/ThreeDotsLabs/watermill    (Event-driven Library)
 
 go get github.com/ThreeDotsLabs/watermill-amqp/v3    (AMQP Event-driven Library)
+
+go get github.com/bytedance/sonicJSON    (JSON Serializing & Deserializing Library)
