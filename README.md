@@ -12,8 +12,6 @@
 │   ├── 📁 config/
 │   │   ├── 🐹 config.go
 │   │   └── ⚙️ config.yaml
-│   ├── 📁 consumers/
-│   │   └── 🐹 send_email_consumer.go
 │   ├── 📁 container/
 │   │   └── 🐹 auth_container.go
 │   ├── 📁 handler/
@@ -21,11 +19,10 @@
 │   ├── 📁 initialization/
 │   │   ├── 🐹 cache.go
 │   │   ├── 🐹 grpc_client.go
-│   │   └── 🐹 mq.go
+│   │   └── 🐹 watermill.go
 │   ├── 📁 mq/
 │   │   ├── 🐹 consumer.go
-│   │   ├── 🐹 publisher.go
-│   │   └── 🐹 retry.go
+│   │   └── 🐹 publisher.go
 │   ├── 📁 proto/
 │   │   ├── 📄 auth.proto
 │   │   └── 📄 user.proto
@@ -42,7 +39,8 @@
 │   ├── 📁 security/
 │   │   └── 🐹 jwt.go
 │   ├── 📁 server/
-│   │   └── 🐹 grpc_server.go
+│   │   ├── 🐹 grpc_server.go
+│   │   └── 🐹 server.go
 │   ├── 📁 service/
 │   │   ├── 🐹 auth_service.go
 │   │   └── 🐹 auth_service_impl.go
@@ -52,7 +50,6 @@
 │   │   ├── 🐹 smtp_service.go
 │   │   └── 🐹 smtp_service_impl.go
 │   ├── 📁 tmp/ 🚫 (auto-hidden)
-│   ├── ⚙️ .air.toml
 │   ├── 📄 .git 🚫 (auto-hidden)
 │   ├── 🚫 .gitignore
 │   ├── ⚙️ Makefile
@@ -60,32 +57,55 @@
 │   ├── 🐹 go.sum
 │   └── 🐹 main.go
 ├── 📁 chat/
+│   ├── 📁 dist/ 🚫 (auto-hidden)
 │   ├── 📁 node_modules/ 🚫 (auto-hidden)
 │   ├── 📁 src/
+│   │   ├── 📁 cloudinary/
+│   │   │   ├── 📄 cloudinary-response.ts
+│   │   │   ├── 📄 cloudinary.module.ts
+│   │   │   ├── 📄 cloudinary.provider.ts
+│   │   │   └── 📄 cloudinary.service.ts
 │   │   ├── 📁 common/
-│   │   │   └── 📄 types.ts
-│   │   ├── 📁 config/
-│   │   │   └── 📄 config.ts
-│   │   ├── 📁 controller/
-│   │   │   └── 📄 grpc.controller.ts
-│   │   ├── 📁 initialization/
-│   │   │   └── 📄 database.ts
-│   │   ├── 📁 model/
-│   │   │   ├── 📄 image.model.ts
-│   │   │   └── 📄 message.model.ts
+│   │   │   ├── 📄 error_handler.ts
+│   │   │   ├── 📄 exceptions.ts
+│   │   │   └── 📄 type.ts
+│   │   ├── 📁 mq/
+│   │   │   ├── 📄 rabbitmq.config.ts
+│   │   │   └── 📄 rabbitmq.module.ts
 │   │   ├── 📁 proto/
-│   │   │   └── 📄 chat.proto
+│   │   │   ├── 📄 chat.proto
+│   │   │   └── 📄 user.proto
 │   │   ├── 📁 protobuf/
-│   │   │   └── 📁 chat/
-│   │   │       └── 📄 chat.ts
-│   │   └── 📄 index.ts
+│   │   │   ├── 📁 chat/
+│   │   │   │   └── 📄 chat.ts
+│   │   │   └── 📁 user/
+│   │   │       └── 📄 user.ts
+│   │   ├── 📁 repository/
+│   │   │   ├── 📄 conversation.repository.ts
+│   │   │   ├── 📄 image.repository.ts
+│   │   │   └── 📄 message.repository.ts
+│   │   ├── 📁 schema/
+│   │   │   ├── 📄 conversation.schema.ts
+│   │   │   ├── 📄 image.schema.ts
+│   │   │   └── 📄 message.schema.ts
+│   │   ├── 📄 app.controller.ts
+│   │   ├── 📄 app.module.ts
+│   │   ├── 📄 app.service.ts
+│   │   └── 📄 main.ts
+│   ├── 📁 test/
+│   │   ├── 📄 app.e2e-spec.ts
+│   │   └── 📄 jest-e2e.json
 │   ├── 🔒 .env 🚫 (auto-hidden)
 │   ├── 📄 .git 🚫 (auto-hidden)
 │   ├── 🚫 .gitignore
+│   ├── 📄 .prettierrc
 │   ├── ⚙️ Makefile
 │   ├── 📖 README.md
-│   ├── 🔒 bun.lock
+│   ├── 📄 eslint.config.mjs
+│   ├── 📄 nest-cli.json
+│   ├── 📄 package-lock.json
 │   ├── 📄 package.json
+│   ├── 📄 tsconfig.build.json 🚫 (auto-hidden)
 │   └── 📄 tsconfig.json
 ├── 📁 docs/
 │   ├── 📄 bun_add.doc
@@ -109,17 +129,24 @@
 │   │   ├── 🐹 post_container.go
 │   │   ├── 🐹 product_container.go
 │   │   └── 🐹 user_container.go
+│   ├── 📁 event/
+│   │   ├── 🐹 manager.go
+│   │   └── 🐹 user.go
 │   ├── 📁 handler/
 │   │   ├── 🐹 auth_handler.go
 │   │   ├── 🐹 chat_handler.go
 │   │   ├── 🐹 post_handler.go
 │   │   ├── 🐹 product_handler.go
+│   │   ├── 🐹 sse_handler.go
 │   │   └── 🐹 user_handler.go
 │   ├── 📁 initialization/
-│   │   └── 🐹 grpc_client.go
+│   │   ├── 🐹 grpc_client.go
+│   │   └── 🐹 watermill.go
 │   ├── 📁 middleware/
 │   │   ├── 🐹 jwt.go
 │   │   └── 🐹 require.go
+│   ├── 📁 mq/
+│   │   └── 🐹 consumer.go
 │   ├── 📁 proto/
 │   │   ├── 📄 auth.proto
 │   │   ├── 📄 chat.proto
@@ -154,12 +181,12 @@
 │   │   ├── 🐹 product_router.go
 │   │   └── 🐹 user_router.go
 │   ├── 📁 server/
-│   │   └── 🐹 http_server.go
-│   ├── 📁 tmp/ 🚫 (auto-hidden)
-│   ├── 📁 websocket/
+│   │   ├── 🐹 http_server.go
+│   │   └── 🐹 server.go
+│   ├── 📁 socket/
 │   │   ├── 🐹 client.go
 │   │   └── 🐹 hub.go
-│   ├── ⚙️ .air.toml
+│   ├── 📁 tmp/ 🚫 (auto-hidden)
 │   ├── 📄 .git 🚫 (auto-hidden)
 │   ├── 🚫 .gitignore
 │   ├── ⚙️ Makefile
@@ -187,7 +214,8 @@
 │   │   │   │               ├── 📁 controller/
 │   │   │   │               │   └── ☕ GrpcController.java
 │   │   │   │               ├── 📁 dto/
-│   │   │   │               │   └── ☕ Base64UploadDto.java
+│   │   │   │               │   ├── ☕ Base64UploadDto.java
+│   │   │   │               │   └── ☕ ImageUploadedDto.java
 │   │   │   │               ├── 📁 entity/
 │   │   │   │               │   ├── ☕ BaseEntity.java
 │   │   │   │               │   ├── ☕ ImageEntity.java
@@ -247,9 +275,6 @@
 │   ├── 📁 config/
 │   │   ├── 🐹 config.go
 │   │   └── ⚙️ config.yaml
-│   ├── 📁 consumers/
-│   │   ├── 🐹 delete_image_consumer.go
-│   │   └── 🐹 upload_image_consumer.go
 │   ├── 📁 container/
 │   │   └── 🐹 product_container.go
 │   ├── 📁 handler/
@@ -260,7 +285,7 @@
 │   ├── 📁 initialization/
 │   │   ├── 🐹 database.go
 │   │   ├── 🐹 grpc_client.go
-│   │   └── 🐹 mq.go
+│   │   └── 🐹 watermill.go
 │   ├── 📁 model/
 │   │   ├── 🐹 category_model.go
 │   │   ├── 🐹 color_model.go
@@ -272,8 +297,7 @@
 │   │   └── 🐹 variant_model.go
 │   ├── 📁 mq/
 │   │   ├── 🐹 consumer.go
-│   │   ├── 🐹 publisher.go
-│   │   └── 🐹 retry.go
+│   │   └── 🐹 publisher.go
 │   ├── 📁 proto/
 │   │   ├── 📄 product.proto
 │   │   └── 📄 user.proto
@@ -310,7 +334,8 @@
 │   │       ├── 🐹 variant_repository.go
 │   │       └── 🐹 variant_repository_impl.go
 │   ├── 📁 server/
-│   │   └── 🐹 grpc_server.go
+│   │   ├── 🐹 grpc_server.go
+│   │   └── 🐹 server.go
 │   ├── 📁 service/
 │   │   ├── 🐹 product_service.go
 │   │   └── 🐹 product_service_impl.go
@@ -363,12 +388,12 @@
 │   │       ├── 🐹 user_repository.go
 │   │       └── 🐹 user_repository_impl.go
 │   ├── 📁 server/
-│   │   └── 🐹 grpc_server.go
+│   │   ├── 🐹 grpc_server.go
+│   │   └── 🐹 server.go
 │   ├── 📁 service/
 │   │   ├── 🐹 user_service.go
 │   │   └── 🐹 user_service_impl.go
 │   ├── 📁 tmp/ 🚫 (auto-hidden)
-│   ├── ⚙️ .air.toml
 │   ├── 📄 .git 🚫 (auto-hidden)
 │   ├── 🚫 .gitignore
 │   ├── ⚙️ Makefile
