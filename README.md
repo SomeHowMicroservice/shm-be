@@ -66,12 +66,15 @@
 │   │   │   ├── 📄 cloudinary.provider.ts
 │   │   │   └── 📄 cloudinary.service.ts
 │   │   ├── 📁 common/
+│   │   │   ├── 📄 constants.ts
 │   │   │   ├── 📄 error_handler.ts
 │   │   │   ├── 📄 exceptions.ts
-│   │   │   └── 📄 type.ts
+│   │   │   └── 📄 types.ts
 │   │   ├── 📁 mq/
-│   │   │   ├── 📄 rabbitmq.config.ts
-│   │   │   └── 📄 rabbitmq.module.ts
+│   │   │   ├── 📄 consumer.service.ts
+│   │   │   ├── 📄 mq.module.ts
+│   │   │   ├── 📄 publisher.service.ts
+│   │   │   └── 📄 retry.service.ts
 │   │   ├── 📁 proto/
 │   │   │   ├── 📄 chat.proto
 │   │   │   └── 📄 user.proto
@@ -130,15 +133,16 @@
 │   │   ├── 🐹 product_container.go
 │   │   └── 🐹 user_container.go
 │   ├── 📁 event/
-│   │   ├── 🐹 manager.go
-│   │   └── 🐹 user.go
+│   │   ├── 🐹 client.go
+│   │   └── 🐹 manager.go
 │   ├── 📁 handler/
 │   │   ├── 🐹 auth_handler.go
 │   │   ├── 🐹 chat_handler.go
 │   │   ├── 🐹 post_handler.go
 │   │   ├── 🐹 product_handler.go
 │   │   ├── 🐹 sse_handler.go
-│   │   └── 🐹 user_handler.go
+│   │   ├── 🐹 user_handler.go
+│   │   └── 🐹 ws_handler.go
 │   ├── 📁 initialization/
 │   │   ├── 🐹 grpc_client.go
 │   │   └── 🐹 watermill.go
@@ -179,7 +183,9 @@
 │   │   ├── 🐹 chat_router.go
 │   │   ├── 🐹 post_router.go
 │   │   ├── 🐹 product_router.go
-│   │   └── 🐹 user_router.go
+│   │   ├── 🐹 sse_router.go
+│   │   ├── 🐹 user_router.go
+│   │   └── 🐹 ws_router.go
 │   ├── 📁 server/
 │   │   ├── 🐹 http_server.go
 │   │   └── 🐹 server.go
