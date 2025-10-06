@@ -22,6 +22,8 @@ go get -u github.com/golang-jwt/jwt/v5    (JWT Library)
 
 go get github.com/gin-contrib/cors    (Gin CORS Config Library)
 
+go get github.con/gin-contrib/sse    (Gin SSE Library)
+
 go get -u github.com/gosimple/slug    (Slug Library)
 
 go get github.com/imagekit-developer/imagekit-go    (Image Cloud Service Library)
